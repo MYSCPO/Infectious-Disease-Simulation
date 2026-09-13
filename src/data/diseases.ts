@@ -1,10 +1,13 @@
 import type { DiseaseInfo } from '../types'
 
-// 출처: 학교 감염병 대응 모의훈련 연수자료 Ⅳ. 학교 주요 감염병의 종류와 특성
+// 출처: 학교 감염병 대응 모의훈련 연수자료 Ⅳ. 학교 주요 감염병의 종류와 특성, Ⅶ. 수두 질병 개요(예방 항목)
+// treatment/prevention은 수두를 제외하고는 일반적인 공중보건 수칙 수준으로 작성했으며,
+// 구체적인 약물 용법 등 임상적 처방 정보는 다루지 않고 "의료진 처방에 따름" 수준으로 서술한다.
 export const DISEASES: DiseaseInfo[] = [
   {
     id: 'chickenpox',
     name: '수두',
+    emoji: '🔴',
     grade: '2급',
     symptoms: '피부발진, 수포, 발열, 피로감',
     infectiousPeriod: '발진 1~2일 전부터 모든 피부 병변에 가피가 생길 때까지',
@@ -13,10 +16,20 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: true,
     temporaryIsolation: true,
     maskRequired: true,
+    treatment:
+      '대부분 특별한 치료 없이 자연 호전되며, 가려움과 발열 등 증상을 완화하는 대증치료를 시행합니다. 합병증 위험이 있는 경우 의료진의 처방에 따라 항바이러스제를 사용할 수 있습니다.',
+    prevention: [
+      '흐르는 물에 비누로 30초 이상 손 씻기(모든 전염병의 70% 예방)',
+      '올바른 기침 예절 및 유행 기간 마스크 착용',
+      '실내 공간 주기적으로 환기',
+      '수두 환자와 접촉하지 않도록 주의',
+      '예방접종력이 없고 과거 수두를 앓은 적이 없다면 노출 후 가능한 3일(최대 5일) 이내 백신 접종',
+    ],
   },
   {
     id: 'tuberculosis',
     name: '결핵',
+    emoji: '🫁',
     grade: '2급',
     symptoms: '발열, 전신 피로감, 식은땀, 체중감소',
     infectiousPeriod: '약물 치료 시작 후 2주까지',
@@ -25,10 +38,19 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: true,
     temporaryIsolation: true,
     maskRequired: true,
+    treatment:
+      '여러 종류의 항결핵제를 6개월 이상 규칙적으로 복용하는 약물 치료가 핵심이며, 임의로 중단하지 않고 의료진의 처방과 지시를 따라야 합니다.',
+    prevention: [
+      '기침 예절 준수 및 마스크 착용',
+      '정기적인 환기와 실내 밀집도 관리',
+      '고위험군은 잠복결핵 검진 및 예방적 치료 상담',
+      '약물 치료 시작 후 2주까지는 등교를 중지하고 충분히 휴식',
+    ],
   },
   {
     id: 'measles',
     name: '홍역',
+    emoji: '🌡️',
     grade: '2급',
     symptoms: '발진, 발열, 기침, 콧물, koplik반점',
     infectiousPeriod: '발진 4일 전부터 발진 발생 4일 후까지',
@@ -37,10 +59,18 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: true,
     temporaryIsolation: true,
     maskRequired: true,
+    treatment: '특효 치료제는 없으며 안정, 수분 섭취, 해열제 등으로 증상을 완화하는 대증치료를 시행합니다. 합병증이 의심되면 즉시 의료기관 진료가 필요합니다.',
+    prevention: [
+      'MMR(홍역-유행성이하선염-풍진) 예방접종 완료 여부 확인',
+      '환자와의 접촉을 피하고 마스크 착용',
+      '발진 발생 4일 전부터 4일 후까지 등교 중지',
+      '실내 환기 및 손 씻기 등 개인위생 수칙 준수',
+    ],
   },
   {
     id: 'mumps',
     name: '유행성이하선염',
+    emoji: '😷',
     grade: '2급',
     symptoms: '이하선 부종, 발열, 두통, 근육통',
     infectiousPeriod: '이하선염 발현 3일 전부터 5일 후까지',
@@ -49,10 +79,18 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: true,
     temporaryIsolation: true,
     maskRequired: true,
+    treatment: '특별한 치료제는 없으며 안정과 충분한 수분 섭취, 해열·진통제 등으로 증상을 완화하는 대증치료를 시행합니다.',
+    prevention: [
+      'MMR 예방접종 완료 여부 확인',
+      '증상 발생 후 5일까지 등교 중지',
+      '기침 예절 및 개인위생 수칙 준수',
+      '환자와의 접촉 최소화',
+    ],
   },
   {
     id: 'acuteHemorrhagicConjunctivitis',
     name: '급성출혈성결막염',
+    emoji: '👁️',
     grade: '4급',
     symptoms: '충혈, 안통, 이물감, 많은 눈물, 눈부심, 눈곱, 결막하출혈',
     infectiousPeriod: '발병 후 4일-1주일',
@@ -61,10 +99,18 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: true,
     temporaryIsolation: true,
     maskRequired: false,
+    treatment: '특별한 치료 없이 대부분 1~2주 내 자연 호전되며, 필요 시 안과 진료를 통해 증상 완화를 위한 점안액 등을 처방받을 수 있습니다.',
+    prevention: [
+      '눈을 만지기 전후 손 씻기',
+      '수건·세면도구 개인 사용',
+      '눈 분비물 접촉 주의 및 개인위생 수칙 철저히 준수',
+      '격리보다는 위생수칙 준수가 중요',
+    ],
   },
   {
     id: 'epidemicKeratoconjunctivitis',
     name: '유행성각결막염',
+    emoji: '👁️',
     grade: '4급',
     symptoms: '충혈, 안통, 이물감, 많은 눈물, 눈부심, 눈곱, 결막하출혈',
     infectiousPeriod: '발병 후 14일까지',
@@ -73,10 +119,18 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: true,
     temporaryIsolation: true,
     maskRequired: false,
+    treatment: '특별한 치료 없이 대부분 자연 호전되며, 증상이 심하면 안과 진료를 통해 대증치료를 받을 수 있습니다.',
+    prevention: [
+      '눈을 만지기 전후 손 씻기',
+      '수건·베개 등 개인용품 분리 사용',
+      '발병 후 14일까지 개인위생 수칙 철저히 준수',
+      '다중이용시설 이용 자제',
+    ],
   },
   {
     id: 'influenza',
     name: '인플루엔자',
+    emoji: '🤧',
     grade: '4급',
     symptoms: '발열, 두통, 근육통, 인후통, 기침, 객담',
     infectiousPeriod: '증상 발생 1일 전부터 5일까지',
@@ -85,6 +139,13 @@ export const DISEASES: DiseaseInfo[] = [
     contactTracing: false,
     temporaryIsolation: true,
     maskRequired: true,
+    treatment: '대부분 안정과 수분 섭취로 호전되며, 고위험군이거나 증상이 심한 경우 의료진 처방에 따라 항바이러스제를 사용할 수 있습니다.',
+    prevention: [
+      '매년 인플루엔자 예방접종',
+      '기침 예절 및 마스크 착용',
+      '흐르는 물에 비누로 손 씻기',
+      '증상 발생 시 등교를 자제하고 충분히 휴식',
+    ],
   },
 ]
 

@@ -70,7 +70,7 @@ export default function FacilitatorPresentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper-50">
       <StageBanner current={session.currentStage} />
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
@@ -94,7 +94,7 @@ export default function FacilitatorPresentPage() {
             type="button"
             onClick={handleReveal}
             disabled={busy || session.revealed || submittedCount === 0}
-            className="flex-1 min-w-[200px] rounded-lg bg-emerald-600 text-white py-3 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40"
+            className="flex-1 min-w-[200px] rounded-full bg-emerald-600 text-white py-3 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40"
           >
             {session.revealed ? '공개됨' : allSubmitted ? '전체 공개하기' : `일부만 제출됨(${submittedCount}/${groups.length}) · 지금 공개하기`}
           </button>
@@ -102,13 +102,13 @@ export default function FacilitatorPresentPage() {
             type="button"
             onClick={handleAdvance}
             disabled={busy}
-            className="flex-1 min-w-[200px] rounded-lg bg-slate-800 text-white py-3 text-sm font-semibold hover:bg-slate-700 disabled:opacity-40"
+            className="flex-1 min-w-[200px] rounded-full bg-slate-800 text-white py-3 text-sm font-semibold hover:bg-slate-700 disabled:opacity-40"
           >
             {next ? `다음 단계로 (${STAGES.find((s) => s.id === next)?.shortLabel})` : '훈련 종료 · 결과 화면으로'}
           </button>
         </div>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-5">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-semibold text-slate-800 mb-3">돌발 상황 카드</h2>
           <div className="flex flex-wrap gap-2">
             {applicableWildcards.map((w) => (

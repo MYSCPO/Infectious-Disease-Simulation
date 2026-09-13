@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { SchoolLevel } from '../types'
-import { DISEASES } from '../data/diseases'
+import { DISEASES, getDiseaseById } from '../data/diseases'
 import { createSession, updateSession } from '../lib/session'
 import OrgChartEditor from '../components/OrgChartEditor'
 
@@ -9,9 +9,11 @@ const SCHOOL_LEVELS: SchoolLevel[] = ['초등학교', '중학교', '고등학교
 
 export default function FacilitatorSetupPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preselectedDisease = searchParams.get('disease')
   const [schoolName, setSchoolName] = useState('')
   const [schoolLevel, setSchoolLevel] = useState<SchoolLevel>('고등학교')
-  const [diseaseId, setDiseaseId] = useState(DISEASES[0].id)
+  const [diseaseId, setDiseaseId] = useState(preselectedDisease ? getDiseaseById(preselectedDisease).id : DISEASES[0].id)
   const [orgChart, setOrgChart] = useState({ homeroom: '', health: '', safetyHead: '', admin: '', principal: '' })
   const [gaps, setGaps] = useState({ observationRoomLocation: '', homeroomBackupPlan: '', weekendContactSystem: '' })
   const [submitting, setSubmitting] = useState(false)
@@ -37,7 +39,7 @@ export default function FacilitatorSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-paper-50 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-xl font-bold text-slate-800">진행자 학교 설정</h1>
@@ -46,7 +48,7 @@ export default function FacilitatorSetupPage() {
           </p>
         </div>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
           <h2 className="font-semibold text-slate-800">기본 정보</h2>
           <label className="block">
             <span className="text-sm font-medium text-slate-700">학교명</span>
@@ -92,7 +94,7 @@ export default function FacilitatorSetupPage() {
           </label>
         </section>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
           <h2 className="font-semibold text-slate-800">조직도 (역할별 실제 담당자)</h2>
           <p className="text-xs text-slate-400">
             관리자 역할은 실제 교장·교감이 맡는 것을 권장합니다. 조 편성 단계에서 참가자 이름과 별도로, 여기서는 학교의
@@ -101,7 +103,7 @@ export default function FacilitatorSetupPage() {
           <OrgChartEditor value={orgChart} onChange={setOrgChart} />
         </section>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
           <h2 className="font-semibold text-slate-800">우리 학교 항목 (대응 공백 확인)</h2>
           <p className="text-xs text-slate-400">비워두면 결과 화면과 가이드북에 "대응 공백"으로 표시됩니다.</p>
           <label className="block">
@@ -139,7 +141,7 @@ export default function FacilitatorSetupPage() {
           type="button"
           onClick={handleCreate}
           disabled={submitting}
-          className="w-full rounded-lg bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-50"
+          className="w-full rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-50"
         >
           {submitting ? '생성 중...' : '참가 코드 발급하고 조 편성으로 이동'}
         </button>

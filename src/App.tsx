@@ -7,11 +7,15 @@ import TeamTrainingPage from './pages/TeamTrainingPage'
 import FacilitatorPresentPage from './pages/FacilitatorPresentPage'
 import ResultPage from './pages/ResultPage'
 import GuidebookPage from './pages/GuidebookPage'
+import DiseaseGalleryPage from './pages/DiseaseGalleryPage'
+import DiseaseDetailPage from './pages/DiseaseDetailPage'
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<MainPage />} />
+      <Route path="/diseases" element={<DiseaseGalleryPage />} />
+      <Route path="/diseases/:id" element={<DiseaseDetailPage />} />
       <Route path="/facilitator/setup" element={<FacilitatorSetupPage />} />
       <Route path="/facilitator/:code/groups" element={<GroupAssignmentPage />} />
       <Route path="/facilitator/:code/present" element={<FacilitatorPresentPage />} />

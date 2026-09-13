@@ -75,7 +75,7 @@ export default function TeamTrainingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-paper-50 pb-24">
       <StageBanner current={session.currentStage} />
 
       <div className="max-w-5xl mx-auto px-4 py-5">
@@ -117,7 +117,7 @@ export default function TeamTrainingPage() {
               />
             )}
 
-            <div className="sticky bottom-0 bg-slate-50/95 backdrop-blur py-3">
+            <div className="sticky bottom-0 bg-paper-50/95 backdrop-blur py-3">
               {submitted ? (
                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm text-center py-3 font-semibold">
                   제출 완료 · 진행자가 전체 공개할 때까지 기다려 주세요
@@ -127,7 +127,7 @@ export default function TeamTrainingPage() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={!allAnswered || submitting}
-                  className="w-full rounded-lg bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-40"
+                  className="w-full rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-40"
                 >
                   {allAnswered ? (submitting ? '제출 중...' : '조 답변 제출하기') : '모든 역할의 조치를 선택하면 제출할 수 있어요'}
                 </button>

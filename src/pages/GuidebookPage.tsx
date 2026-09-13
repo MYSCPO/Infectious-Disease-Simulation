@@ -25,8 +25,8 @@ export default function GuidebookPage() {
   const gaps = detectGaps(session.orgChart, session.gaps)
 
   return (
-    <div className="min-h-screen bg-slate-100 py-6 px-4">
-      <div className="no-print max-w-2xl mx-auto mb-5 bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-3">
+    <div className="min-h-screen bg-paper-100 py-6 px-4">
+      <div className="no-print max-w-2xl mx-auto mb-5 bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center gap-3">
         <label className="text-sm text-slate-600">
           훈련 일시:{' '}
           <input
@@ -50,7 +50,7 @@ export default function GuidebookPage() {
         <button
           type="button"
           onClick={handlePrint}
-          className="ml-auto rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-semibold hover:bg-brand-700"
+          className="ml-auto rounded-full bg-brand-600 text-white px-4 py-2 text-sm font-semibold hover:bg-brand-700"
         >
           PDF로 저장 / 인쇄
         </button>

@@ -7,7 +7,7 @@ export default function RevealComparison({ questions, submissions }: { questions
       {questions.map((q) => {
         const correctOption = q.options.find((o) => o.correct)
         return (
-          <div key={q.role} className="bg-white rounded-xl border border-slate-200 p-4">
+          <div key={q.role} className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="text-xs font-semibold text-brand-600 mb-1">{ROLE_LABELS[q.role]}</div>
             <p className="text-sm font-medium text-slate-800 mb-3">{q.prompt}</p>
 

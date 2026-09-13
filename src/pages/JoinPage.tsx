@@ -63,12 +63,12 @@ export default function JoinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-paper-50 py-8 px-4">
       <div className="max-w-md mx-auto space-y-5">
         <h1 className="text-xl font-bold text-slate-800 text-center">모의훈련 참가하기</h1>
 
         {!confirmedCode || !session ? (
-          <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+          <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
             <label className="block">
               <span className="text-sm font-medium text-slate-700">참가 코드</span>
               <input
@@ -82,7 +82,7 @@ export default function JoinPage() {
             <button
               type="button"
               onClick={handleCheckCode}
-              className="w-full rounded-lg bg-brand-600 text-white py-2.5 text-sm font-semibold hover:bg-brand-700"
+              className="w-full rounded-full bg-brand-600 text-white py-2.5 text-sm font-semibold hover:bg-brand-700"
             >
               확인
             </button>
@@ -91,7 +91,7 @@ export default function JoinPage() {
           <>
             <p className="text-center text-sm text-slate-500">{session.schoolName} · 참가 코드 {confirmedCode}</p>
 
-            <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+            <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
               <span className="text-sm font-medium text-slate-700">조 선택</span>
               <div className="grid grid-cols-2 gap-2">
                 {groups.map((g) => (
@@ -111,7 +111,7 @@ export default function JoinPage() {
             </section>
 
             {selectedGroup && (
-              <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+              <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
                 <span className="text-sm font-medium text-slate-700">역할 선택</span>
                 <div className="grid grid-cols-1 gap-2">
                   {ROLE_ORDER.map((r) => {
@@ -142,7 +142,7 @@ export default function JoinPage() {
               </section>
             )}
 
-            <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+            <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
               <label className="block">
                 <span className="text-sm font-medium text-slate-700">이름</span>
                 <input
@@ -160,7 +160,7 @@ export default function JoinPage() {
               type="button"
               onClick={handleJoin}
               disabled={joining}
-              className="w-full rounded-lg bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-50"
+              className="w-full rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-50"
             >
               {joining ? '입장 중...' : '입장하기'}
             </button>

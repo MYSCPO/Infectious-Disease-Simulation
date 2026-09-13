@@ -7,8 +7,10 @@ html, body, #root {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-paper-50 text-slate-900 font-sans;
 }
+
+/* 디자인 컨벤션: 카드=rounded-2xl/3xl + shadow-sm, 주요 버튼=rounded-full(필 형태), 배경=paper 톤 */
 
 @media print {
   @page {

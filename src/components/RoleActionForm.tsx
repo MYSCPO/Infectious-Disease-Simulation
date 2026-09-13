@@ -21,7 +21,7 @@ export default function RoleActionForm({ questions, myRole, answers, onSelect, d
         return (
           <div
             key={q.role}
-            className={`rounded-xl border p-4 ${
+            className={`rounded-2xl border p-4 ${
               isMine ? 'border-brand-300 bg-brand-50/40' : 'border-slate-200 bg-white opacity-90'
             }`}
           >

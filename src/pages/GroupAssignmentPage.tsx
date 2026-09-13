@@ -29,20 +29,20 @@ export default function GroupAssignmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-paper-50 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
           <h1 className="text-xl font-bold text-slate-800">조 편성</h1>
           <p className="text-sm text-slate-500 mt-1">{session?.schoolName ?? '학교'} · 참가자는 아래 코드로 입장합니다.</p>
         </div>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-6 text-center">
+        <section className="bg-white rounded-2xl border border-slate-200 p-6 text-center">
           <p className="text-xs text-slate-400 mb-1">참가 코드</p>
           <p className="text-4xl font-black tracking-widest text-brand-700">{code}</p>
           <p className="text-xs text-slate-400 mt-2 break-all">{joinUrl}</p>
         </section>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-5">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h2 className="font-semibold text-slate-800">조 목록 ({groups.length})</h2>
             <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export default function GroupAssignmentPage() {
                 type="button"
                 onClick={handleAddGroup}
                 disabled={creating}
-                className="rounded-lg bg-brand-600 text-white text-sm font-semibold px-4 py-2 hover:bg-brand-700 disabled:opacity-50"
+                className="rounded-full bg-brand-600 text-white text-sm font-semibold px-4 py-2 hover:bg-brand-700 disabled:opacity-50"
               >
                 + 조 추가
               </button>
@@ -108,7 +108,7 @@ export default function GroupAssignmentPage() {
 
         <Link
           to={`/facilitator/${code}/present`}
-          className="block text-center rounded-lg bg-slate-800 text-white py-3 text-sm font-semibold hover:bg-slate-700"
+          className="block text-center rounded-full bg-slate-800 text-white py-3 text-sm font-semibold hover:bg-slate-700"
         >
           진행자 화면으로 이동 (훈련 시작)
         </Link>

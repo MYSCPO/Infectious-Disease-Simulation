@@ -10,7 +10,7 @@ export default function ChecklistPanel({ stage, myRole }: { stage: StageId; myRo
   const stageDef = getStage(stage)
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

@@ -29,6 +29,7 @@ export interface StageDef {
 export interface DiseaseInfo {
   id: string
   name: string
+  emoji: string // 갤러리 카드용 아이콘
   grade: string // 법정감염병 등급
   symptoms: string
   infectiousPeriod: string
@@ -37,6 +38,8 @@ export interface DiseaseInfo {
   contactTracing: boolean // 밀접접촉자 파악 필요 여부
   temporaryIsolation: boolean // 일시적 격리 필요 여부
   maskRequired: boolean // 마스크 착용 필요 여부
+  treatment: string // 치료 개요
+  prevention: string[] // 예방수칙
 }
 
 export interface ChecklistStageContent {

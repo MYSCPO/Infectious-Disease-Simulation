@@ -16,7 +16,7 @@ export default function WildcardModal({ card, onClose }: { card: WildcardCard; o
           <button
             type="button"
             onClick={onClose}
-            className="mt-5 w-full rounded-lg bg-slate-800 text-white py-2 text-sm font-medium hover:bg-slate-700"
+            className="mt-5 w-full rounded-full bg-slate-800 text-white py-2 text-sm font-medium hover:bg-slate-700"
           >
             닫기
           </button>

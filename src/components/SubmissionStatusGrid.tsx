@@ -10,7 +10,7 @@ export default function SubmissionStatusGrid({ groups, submissions }: { groups: 
         return (
           <div
             key={g.id}
-            className={`rounded-xl border p-3 text-center ${
+            className={`rounded-2xl border p-3 text-center ${
               done ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'
             }`}
           >

@@ -21,14 +21,14 @@ export default function ResultPage() {
   }, {})
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-paper-50 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-xl font-bold text-slate-800">훈련 결과</h1>
           <p className="text-sm text-slate-500 mt-1">{session.schoolName} · 참가 코드 {code}</p>
         </div>
 
-        <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-2">
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2">
           <h2 className="font-semibold text-slate-800 mb-1">훈련 요약</h2>
           <div className="text-sm text-slate-600 space-y-1">
             <p>참여 조 수: {groups.length}개</p>
@@ -46,7 +46,7 @@ export default function ResultPage() {
           </div>
         </section>
 
-        <section className="bg-white rounded-xl border border-amber-200 bg-amber-50/60 p-5 space-y-2">
+        <section className="bg-white rounded-2xl border border-amber-200 bg-amber-50/60 p-5 space-y-2">
           <h2 className="font-semibold text-amber-800 mb-1">우리 학교 대응 공백 목록</h2>
           {gaps.length === 0 ? (
             <p className="text-sm text-emerald-700">확인된 공백이 없습니다. 모든 항목이 입력되었습니다.</p>
@@ -61,7 +61,7 @@ export default function ResultPage() {
 
         <Link
           to={`/guidebook/${code}`}
-          className="block text-center rounded-lg bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700"
+          className="block text-center rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700"
         >
           맞춤형 가이드북 PDF 보기 / 다운로드
         </Link>
