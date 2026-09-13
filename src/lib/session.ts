@@ -70,7 +70,7 @@ export async function createSession(input: CreateSessionInput): Promise<string> 
     code = generateSessionCode()
   }
 
-  const emptyOrgChart: SessionOrgChart = { homeroom: '', health: '', safetyHead: '', admin: '', principal: '' }
+  const emptyOrgChart: SessionOrgChart = { surveillance: '', health: '', academic: '', admin: '', principal: '' }
   const emptyGaps: SessionGaps = { observationRoomLocation: '', homeroomBackupPlan: '', weekendContactSystem: '' }
 
   const data: Omit<SessionDoc, 'createdAt' | 'updatedAt'> & { createdAt: unknown; updatedAt: unknown } = {

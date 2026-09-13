@@ -14,7 +14,7 @@ export default function FacilitatorSetupPage() {
   const [schoolName, setSchoolName] = useState('')
   const [schoolLevel, setSchoolLevel] = useState<SchoolLevel>('고등학교')
   const [diseaseId, setDiseaseId] = useState(preselectedDisease ? getDiseaseById(preselectedDisease).id : DISEASES[0].id)
-  const [orgChart, setOrgChart] = useState({ homeroom: '', health: '', safetyHead: '', admin: '', principal: '' })
+  const [orgChart, setOrgChart] = useState({ surveillance: '', health: '', academic: '', admin: '', principal: '' })
   const [gaps, setGaps] = useState({ observationRoomLocation: '', homeroomBackupPlan: '', weekendContactSystem: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)

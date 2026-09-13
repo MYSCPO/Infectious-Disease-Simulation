@@ -2,18 +2,20 @@
 
 export type SchoolLevel = '초등학교' | '중학교' | '고등학교'
 
-export type RoleId = 'homeroom' | 'health' | 'safetyHead' | 'admin' | 'principal'
+export type RoleId = 'surveillance' | 'health' | 'academic' | 'admin' | 'principal'
 
-// PRD: 담임·보건·생활부장·행정실장·관리자
+// 출처: 학교 「학생감염병관리조직」 실제 운영 조직도(발생감시팀/예방관리팀/학사관리팀/행정지원팀 + 관리자).
+// "생활부장"처럼 고정된 특정 직책이 항상 존재하는 것이 아니라 학교마다 다른 교사가 팀장을 맡는 경우가
+// 많아, 역할은 팀 단위로 표시하고 실제 담당자 이름은 조직도 화면에서 자유롭게 입력받는다.
 export const ROLE_LABELS: Record<RoleId, string> = {
-  homeroom: '담임교사',
-  health: '보건교사',
-  safetyHead: '생활부장(발생감시팀)',
-  admin: '행정실장',
+  surveillance: '발생감시팀',
+  health: '예방관리팀',
+  academic: '학사관리팀',
+  admin: '행정지원팀',
   principal: '관리자(교장·교감)',
 }
 
-export const ROLE_ORDER: RoleId[] = ['homeroom', 'health', 'safetyHead', 'admin', 'principal']
+export const ROLE_ORDER: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
 export type StageId = 'prevention' | 'response1' | 'response2' | 'response3' | 'recovery'
 
@@ -85,9 +87,9 @@ export interface SchoolGapItem {
 }
 
 export interface SessionOrgChart {
-  homeroom: string
+  surveillance: string
   health: string
-  safetyHead: string
+  academic: string
   admin: string
   principal: string
 }
