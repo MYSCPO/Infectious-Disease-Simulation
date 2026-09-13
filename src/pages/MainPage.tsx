@@ -12,7 +12,7 @@ export default function MainPage() {
         </p>
       </header>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 grid sm:grid-cols-3 gap-5">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
           <div className="text-3xl mb-2">🧑‍🤝‍🧑</div>
           <h2 className="text-lg font-bold text-slate-800 mb-1">모의훈련 시나리오</h2>
@@ -46,6 +46,20 @@ export default function MainPage() {
             className="block text-center rounded-full bg-brand-100 text-brand-700 py-2.5 text-sm font-semibold hover:bg-brand-200 transition-colors"
           >
             감염병 갤러리 보기
+          </Link>
+        </section>
+
+        <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
+          <div className="text-3xl mb-2">🩹</div>
+          <h2 className="text-lg font-bold text-slate-800 mb-1">호발 감염병 10종 가이드</h2>
+          <p className="text-sm text-slate-500 mb-4 flex-1 leading-relaxed">
+            원인부터 등교 중지 기준까지 한눈에 보는 인포그래픽 신속 대응 가이드를 바로 볼 수 있어요.
+          </p>
+          <Link
+            to="/guide"
+            className="block text-center rounded-full bg-brand-100 text-brand-700 py-2.5 text-sm font-semibold hover:bg-brand-200 transition-colors"
+          >
+            가이드 바로 보기
           </Link>
         </section>
 

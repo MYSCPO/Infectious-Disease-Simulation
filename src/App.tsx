@@ -9,6 +9,7 @@ import ResultPage from './pages/ResultPage'
 import GuidebookPage from './pages/GuidebookPage'
 import DiseaseGalleryPage from './pages/DiseaseGalleryPage'
 import DiseaseDetailPage from './pages/DiseaseDetailPage'
+import GuideDocumentPage from './pages/GuideDocumentPage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/" element={<MainPage />} />
       <Route path="/diseases" element={<DiseaseGalleryPage />} />
       <Route path="/diseases/:id" element={<DiseaseDetailPage />} />
+      <Route path="/guide" element={<GuideDocumentPage />} />
       <Route path="/facilitator/setup" element={<FacilitatorSetupPage />} />
       <Route path="/facilitator/:code/groups" element={<GroupAssignmentPage />} />
       <Route path="/facilitator/:code/present" element={<FacilitatorPresentPage />} />
