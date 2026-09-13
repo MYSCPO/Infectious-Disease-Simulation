@@ -14,7 +14,12 @@ interface Props {
 }
 
 const GuidebookDocument = forwardRef<HTMLDivElement, Props>(({ session, groups, gaps, trainingDate }, ref) => {
-  const disease = getDiseaseById(session.diseaseId)
+  const diseaseGroupNames = groups.reduce<Record<string, string[]>>((acc, g) => {
+    const id = g.diseaseId || session.diseaseId
+    ;(acc[id] ??= []).push(g.name)
+    return acc
+  }, {})
+  const diseaseIds = Object.keys(diseaseGroupNames).length > 0 ? Object.keys(diseaseGroupNames) : [session.diseaseId]
 
   return (
     <div ref={ref} className="bg-white text-slate-900 max-w-[210mm] mx-auto">
@@ -25,7 +30,7 @@ const GuidebookDocument = forwardRef<HTMLDivElement, Props>(({ session, groups, 
         <p className="text-lg text-slate-500 mb-10">{session.schoolName} ({session.schoolLevel})</p>
         <div className="text-sm text-slate-600 space-y-1">
           <p>훈련 일시: {trainingDate}</p>
-          <p>대상 감염병: {disease.name} ({disease.grade})</p>
+          <p>대상 감염병: {diseaseIds.map((id) => getDiseaseById(id).name).join(', ')}</p>
           <p>참석자 수: {session.attendeeCount}명 · 참여 조: {groups.length}개</p>
         </div>
       </section>
@@ -50,33 +55,49 @@ const GuidebookDocument = forwardRef<HTMLDivElement, Props>(({ session, groups, 
           </tbody>
         </table>
 
-        <h2 className="text-xl font-bold text-slate-800 mt-8 mb-4 border-b-2 border-brand-600 pb-2">대상 감염병 정보 · {disease.name}</h2>
-        <table className="w-full text-sm border-collapse">
-          <tbody>
-            <tr>
-              <td className="border border-slate-300 py-2 px-3 font-medium w-40">임상 증상</td>
-              <td className="border border-slate-300 py-2 px-3">{disease.symptoms}</td>
-            </tr>
-            <tr>
-              <td className="border border-slate-300 py-2 px-3 font-medium">감염 가능 기간</td>
-              <td className="border border-slate-300 py-2 px-3">{disease.infectiousPeriod}</td>
-            </tr>
-            <tr>
-              <td className="border border-slate-300 py-2 px-3 font-medium">등교중지(격리) 기간</td>
-              <td className="border border-slate-300 py-2 px-3">{disease.exclusionPeriod}</td>
-            </tr>
-            <tr>
-              <td className="border border-slate-300 py-2 px-3 font-medium">잠복기</td>
-              <td className="border border-slate-300 py-2 px-3">{disease.incubationPeriod}</td>
-            </tr>
-            <tr>
-              <td className="border border-slate-300 py-2 px-3 font-medium">밀접접촉자 파악 / 일시적 격리 / 마스크 착용</td>
-              <td className="border border-slate-300 py-2 px-3">
-                {disease.contactTracing ? 'O' : 'X'} / {disease.temporaryIsolation ? 'O' : 'X'} / {disease.maskRequired ? 'O' : 'X'}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {diseaseIds.map((id) => {
+          const disease = getDiseaseById(id)
+          const namesForDisease = diseaseGroupNames[id]
+          return (
+            <div key={id} className="mt-8">
+              <h2 className="text-xl font-bold text-slate-800 mb-1 border-b-2 border-brand-600 pb-2">
+                대상 감염병 정보 · {disease.name}
+              </h2>
+              {namesForDisease && (
+                <p className="text-xs text-slate-500 mb-3">담당 조: {namesForDisease.join(', ')}</p>
+              )}
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border border-slate-300 py-2 px-3 font-medium w-40">임상 증상</td>
+                    <td className="border border-slate-300 py-2 px-3">{disease.symptoms}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-300 py-2 px-3 font-medium">감염 가능 기간</td>
+                    <td className="border border-slate-300 py-2 px-3">{disease.infectiousPeriod}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-300 py-2 px-3 font-medium">등교중지(격리) 기간</td>
+                    <td className="border border-slate-300 py-2 px-3">{disease.exclusionPeriod}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-300 py-2 px-3 font-medium">잠복기</td>
+                    <td className="border border-slate-300 py-2 px-3">{disease.incubationPeriod}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-slate-300 py-2 px-3 font-medium">
+                      밀접접촉자 파악 / 일시적 격리 / 마스크 착용
+                    </td>
+                    <td className="border border-slate-300 py-2 px-3">
+                      {disease.contactTracing ? 'O' : 'X'} / {disease.temporaryIsolation ? 'O' : 'X'} /{' '}
+                      {disease.maskRequired ? 'O' : 'X'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )
+        })}
       </section>
 
       {/* 단계별 표준 조치 */}

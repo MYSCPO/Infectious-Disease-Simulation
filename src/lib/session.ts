@@ -125,12 +125,17 @@ export function subscribeGroups(code: string, cb: (groups: GroupDoc[]) => void) 
   })
 }
 
-export async function createGroup(code: string, name: string): Promise<string> {
+export async function createGroup(code: string, name: string, diseaseId: string): Promise<string> {
   await ensureSignedIn()
   const ref = doc(groupsCol(code))
-  const data: Omit<GroupDoc, 'id'> = { name, members: {}, createdAt: Date.now() }
+  const data: Omit<GroupDoc, 'id'> = { name, diseaseId, members: {}, createdAt: Date.now() }
   await setDoc(ref, data)
   return ref.id
+}
+
+export async function updateGroupDisease(code: string, groupId: string, diseaseId: string) {
+  await ensureSignedIn()
+  await updateDoc(groupRef(code, groupId), { diseaseId })
 }
 
 // 여러 참가자가 동시에 같은 조에 폰으로 접속해 역할을 선택할 수 있으므로,

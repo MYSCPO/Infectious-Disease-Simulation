@@ -5,6 +5,7 @@ import { ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
+import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
 import { releaseRole, saveDraftAnswer, submitGroupAnswer } from '../lib/session'
@@ -42,7 +43,7 @@ export default function TeamTrainingPage() {
     )
   }
 
-  const scenarioStages = getScenarioForDisease(session.diseaseId)
+  const scenarioStages = getScenarioForDisease(group?.diseaseId ?? session.diseaseId)
   const currentScenario = scenarioStages.find((s) => s.stage === session.currentStage)
   const activeWildcard = session.activeWildcardId ? WILDCARDS.find((w) => w.id === session.activeWildcardId) : null
   const allAnswered = ROLE_ORDER.every((r) => answers.some((a) => a.role === r))
@@ -81,7 +82,14 @@ export default function TeamTrainingPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm text-slate-500">{session.schoolName}</p>
-            <h1 className="text-lg font-bold text-slate-800">{group?.name ?? '조'}</h1>
+            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              {group?.name ?? '조'}
+              {group && (
+                <span className="text-xs font-semibold bg-brand-100 text-brand-700 rounded-full px-2 py-0.5">
+                  {getDiseaseById(group.diseaseId).name}
+                </span>
+              )}
+            </h1>
           </div>
           {isMine ? (
             <Link to={`/join/${code}`} onClick={handleChangeRole} className="text-xs text-slate-400 underline">

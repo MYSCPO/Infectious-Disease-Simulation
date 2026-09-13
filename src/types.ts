@@ -99,7 +99,7 @@ export interface SessionDoc {
   code: string
   schoolName: string
   schoolLevel: SchoolLevel
-  diseaseId: string
+  diseaseId: string // 조 생성 시 기본으로 적용되는 감염병(조별로 다르게 재지정 가능)
   orgChart: SessionOrgChart
   gaps: SessionGaps
   currentStage: StageId
@@ -113,6 +113,7 @@ export interface SessionDoc {
 export interface GroupDoc {
   id: string
   name: string
+  diseaseId: string // 이 조가 훈련할 감염병 (조마다 다르게 배정 가능)
   members: Partial<Record<RoleId, string>> // roleId -> 참가자 이름
   createdAt: number
 }

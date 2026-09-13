@@ -14,7 +14,11 @@ export default function ResultPage() {
   if (!session) return <div className="p-8 text-center text-slate-500">세션을 찾을 수 없습니다.</div>
 
   const gaps = detectGaps(session.orgChart, session.gaps)
-  const disease = getDiseaseById(session.diseaseId)
+  const diseaseGroupNames = groups.reduce<Record<string, string[]>>((acc, g) => {
+    const id = g.diseaseId || session.diseaseId
+    ;(acc[id] ??= []).push(g.name)
+    return acc
+  }, {})
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
@@ -27,9 +31,18 @@ export default function ResultPage() {
         <section className="bg-white rounded-xl border border-slate-200 p-5 space-y-2">
           <h2 className="font-semibold text-slate-800 mb-1">훈련 요약</h2>
           <div className="text-sm text-slate-600 space-y-1">
-            <p>대상 감염병: {disease.name} ({disease.grade})</p>
             <p>참여 조 수: {groups.length}개</p>
             <p>진행 단계: {STAGES.find((s) => s.id === session.currentStage)?.label}</p>
+            <div>
+              <p className="mb-1">감염병별 참여 조:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                {Object.entries(diseaseGroupNames).map(([diseaseId, names]) => (
+                  <li key={diseaseId}>
+                    {getDiseaseById(diseaseId).name}: {names.join(', ')}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 

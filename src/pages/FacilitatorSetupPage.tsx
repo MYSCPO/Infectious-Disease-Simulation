@@ -72,7 +72,7 @@ export default function FacilitatorSetupPage() {
             </select>
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">대상 감염병</span>
+            <span className="text-sm font-medium text-slate-700">기본 감염병 (조 생성 시 기본값)</span>
             <select
               value={diseaseId}
               onChange={(e) => setDiseaseId(e.target.value)}
@@ -85,8 +85,9 @@ export default function FacilitatorSetupPage() {
               ))}
             </select>
             <span className="text-xs text-slate-400">
-              수두를 선택하면 첨부 자료의 실제 서사 시나리오가 사용됩니다. 다른 감염병은 동일 절차 템플릿에 해당 질병
-              정보를 반영해 생성됩니다.
+              조마다 다른 감염병을 배정해 교직원 전체가 다양한 감염병을 경험하게 할 수 있습니다(조 편성 화면에서 조별로
+              변경). 여기서 고르는 값은 새 조를 만들 때의 기본값입니다. 수두는 첨부 자료의 실제 서사 시나리오를
+              사용하고, 다른 감염병은 동일 절차 템플릿에 해당 질병 정보를 반영해 생성됩니다.
             </span>
           </label>
         </section>
