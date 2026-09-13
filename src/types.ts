@@ -15,6 +15,30 @@ export const ROLE_LABELS: Record<RoleId, string> = {
   principal: '관리자(교장·교감)',
 }
 
+// 참가자가 역할을 고를 때 "무슨 일을 하는지 / 보통 누가 맡는지" 감을 잡도록 안내하는 설명
+export const ROLE_DESCRIPTIONS: Record<RoleId, { summary: string; example: string }> = {
+  surveillance: {
+    summary: '학생의 이상 증상을 가장 먼저 발견해 보건교사에게 알리고, 확산 시 능동감시(추가 환자 파악)를 담당해요.',
+    example: '예: 생활안전부장, 담임교사, 학년부장, 늘봄전담 등',
+  },
+  health: {
+    summary: '감염병 여부를 확인하고 격리·진료를 안내하며, 보건소·교육청 신고와 예방교육을 담당해요.',
+    example: '예: 보건교사',
+  },
+  academic: {
+    summary: '수업 결손 대책을 마련하고 등교중지 학생의 출결 처리, 학사 일정 조정을 담당해요.',
+    example: '예: 교무부장',
+  },
+  admin: {
+    summary: '방역물품 구매, 시설 소독, 예산 등 행정 지원을 담당해요.',
+    example: '예: 행정실장',
+  },
+  principal: {
+    summary: '보고를 받아 등교중지·휴업 등 최종 의사결정을 내리고 대외 보고를 담당해요.',
+    example: '예: 교장 또는 교감',
+  },
+}
+
 export const ROLE_ORDER: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
 export type StageId = 'prevention' | 'response1' | 'response2' | 'response3' | 'recovery'

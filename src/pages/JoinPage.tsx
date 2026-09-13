@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { RoleId } from '../types'
-import { ROLE_LABELS, ROLE_ORDER } from '../types'
+import { ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
 import { claimRole } from '../lib/session'
@@ -14,6 +14,7 @@ export default function JoinPage() {
   const [confirmedCode, setConfirmedCode] = useState(codeParam ? codeParam.toUpperCase() : '')
   const [groupId, setGroupId] = useState('')
   const [role, setRole] = useState<RoleId | ''>('')
+  const [infoRole, setInfoRole] = useState<RoleId | null>(null)
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
@@ -113,16 +114,15 @@ export default function JoinPage() {
             {selectedGroup && (
               <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
                 <span className="text-sm font-medium text-slate-700">역할 선택</span>
+                <p className="text-xs text-slate-400 -mt-1">역할 이름 옆 ⓘ에 마우스를 올리거나 눌러보면 무슨 일을 하는지 볼 수 있어요.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {ROLE_ORDER.map((r) => {
                     const takenBy = selectedGroup.members[r]
+                    const showInfo = infoRole === r
                     return (
-                      <button
+                      <div
                         key={r}
-                        type="button"
-                        disabled={!!takenBy}
-                        onClick={() => setRole(r)}
-                        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${
+                        className={`rounded-lg border text-sm ${
                           role === r
                             ? 'border-brand-600 bg-brand-50 text-brand-700'
                             : takenBy
@@ -130,12 +130,40 @@ export default function JoinPage() {
                               : 'border-slate-200 text-slate-600'
                         }`}
                       >
-                        <span className="font-medium">
-                          {ROLE_LABELS[r]}
-                          {r === 'principal' && ' (실제 교장·교감)'}
-                        </span>
-                        <span className="text-xs">{takenBy ? `${takenBy} 배정됨` : '선택 가능'}</span>
-                      </button>
+                        <div className="flex items-center justify-between px-3 py-2">
+                          <button
+                            type="button"
+                            disabled={!!takenBy}
+                            onClick={() => setRole(r)}
+                            className="flex-1 text-left font-medium disabled:cursor-not-allowed"
+                          >
+                            {ROLE_LABELS[r]}
+                          </button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs">{takenBy ? `${takenBy} 배정됨` : '선택 가능'}</span>
+                            <button
+                              type="button"
+                              aria-label={`${ROLE_LABELS[r]} 역할 설명 보기`}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setInfoRole(showInfo ? null : r)
+                              }}
+                              onMouseEnter={() => setInfoRole(r)}
+                              onMouseLeave={() => setInfoRole((cur) => (cur === r ? null : cur))}
+                              className="w-5 h-5 rounded-full border border-current text-[11px] font-bold leading-none hover:bg-white/60"
+                            >
+                              i
+                            </button>
+                          </div>
+                        </div>
+                        {showInfo && (
+                          <p className="px-3 pb-2 text-xs text-slate-500 leading-relaxed">
+                            {ROLE_DESCRIPTIONS[r].summary}
+                            <br />
+                            <span className="text-slate-400">{ROLE_DESCRIPTIONS[r].example}</span>
+                          </p>
+                        )}
+                      </div>
                     )
                   })}
                 </div>
