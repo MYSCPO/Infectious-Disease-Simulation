@@ -54,3 +54,9 @@ export function nextStage(id: StageId): StageId | null {
   if (idx < 0 || idx >= STAGES.length - 1) return null
   return STAGES[idx + 1].id
 }
+
+export function prevStage(id: StageId): StageId | null {
+  const idx = STAGES.findIndex((s) => s.id === id)
+  if (idx <= 0) return null
+  return STAGES[idx - 1].id
+}

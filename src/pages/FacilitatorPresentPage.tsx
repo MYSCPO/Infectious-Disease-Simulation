@@ -6,7 +6,7 @@ import { useGroups, useStageSubmissions } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
-import { STAGES, nextStage } from '../data/stages'
+import { STAGES, nextStage, prevStage } from '../data/stages'
 import { advanceToStage, setActiveWildcard, setRevealed } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import ScenarioCard from '../components/ScenarioCard'
@@ -36,6 +36,7 @@ export default function FacilitatorPresentPage() {
   const submittedCount = submissions.filter((s) => s.submitted).length
   const allSubmitted = groups.length > 0 && submittedCount >= groups.length
   const next = nextStage(session.currentStage)
+  const prev = prevStage(session.currentStage)
   const applicableWildcards = WILDCARDS.filter((w) => w.applicableStages.includes(session.currentStage))
 
   async function handleReveal() {
@@ -55,6 +56,16 @@ export default function FacilitatorPresentPage() {
     setBusy(true)
     try {
       await advanceToStage(code, next)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleBack() {
+    if (!prev) return
+    setBusy(true)
+    try {
+      await advanceToStage(code, prev)
     } finally {
       setBusy(false)
     }
@@ -97,6 +108,15 @@ export default function FacilitatorPresentPage() {
             className="flex-1 min-w-[200px] rounded-full bg-emerald-600 text-white py-3 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40"
           >
             {session.revealed ? '공개됨' : allSubmitted ? '전체 공개하기' : `일부만 제출됨(${submittedCount}/${groups.length}) · 지금 공개하기`}
+          </button>
+          <button
+            type="button"
+            onClick={handleBack}
+            disabled={busy || !prev}
+            title={prev ? `이전 단계(${STAGES.find((s) => s.id === prev)?.shortLabel})로 돌아가기` : '첫 단계입니다'}
+            className="rounded-full border border-slate-300 text-slate-600 px-5 py-3 text-sm font-semibold hover:bg-slate-100 disabled:opacity-40"
+          >
+            ← 이전 단계
           </button>
           <button
             type="button"
