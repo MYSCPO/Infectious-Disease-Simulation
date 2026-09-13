@@ -9,6 +9,7 @@ import ResultPage from './pages/ResultPage'
 import GuidebookPage from './pages/GuidebookPage'
 import DiseaseGalleryPage from './pages/DiseaseGalleryPage'
 import DiseaseDetailPage from './pages/DiseaseDetailPage'
+import DiseaseRoleGuidePage from './pages/DiseaseRoleGuidePage'
 import GuideDocumentPage from './pages/GuideDocumentPage'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/" element={<MainPage />} />
       <Route path="/diseases" element={<DiseaseGalleryPage />} />
       <Route path="/diseases/:id" element={<DiseaseDetailPage />} />
+      <Route path="/diseases/:id/roles" element={<DiseaseRoleGuidePage />} />
       <Route path="/guide" element={<GuideDocumentPage />} />
       <Route path="/facilitator/setup" element={<FacilitatorSetupPage />} />
       <Route path="/facilitator/:code/groups" element={<GroupAssignmentPage />} />

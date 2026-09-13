@@ -67,10 +67,10 @@ export default function DiseaseDetailPage() {
         </section>
 
         <Link
-          to={`/facilitator/setup?disease=${disease.id}`}
+          to={`/diseases/${disease.id}/roles`}
           className="block text-center rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 transition-colors"
         >
-          이 감염병으로 훈련 시작하기 →
+          역할별 대응 체크리스트 보기 →
         </Link>
       </main>
     </div>
