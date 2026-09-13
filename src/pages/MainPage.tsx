@@ -37,15 +37,16 @@ export default function MainPage() {
 
         <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
           <div className="text-3xl mb-2">📚</div>
-          <h2 className="text-lg font-bold text-slate-800 mb-1">감염병 정보 둘러보기</h2>
+          <h2 className="text-lg font-bold text-slate-800 mb-1">모의훈련 대상 감염병</h2>
           <p className="text-sm text-slate-500 mb-4 flex-1 leading-relaxed">
-            훈련 전에 우리 학교 주요 감염병의 증상·잠복기·감염기·치료와 예방을 카드로 가볍게 살펴볼 수 있어요.
+            이번 모의훈련에서 실제로 다루는 감염병 7종의 증상·잠복기·감염기·치료와 예방을 카드로 살펴보고, 바로 그
+            감염병으로 훈련을 시작할 수 있어요.
           </p>
           <Link
             to="/diseases"
             className="block text-center rounded-full bg-brand-100 text-brand-700 py-2.5 text-sm font-semibold hover:bg-brand-200 transition-colors"
           >
-            감염병 갤러리 보기
+            모의훈련 감염병 보기
           </Link>
         </section>
 

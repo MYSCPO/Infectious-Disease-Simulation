@@ -5,8 +5,8 @@ export default function DiseaseGalleryPage() {
   return (
     <div className="min-h-screen bg-paper-50 pb-12">
       <header className="bg-brand-600 text-white py-10 px-4 text-center rounded-b-[2.5rem] mb-8">
-        <p className="text-brand-50 text-sm font-semibold mb-1">📚 감염병 갤러리</p>
-        <h1 className="text-2xl font-black">우리 학교 주요 감염병 알아보기</h1>
+        <p className="text-brand-50 text-sm font-semibold mb-1">📚 모의훈련 대상 감염병</p>
+        <h1 className="text-2xl font-black">모의훈련에서 다루는 감염병 7종</h1>
         <p className="mt-2 text-brand-50 text-sm max-w-lg mx-auto leading-relaxed">
           카드를 눌러 증상·잠복기·감염기·치료와 예방을 확인하고, 바로 그 감염병으로 훈련을 시작할 수 있어요.
         </p>
