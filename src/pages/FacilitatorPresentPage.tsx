@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { GroupDoc } from '../types'
+import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups, useStageSubmissions } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
-import { getWildcardQuiz } from '../data/wildcardQuiz'
+import { getWildcardQuizCount, WILDCARD_QUIZZES } from '../data/wildcardQuiz'
 import { STAGES, nextStage, prevStage } from '../data/stages'
-import { advanceToStage, endWildcardQuiz, setActiveWildcard, setRevealed, startWildcardQuiz } from '../lib/session'
+import {
+  advanceToStage,
+  claimRole,
+  endWildcardQuiz,
+  setActiveWildcard,
+  setRevealed,
+  startWildcardQuiz,
+  submitGroupAnswer,
+} from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import MascotAvatar from '../components/MascotAvatar'
@@ -112,6 +121,40 @@ export default function FacilitatorPresentPage() {
     }
   }
 
+  // 개발/점검용: 진행자 혼자 전체 흐름을 빠르게 점검할 수 있도록 빈 역할을 테스트봇으로 채운다.
+  async function handleGenerateBots() {
+    setBusy(true)
+    try {
+      for (const g of groups) {
+        for (const role of ROLE_ORDER) {
+          if ((g.members[role]?.length ?? 0) === 0) {
+            await claimRole(code, g.id, role, `테스트봇(${ROLE_LABELS[role]})`)
+          }
+        }
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // 개발/점검용: 현재 단계의 모든 조 제출을 정답 기준으로 즉시 완료 처리한다.
+  async function handleAutoSubmitAll() {
+    setBusy(true)
+    try {
+      for (const g of groups) {
+        const stageScenario = getScenarioForDisease(g.diseaseId).find((s) => s.stage === session!.currentStage)
+        if (!stageScenario) continue
+        const answers = stageScenario.questions.map((q) => ({
+          role: q.role,
+          optionId: q.options.find((o) => o.correct)?.id ?? q.options[0].id,
+        }))
+        await submitGroupAnswer(code, session!.currentStage, g.id, g.name, answers)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-paper-50">
       <StageBanner current={session.currentStage} />
@@ -130,6 +173,29 @@ export default function FacilitatorPresentPage() {
               결과 화면
             </Link>
           </div>
+        </div>
+
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
+          <p className="text-xs font-bold text-slate-500 mb-2">🧪 테스트 모드 (혼자 전체 흐름 빠르게 점검용 · 실제 연수에서는 사용하지 마세요)</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleGenerateBots}
+              disabled={busy || groups.length === 0}
+              className="rounded-full bg-white border border-slate-300 text-slate-700 text-xs font-bold px-3 py-2 hover:bg-slate-100 disabled:opacity-40"
+            >
+              🧪 가상 참가자 자동 생성
+            </button>
+            <button
+              type="button"
+              onClick={handleAutoSubmitAll}
+              disabled={busy || groups.length === 0}
+              className="rounded-full bg-white border border-slate-300 text-slate-700 text-xs font-bold px-3 py-2 hover:bg-slate-100 disabled:opacity-40"
+            >
+              ⚡ 현재 단계 전체 자동 제출
+            </button>
+          </div>
+          {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -179,15 +245,18 @@ export default function FacilitatorPresentPage() {
           </div>
 
           <div className="mb-4 space-y-1.5">
-            <p className="text-xs font-semibold text-slate-500">🎲 발송 시 감염병별로 나갈 문제 미리보기(단계와 무관하게 항상 발송 가능)</p>
+            <p className="text-xs font-semibold text-slate-500">
+              🎲 감염병별 문제 은행(발송할 때마다 아래 영역 중 하나가 무작위로 출제, 단계와 무관하게 항상 발송 가능)
+            </p>
             {clusterEntries.map(([diseaseId]) => {
               const disease = getDiseaseById(diseaseId)
-              const quiz = getWildcardQuiz(diseaseId)
-              if (!quiz) return null
+              const count = getWildcardQuizCount(diseaseId)
+              const topics = Array.from(new Set(WILDCARD_QUIZZES[diseaseId]?.map((q) => q.topic) ?? []))
+              if (count === 0) return null
               return (
                 <div key={diseaseId} className="text-xs bg-paper-50 border border-slate-100 rounded-xl px-3 py-2">
                   <span className="font-bold text-brand-700">{disease.name}</span>
-                  <span className="text-slate-600"> · {quiz.prompt}</span>
+                  <span className="text-slate-600"> · 문제 {count}개 준비됨 ({topics.join(' · ')})</span>
                 </div>
               )
             })}

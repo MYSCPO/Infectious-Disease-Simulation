@@ -59,7 +59,7 @@ export default function TeamTrainingPage() {
   const allAnswered = missingRoles.length === 0
   const submitted = submission?.submitted ?? false
   const stageDef = STAGES.find((s) => s.id === session.currentStage)
-  const quiz = group ? getWildcardQuiz(group.diseaseId) : null
+  const quiz = group && session.activeQuiz ? getWildcardQuiz(group.diseaseId, session.activeQuiz.startedAt) : null
   const quizAnsweredForActive =
     group?.quizAnswer && session.activeQuiz && group.quizAnswer.quizStartedAt === session.activeQuiz.startedAt
       ? group.quizAnswer
@@ -189,6 +189,8 @@ export default function TeamTrainingPage() {
       {session.activeQuiz && group && quiz && (
         <WildcardQuizModal
           quiz={quiz}
+          disease={disease}
+          greetRole={myRole}
           startedAt={session.activeQuiz.startedAt}
           durationSec={session.activeQuiz.durationSec}
           alreadyAnswered={quizAnsweredForActive}

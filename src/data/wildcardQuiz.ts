@@ -5,76 +5,316 @@ export interface WildcardQuizOption {
 }
 
 export interface WildcardQuizQuestion {
+  topic: string // 출제 영역 라벨(질병 특징/잠복기/등교중지 기준/예방·소독 지침)
   prompt: string
   options: WildcardQuizOption[]
 }
 
-// 돌발 퀴즈: 진행자가 발송하면 전 조에 동시에 뜨고, 조가 맡은 감염병에 맞는 문제가 자동으로 매칭된다.
-// 정답 근거는 src/data/diseases.ts의 exclusionPeriod 등 이미 검증된 수치를 그대로 사용한다.
-export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion> = {
-  influenza: {
-    prompt: '인플루엔자 학생은 해열제 없이 정상 체온으로 회복된 후, 몇 시간이 지나야 등교할 수 있을까요?',
-    options: [
-      { id: 'a', text: '12시간', correct: false },
-      { id: 'b', text: '24시간', correct: true },
-      { id: 'c', text: '48시간', correct: false },
-      { id: 'd', text: '72시간', correct: false },
-    ],
-  },
-  chickenpox: {
-    prompt: '수두 학생의 등교중지 기준은 무엇일까요?',
-    options: [
-      { id: 'a', text: '발열이 없어질 때까지', correct: false },
-      { id: 'b', text: '모든 피부 병변에 가피(딱지)가 형성될 때까지', correct: true },
-      { id: 'c', text: '진단서를 제출할 때까지', correct: false },
-      { id: 'd', text: '무조건 3일간', correct: false },
-    ],
-  },
-  mumps: {
-    prompt: '유행성이하선염(볼거리)은 이하선염 증상 발생 후 며칠까지 등교를 중지해야 할까요?',
-    options: [
-      { id: 'a', text: '3일까지', correct: false },
-      { id: 'b', text: '5일까지', correct: true },
-      { id: 'c', text: '7일까지', correct: false },
-      { id: 'd', text: '10일까지', correct: false },
-    ],
-  },
-  epidemicKeratoconjunctivitis: {
-    prompt: '유행성각결막염은 법정감염병이라서 강제로 등교를 중지시켜야 한다? (O/X)',
-    options: [
-      { id: 'o', text: 'O — 법정감염병이라 강제 격리해야 한다', correct: false },
-      { id: 'x', text: 'X — 비법정감염병이라 강제 격리 없이 개인위생 수칙만 안내한다', correct: true },
-    ],
-  },
-  tuberculosis: {
-    prompt: '결핵 학생은 치료 시작 후 보통 며칠 이상 지나야(담당 의사 확인 후) 등교가 가능할까요?',
-    options: [
-      { id: 'a', text: '1주 이상', correct: false },
-      { id: 'b', text: '2주 이상', correct: true },
-      { id: 'c', text: '1개월 이상', correct: false },
-      { id: 'd', text: '6개월 이상', correct: false },
-    ],
-  },
-  norovirus: {
-    prompt: '노로바이러스감염증은 구토·설사 증상이 완전히 사라진 후, 몇 시간이 지나야 등교할 수 있을까요?',
-    options: [
-      { id: 'a', text: '12시간', correct: false },
-      { id: 'b', text: '24시간', correct: false },
-      { id: 'c', text: '48시간', correct: true },
-      { id: 'd', text: '72시간', correct: false },
-    ],
-  },
-  handFootMouth: {
-    prompt: '수족구병은 수포 발생 후 며칠간 등교중지가 권고될까요?',
-    options: [
-      { id: 'a', text: '3일간', correct: false },
-      { id: 'b', text: '6일간', correct: true },
-      { id: 'c', text: '10일간', correct: false },
-      { id: 'd', text: '14일간', correct: false },
-    ],
-  },
+// 돌발 퀴즈: 진행자가 발송하면 전 조에 동시에 뜨고, 조가 맡은 감염병에 맞는 문제 은행에서
+// 하나가 자동으로 매칭된다(순수 지식 퀴즈 — 상황극 서술형 문제는 제외). 근거는
+// src/data/diseases.ts에 이미 검증된 수치·수칙을 그대로 사용한다.
+export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion[]> = {
+  influenza: [
+    {
+      topic: '등교중지 기준',
+      prompt: '인플루엔자 학생은 해열제 없이 정상 체온으로 회복된 후, 몇 시간이 지나야 등교할 수 있을까요?',
+      options: [
+        { id: 'a', text: '12시간', correct: false },
+        { id: 'b', text: '24시간', correct: true },
+        { id: 'c', text: '48시간', correct: false },
+        { id: 'd', text: '72시간', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '인플루엔자의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '38도 이상 고열, 두통, 인후통, 근육통', correct: true },
+        { id: 'b', text: '눈 충혈과 눈곱만 심함', correct: false },
+        { id: 'c', text: '구토와 설사가 주 증상', correct: false },
+        { id: 'd', text: '손·발·입안의 수포성 발진', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '인플루엔자의 잠복기는 보통 며칠일까요?',
+      options: [
+        { id: 'a', text: '1~4일', correct: true },
+        { id: 'b', text: '10~21일', correct: false },
+        { id: 'c', text: '2~3주', correct: false },
+        { id: 'd', text: '수년까지 가능', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '인플루엔자 예방을 위해 가장 중요한 것은?',
+      options: [
+        { id: 'a', text: '매년 인플루엔자 예방접종', correct: true },
+        { id: 'b', text: '특별한 예방법이 없다', correct: false },
+        { id: 'c', text: '항생제를 매일 복용한다', correct: false },
+        { id: 'd', text: '염소계 소독제로 매일 전신 소독', correct: false },
+      ],
+    },
+  ],
+  chickenpox: [
+    {
+      topic: '등교중지 기준',
+      prompt: '수두 학생의 등교중지 기준은 무엇일까요?',
+      options: [
+        { id: 'a', text: '발열이 없어질 때까지', correct: false },
+        { id: 'b', text: '모든 피부 병변에 가피(딱지)가 형성될 때까지', correct: true },
+        { id: 'c', text: '진단서를 제출할 때까지', correct: false },
+        { id: 'd', text: '무조건 3일간', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '수두의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '두피·안면·몸통·팔다리로 퍼지는 수포성 발진', correct: true },
+        { id: 'b', text: '급성 구토와 설사', correct: false },
+        { id: 'c', text: '귀밑 침샘 부종', correct: false },
+        { id: 'd', text: '2주 이상 지속되는 기침', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '수두의 잠복기는 보통 며칠일까요?',
+      options: [
+        { id: 'a', text: '10~21일', correct: true },
+        { id: 'b', text: '1~4일', correct: false },
+        { id: 'c', text: '12~48시간', correct: false },
+        { id: 'd', text: '5~7일', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '예방접종력이 없는 학생은 수두 환자 노출 후 며칠 이내 백신 접종이 권장될까요?',
+      options: [
+        { id: 'a', text: '가능한 3일(최대 5일) 이내', correct: true },
+        { id: 'b', text: '노출 후에는 접종해도 소용없다', correct: false },
+        { id: 'c', text: '2주 이내', correct: false },
+        { id: 'd', text: '1개월 이내', correct: false },
+      ],
+    },
+  ],
+  mumps: [
+    {
+      topic: '등교중지 기준',
+      prompt: '유행성이하선염(볼거리)은 이하선염 증상 발생 후 며칠까지 등교를 중지해야 할까요?',
+      options: [
+        { id: 'a', text: '3일까지', correct: false },
+        { id: 'b', text: '5일까지', correct: true },
+        { id: 'c', text: '7일까지', correct: false },
+        { id: 'd', text: '10일까지', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '유행성이하선염의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '귀밑 침샘(이하선) 부종과 씹거나 삼킬 때 통증', correct: true },
+        { id: 'b', text: '손·발·입안의 수포성 발진', correct: false },
+        { id: 'c', text: '38도 이상 고열과 근육통만', correct: false },
+        { id: 'd', text: '급성 구토와 설사', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '유행성이하선염의 잠복기는 보통 어느 정도일까요?',
+      options: [
+        { id: 'a', text: '2~3주', correct: true },
+        { id: 'b', text: '1~4일', correct: false },
+        { id: 'c', text: '10~21일', correct: false },
+        { id: 'd', text: '12~48시간', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '유행성이하선염 예방을 위해 반드시 확인해야 할 것은?',
+      options: [
+        { id: 'a', text: 'MMR 예방접종 완료 여부', correct: true },
+        { id: 'b', text: 'BCG 접종 여부', correct: false },
+        { id: 'c', text: '매년 독감 접종 여부', correct: false },
+        { id: 'd', text: '염소계 소독제 사용 여부', correct: false },
+      ],
+    },
+  ],
+  epidemicKeratoconjunctivitis: [
+    {
+      topic: '등교중지 기준',
+      prompt: '유행성각결막염은 법정감염병이라서 강제로 등교를 중지시켜야 한다? (O/X)',
+      options: [
+        { id: 'o', text: 'O — 법정감염병이라 강제 격리해야 한다', correct: false },
+        { id: 'x', text: 'X — 비법정감염병이라 강제 격리 없이 개인위생 수칙만 안내한다', correct: true },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '유행성각결막염의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '충혈, 눈곱, 이물감, 눈물(한쪽에서 양쪽으로 번짐)', correct: true },
+        { id: 'b', text: '38도 이상 고열과 인후통', correct: false },
+        { id: 'c', text: '급성 구토와 설사', correct: false },
+        { id: 'd', text: '손·발·입안의 수포성 발진', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '유행성각결막염의 잠복기는 보통 며칠일까요?',
+      options: [
+        { id: 'a', text: '5~7일', correct: true },
+        { id: 'b', text: '1~4일', correct: false },
+        { id: 'c', text: '10~21일', correct: false },
+        { id: 'd', text: '2~3주', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '유행성각결막염 예방을 위해 가장 중요한 것은?',
+      options: [
+        { id: 'a', text: '개인 수건 사용, 눈 만지지 않기', correct: true },
+        { id: 'b', text: '마스크 2중 착용', correct: false },
+        { id: 'c', text: '예방접종', correct: false },
+        { id: 'd', text: '항생제 예방 복용', correct: false },
+      ],
+    },
+  ],
+  tuberculosis: [
+    {
+      topic: '등교중지 기준',
+      prompt: '결핵 학생은 치료 시작 후 보통 며칠 이상 지나야(담당 의사 확인 후) 등교가 가능할까요?',
+      options: [
+        { id: 'a', text: '1주 이상', correct: false },
+        { id: 'b', text: '2주 이상', correct: true },
+        { id: 'c', text: '1개월 이상', correct: false },
+        { id: 'd', text: '6개월 이상', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '결핵의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '2주 이상 지속되는 기침, 체중감소, 야간 발한', correct: true },
+        { id: 'b', text: '눈 충혈과 눈곱', correct: false },
+        { id: 'c', text: '귀밑 침샘 부종', correct: false },
+        { id: 'd', text: '손·발·입안의 수포성 발진', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '결핵은 감염 후 언제 발병할 수 있을까요?',
+      options: [
+        { id: 'a', text: '수년 뒤에도 발병할 수 있다', correct: true },
+        { id: 'b', text: '반드시 1~4일 이내', correct: false },
+        { id: 'c', text: '반드시 2주 이내', correct: false },
+        { id: 'd', text: '반드시 1개월 이내', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '결핵 치료 중 지켜야 할 수칙으로 옳은 것은?',
+      options: [
+        { id: 'a', text: '절대 금주·금연, 고단백 섭취, BCG 접종 권장', correct: true },
+        { id: 'b', text: '증상이 나아지면 임의로 약을 끊어도 된다', correct: false },
+        { id: 'c', text: '치료 시작 즉시 등교해도 무방하다', correct: false },
+        { id: 'd', text: '접촉자 관리는 필요 없다', correct: false },
+      ],
+    },
+  ],
+  norovirus: [
+    {
+      topic: '등교중지 기준',
+      prompt: '노로바이러스감염증은 구토·설사 증상이 완전히 사라진 후, 몇 시간이 지나야 등교할 수 있을까요?',
+      options: [
+        { id: 'a', text: '12시간', correct: false },
+        { id: 'b', text: '24시간', correct: false },
+        { id: 'c', text: '48시간', correct: true },
+        { id: 'd', text: '72시간', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '노로바이러스감염증의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '급성 구토, 설사, 복통', correct: true },
+        { id: 'b', text: '손·발·입안의 수포성 발진', correct: false },
+        { id: 'c', text: '귀밑 침샘 부종', correct: false },
+        { id: 'd', text: '2주 이상 지속되는 기침', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '노로바이러스감염증의 잠복기는 보통 어느 정도일까요?',
+      options: [
+        { id: 'a', text: '12~48시간', correct: true },
+        { id: 'b', text: '1~4일', correct: false },
+        { id: 'c', text: '10~21일', correct: false },
+        { id: 'd', text: '수년까지 가능', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '노로바이러스 구토물 처리 시 반드시 사용해야 하는 것은?',
+      options: [
+        { id: 'a', text: '염소계 소독제', correct: true },
+        { id: 'b', text: '알코올 소독제만', correct: false },
+        { id: 'c', text: '식초물', correct: false },
+        { id: 'd', text: '그냥 물로만 세척', correct: false },
+      ],
+    },
+  ],
+  handFootMouth: [
+    {
+      topic: '등교중지 기준',
+      prompt: '수족구병은 수포 발생 후 며칠간 등교중지가 권고될까요?',
+      options: [
+        { id: 'a', text: '3일간', correct: false },
+        { id: 'b', text: '6일간', correct: true },
+        { id: 'c', text: '10일간', correct: false },
+        { id: 'd', text: '14일간', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '수족구병의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '손·발·입안의 수포성 발진과 섭식 곤란', correct: true },
+        { id: 'b', text: '38도 이상 고열과 인후통만', correct: false },
+        { id: 'c', text: '귀밑 침샘 부종', correct: false },
+        { id: 'd', text: '급성 구토와 설사만', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '수족구병의 잠복기는 보통 며칠일까요?',
+      options: [
+        { id: 'a', text: '3~6일', correct: true },
+        { id: 'b', text: '12~48시간', correct: false },
+        { id: 'c', text: '10~21일', correct: false },
+        { id: 'd', text: '2~3주', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '수족구병 예방을 위해 특히 중요한 것은?',
+      options: [
+        { id: 'a', text: '장난감·집기 소독 및 손 씻기', correct: true },
+        { id: 'b', text: '항생제 예방 복용', correct: false },
+        { id: 'c', text: '마스크 2중 착용', correct: false },
+        { id: 'd', text: '해열제 매일 복용', correct: false },
+      ],
+    },
+  ],
 }
 
-export function getWildcardQuiz(diseaseId: string): WildcardQuizQuestion | null {
-  return WILDCARD_QUIZZES[diseaseId] ?? null
+export function getWildcardQuiz(diseaseId: string, seed: number): WildcardQuizQuestion | null {
+  const list = WILDCARD_QUIZZES[diseaseId]
+  if (!list || list.length === 0) return null
+  const idx = Math.abs(Math.floor(seed)) % list.length
+  return list[idx]
+}
+
+export function getWildcardQuizCount(diseaseId: string): number {
+  return WILDCARD_QUIZZES[diseaseId]?.length ?? 0
 }
