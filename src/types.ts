@@ -65,7 +65,8 @@ export interface DiseaseInfo {
   temporaryIsolation: boolean // 일시적 격리 필요 여부
   maskRequired: boolean // 마스크 착용 필요 여부
   treatment: string // 치료 개요
-  prevention: string[] // 예방수칙
+  prevention: string[] // 예방수칙. 각 항목은 "키워드: 설명" 형식(상세 페이지에서 키워드만 굵게 강조)
+  badges: string[] // 학교 현장 판단을 돕는 핵심 특징 태그(예: #등교중지_필수)
 }
 
 export interface ChecklistStageContent {

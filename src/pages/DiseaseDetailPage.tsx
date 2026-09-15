@@ -10,9 +10,14 @@ export default function DiseaseDetailPage() {
       <header className="bg-brand-600 text-white py-10 px-4 text-center rounded-b-[2.5rem] mb-8">
         <div className="text-5xl mb-2">{disease.emoji}</div>
         <h1 className="text-2xl font-black">{disease.name}</h1>
-        <span className="inline-block mt-2 text-xs font-semibold bg-white/20 rounded-full px-3 py-1">
-          법정감염병 {disease.grade}
-        </span>
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+          <span className="text-xs font-semibold bg-white/20 rounded-full px-3 py-1">법정감염병 {disease.grade}</span>
+          {disease.badges.map((b) => (
+            <span key={b} className="text-xs font-semibold bg-white text-brand-700 rounded-full px-3 py-1">
+              {b}
+            </span>
+          ))}
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 space-y-4">
@@ -28,7 +33,7 @@ export default function DiseaseDetailPage() {
         <section className="grid sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5">
             <h2 className="text-sm font-bold text-brand-700 mb-1">⏳ 잠복기</h2>
-            <p className="text-sm text-slate-700 leading-relaxed">{disease.incubationPeriod}</p>
+            <p className="text-base font-bold text-amber-600 leading-relaxed">{disease.incubationPeriod}</p>
           </div>
           <div className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5">
             <h2 className="text-sm font-bold text-brand-700 mb-1">🦠 감염 가능 기간</h2>
@@ -38,7 +43,7 @@ export default function DiseaseDetailPage() {
 
         <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5">
           <h2 className="text-sm font-bold text-brand-700 mb-1">🏫 등교중지(격리) 기간</h2>
-          <p className="text-sm text-slate-700 leading-relaxed">{disease.exclusionPeriod}</p>
+          <p className="text-base font-bold text-emerald-600 leading-relaxed">{disease.exclusionPeriod}</p>
           <div className="flex flex-wrap gap-2 mt-3">
             <span className="text-xs bg-paper-100 text-slate-600 rounded-full px-3 py-1">
               밀접접촉자 파악 {disease.contactTracing ? 'O' : 'X'}
@@ -60,9 +65,21 @@ export default function DiseaseDetailPage() {
         <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5">
           <h2 className="text-sm font-bold text-brand-700 mb-2">🛡️ 예방수칙</h2>
           <ul className="text-sm text-slate-700 space-y-1.5 list-disc list-inside leading-relaxed">
-            {disease.prevention.map((p, i) => (
-              <li key={i}>{p}</li>
-            ))}
+            {disease.prevention.map((p, i) => {
+              const [keyword, ...rest] = p.split(':')
+              const detail = rest.join(':').trim()
+              return (
+                <li key={i}>
+                  {detail ? (
+                    <>
+                      <span className="font-bold text-slate-900">{keyword}:</span> {detail}
+                    </>
+                  ) : (
+                    p
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </section>
 
