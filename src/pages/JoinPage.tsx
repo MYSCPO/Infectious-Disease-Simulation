@@ -82,15 +82,18 @@ export default function JoinPage() {
     }
   }
 
-  async function handleLeaveRole() {
-    if (!role || claiming) return
-    setClaiming(true)
-    try {
-      await releaseRole(confirmedCode, groupId, role, name.trim())
-      setRole('')
-    } finally {
-      setClaiming(false)
+  async function handleSelectGroup(nextGroupId: string) {
+    if (nextGroupId === groupId || claiming) return
+    if (role) {
+      setClaiming(true)
+      try {
+        await releaseRole(confirmedCode, groupId, role, name.trim())
+        setRole('')
+      } finally {
+        setClaiming(false)
+      }
     }
+    setGroupId(nextGroupId)
   }
 
   function handleStart() {
@@ -128,14 +131,13 @@ export default function JoinPage() {
 
             <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
               <span className="text-sm font-medium text-slate-700">조 선택</span>
-              {!!role && <p className="text-xs text-amber-600">조를 바꾸려면 먼저 아래에서 "역할 그만두기"를 눌러 주세요.</p>}
               <div className="grid grid-cols-2 gap-2">
                 {groups.map((g) => (
                   <button
                     key={g.id}
                     type="button"
-                    disabled={!!role}
-                    onClick={() => setGroupId(g.id)}
+                    disabled={claiming}
+                    onClick={() => handleSelectGroup(g.id)}
                     className={`rounded-lg border py-2 px-2 text-sm font-semibold flex items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-60 ${
                       groupId === g.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600'
                     }`}
@@ -172,7 +174,8 @@ export default function JoinPage() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 -mt-1">
-                  이름을 입력한 뒤 역할을 누르면 바로 참여돼요. 실시간으로 조원 현황이 아래에 표시됩니다.
+                  이름을 입력한 뒤 역할을 누르면 바로 참여돼요. 다른 역할을 눌러 언제든 바꿀 수 있고, 실시간으로 조원
+                  현황이 아래에 표시됩니다.
                 </p>
                 <div className="grid grid-cols-1 gap-2">
                   {ROLE_ORDER.map((r) => {
@@ -206,7 +209,7 @@ export default function JoinPage() {
                         <div className="flex items-center justify-between px-3 py-2 gap-2">
                           <button
                             type="button"
-                            disabled={isFull || claiming || (!!role && role !== r)}
+                            disabled={isFull || claiming}
                             onClick={() => handleSelectRole(r)}
                             className="flex-1 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
                           >
@@ -268,16 +271,6 @@ export default function JoinPage() {
                     ? `🎉 ${selectedGroup.name} 역할 편성이 모두 완료되었습니다!`
                     : `전체 역할이 골고루 편성되는 중입니다. (${filledRoles.length}/${ROLE_ORDER.length}개 역할 완료)`}
                 </p>
-                {role && (
-                  <button
-                    type="button"
-                    onClick={handleLeaveRole}
-                    disabled={claiming}
-                    className="text-xs text-slate-400 underline"
-                  >
-                    역할 그만두기
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={handleStart}
