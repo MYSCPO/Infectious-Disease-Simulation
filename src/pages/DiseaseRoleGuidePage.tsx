@@ -29,7 +29,22 @@ export default function DiseaseRoleGuidePage() {
 
   return (
     <div className="min-h-screen bg-paper-50 pb-12">
-      <header className="bg-brand-600 text-white py-10 px-4 text-center rounded-b-[2.5rem] mb-6">
+      <header className="bg-brand-600 text-white pt-5 pb-10 px-4 text-center rounded-b-[2.5rem] mb-6">
+        <div className="max-w-3xl mx-auto flex items-center gap-2 mb-5">
+          <Link
+            to="/"
+            className="text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-full px-3 py-1.5 transition-colors"
+          >
+            🏠 메인 화면으로
+          </Link>
+          <Link
+            to={`/diseases/${disease.id}`}
+            className="text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-full px-3 py-1.5 transition-colors"
+          >
+            ← 이전 감염병 정보로
+          </Link>
+        </div>
+
         <div className="text-5xl mb-2">{disease.emoji}</div>
         <h1 className="text-2xl font-black">{disease.name} · 역할별 대응 체크리스트</h1>
         <p className="mt-2 text-brand-50 text-sm max-w-lg mx-auto leading-relaxed">
@@ -38,10 +53,6 @@ export default function DiseaseRoleGuidePage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 space-y-4">
-        <Link to={`/diseases/${disease.id}`} className="text-xs text-brand-700 underline">
-          ← {disease.name} 정보로 돌아가기
-        </Link>
-
         {/* 단계 탭 */}
         <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1">
           {STAGES.map((s) => (
@@ -137,16 +148,6 @@ export default function DiseaseRoleGuidePage() {
             </div>
           </section>
         )}
-
-        <div className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5 text-center space-y-3">
-          <p className="text-sm text-slate-600">다 확인하셨나요? 진행자라면 이 감염병으로 바로 훈련을 시작할 수 있어요.</p>
-          <Link
-            to={`/facilitator/setup?disease=${disease.id}`}
-            className="block text-center rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 transition-colors"
-          >
-            진행자로 이 감염병 훈련 시작하기 →
-          </Link>
-        </div>
       </main>
     </div>
   )
