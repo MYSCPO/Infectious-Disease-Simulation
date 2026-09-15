@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { RoleId } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
+import MascotAvatar from '../components/MascotAvatar'
 
 const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin']
 
@@ -45,7 +46,7 @@ export default function MainPage() {
             <div className="flex justify-center gap-3 sm:gap-4 mb-3">
               {TEAM_ROLES.map((r) => (
                 <div key={r} className="flex flex-col items-center">
-                  <div className="text-3xl sm:text-4xl">{ROLE_MASCOTS[r].emoji}</div>
+                  <MascotAvatar role={r} size="lg" />
                   <span className="text-[10px] text-slate-400 mt-0.5">{ROLE_MASCOTS[r].name}</span>
                 </div>
               ))}
