@@ -1,9 +1,31 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function MainPage() {
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  function handleJoinSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = code.trim().toUpperCase()
+    if (trimmed.length < 4) {
+      setError('참가 코드를 정확히 입력해 주세요.')
+      return
+    }
+    navigate(`/join/${trimmed}`)
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-paper-50">
-      <header className="bg-brand-600 text-white py-12 px-4 text-center rounded-b-[2.5rem]">
+      <header className="relative bg-brand-600 text-white py-12 px-4 text-center rounded-b-[2.5rem]">
+        <Link
+          to="/facilitator/setup"
+          className="absolute top-4 right-4 text-xs sm:text-sm font-semibold text-brand-50 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1.5 transition-colors"
+        >
+          ⚙️ 진행자(관리자) 세팅
+        </Link>
+
         <p className="text-brand-50 text-sm font-semibold mb-2">🌱 하나 된 대응, 건강한 학교생활</p>
         <h1 className="text-2xl sm:text-3xl font-black">학교 감염병 위기 대응 모의훈련</h1>
         <p className="mt-3 text-brand-50 text-sm max-w-xl mx-auto leading-relaxed">
@@ -13,73 +35,77 @@ export default function MainPage() {
         </p>
       </header>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
-          <div className="text-3xl mb-2">🧑‍🤝‍🧑</div>
-          <h2 className="text-lg font-bold text-slate-800 mb-1">모의훈련 시나리오</h2>
-          <p className="text-sm text-slate-500 mb-4 flex-1 leading-relaxed">
-            진행자가 학교 설정을 마친 뒤 조를 편성하고, 참가자는 각자 역할로 참여해 단계별 조치를 선택해요.
-          </p>
-          <div className="space-y-2">
+      <main className="flex-1 w-full">
+        <div className="max-w-md w-full mx-auto px-4 py-10">
+          <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 sm:p-8 text-center">
+            <div className="text-4xl mb-2">🚨</div>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-1">감염병 모의 훈련 참가하기</h2>
+            <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+              진행자에게 받은 참가 코드를 입력하고 바로 입장하세요.
+            </p>
+            <form onSubmit={handleJoinSubmit} className="space-y-3">
+              <input
+                value={code}
+                onChange={(e) => {
+                  setCode(e.target.value.toUpperCase())
+                  setError(null)
+                }}
+                placeholder="참가 코드 입력 (예: AB3CD)"
+                maxLength={8}
+                autoComplete="off"
+                autoCapitalize="characters"
+                className="w-full text-center tracking-[0.3em] text-xl sm:text-2xl font-bold rounded-2xl border-2 border-brand-200 px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400"
+              />
+              {error && <p className="text-sm text-rose-600">{error}</p>}
+              <button
+                type="submit"
+                className="w-full rounded-full bg-brand-600 text-white py-3 text-base font-bold hover:bg-brand-700 transition-colors"
+              >
+                입장하기 →
+              </button>
+            </form>
+          </section>
+        </div>
+
+        <div className="max-w-3xl w-full mx-auto px-4 pb-6">
+          <h3 className="text-sm font-bold text-slate-500 mb-3">📚 사전/사후 학습 참고 자료실</h3>
+          <div className="grid sm:grid-cols-3 gap-3">
             <Link
-              to="/facilitator/setup"
-              className="block text-center rounded-full bg-brand-600 text-white py-2.5 text-sm font-semibold hover:bg-brand-700 transition-colors"
+              to="/diseases"
+              className="bg-white rounded-2xl border border-brand-100 shadow-sm p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
             >
-              진행자로 훈련 시작하기
+              <div className="text-2xl mb-1">🦠</div>
+              <h4 className="text-sm font-bold text-slate-800 mb-1">모의훈련 대상 감염병</h4>
+              <p className="text-xs text-slate-500 leading-relaxed flex-1">
+                감염병 7종의 증상·잠복기·치료·예방을 살펴봐요.
+              </p>
             </Link>
+
             <Link
-              to="/join"
-              className="block text-center rounded-full border border-brand-300 text-brand-700 py-2.5 text-sm font-semibold hover:bg-brand-50 transition-colors"
+              to="/guide"
+              className="bg-white rounded-2xl border border-brand-100 shadow-sm p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
             >
-              참가 코드로 입장하기
+              <div className="text-2xl mb-1">🩹</div>
+              <h4 className="text-sm font-bold text-slate-800 mb-1">호발 감염병 10종 가이드</h4>
+              <p className="text-xs text-slate-500 leading-relaxed flex-1">
+                원인부터 등교 중지 기준까지 인포그래픽으로 봐요.
+              </p>
             </Link>
+
+            <a
+              href="https://infectious-disease-info.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl border border-brand-100 shadow-sm p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
+            >
+              <div className="text-2xl mb-1">🗂️</div>
+              <h4 className="text-sm font-bold text-slate-800 mb-1">감염병 아카이빙 사이트 ↗</h4>
+              <p className="text-xs text-slate-500 leading-relaxed flex-1">
+                매뉴얼·공문·통계를 모아둔 사이트로 이동해요.
+              </p>
+            </a>
           </div>
-        </section>
-
-        <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
-          <div className="text-3xl mb-2">📚</div>
-          <h2 className="text-lg font-bold text-slate-800 mb-1">모의훈련 대상 감염병</h2>
-          <p className="text-sm text-slate-500 mb-4 flex-1 leading-relaxed">
-            이번 모의훈련에서 실제로 다루는 감염병 7종의 증상·잠복기·감염기·치료와 예방을 카드로 살펴보고, 바로 그
-            감염병으로 훈련을 시작할 수 있어요.
-          </p>
-          <Link
-            to="/diseases"
-            className="block text-center rounded-full bg-brand-100 text-brand-700 py-2.5 text-sm font-semibold hover:bg-brand-200 transition-colors"
-          >
-            모의훈련 감염병 보기
-          </Link>
-        </section>
-
-        <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
-          <div className="text-3xl mb-2">🩹</div>
-          <h2 className="text-lg font-bold text-slate-800 mb-1">호발 감염병 10종 가이드</h2>
-          <p className="text-sm text-slate-500 mb-4 flex-1 leading-relaxed">
-            원인부터 등교 중지 기준까지 한눈에 보는 인포그래픽 신속 대응 가이드를 바로 볼 수 있어요.
-          </p>
-          <Link
-            to="/guide"
-            className="block text-center rounded-full bg-brand-100 text-brand-700 py-2.5 text-sm font-semibold hover:bg-brand-200 transition-colors"
-          >
-            가이드 바로 보기
-          </Link>
-        </section>
-
-        <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 flex flex-col">
-          <div className="text-3xl mb-2">🗂️</div>
-          <h2 className="text-lg font-bold text-slate-800 mb-1">감염병 아카이빙 사이트</h2>
-          <p className="text-sm text-slate-500 mb-4 flex-1 leading-relaxed">
-            학교 감염병 관련 매뉴얼, 공문, 통계 등을 모아둔 아카이빙 사이트로 이동해요.
-          </p>
-          <a
-            href="https://infectious-disease-info.netlify.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-center rounded-full border border-slate-200 text-slate-600 py-2.5 text-sm font-semibold hover:bg-slate-50 transition-colors"
-          >
-            아카이빙 사이트 바로가기 ↗
-          </a>
-        </section>
+        </div>
       </main>
 
       <p className="text-center text-xs text-slate-400 pb-2">
