@@ -130,7 +130,7 @@ export default function DiseaseRoleGuidePage() {
                           ))}
                         </div>
                         {correct ? (
-                          <p className="text-sm text-slate-700 leading-snug line-clamp-2">{correct.text}</p>
+                          <p className="text-sm text-slate-700 leading-snug">{correct.text}</p>
                         ) : (
                           <p className="text-xs text-slate-400">이 단계에는 별도로 명시된 조치가 없습니다.</p>
                         )}
