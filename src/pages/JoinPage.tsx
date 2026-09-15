@@ -49,12 +49,7 @@ export default function JoinPage() {
     setJoining(true)
     setError(null)
     try {
-      const claimed = await claimRole(confirmedCode, groupId, role, name.trim())
-      if (!claimed) {
-        setError('방금 다른 참가자가 먼저 선택한 역할입니다. 다른 역할을 선택해 주세요.')
-        setRole('')
-        return
-      }
+      await claimRole(confirmedCode, groupId, role, name.trim())
       saveParticipantIdentity({ sessionCode: confirmedCode, groupId, role, name: name.trim() })
       navigate(`/team/${confirmedCode}/${groupId}`)
     } catch (e) {
@@ -119,25 +114,20 @@ export default function JoinPage() {
                 <p className="text-xs text-slate-400 -mt-1">역할 이름 옆 ⓘ에 마우스를 올리거나 눌러보면 무슨 일을 하는지 볼 수 있어요.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {ROLE_ORDER.map((r) => {
-                    const takenBy = selectedGroup.members[r]
+                    const members = selectedGroup.members[r] ?? []
                     const showInfo = infoRole === r
                     return (
                       <div
                         key={r}
                         className={`rounded-lg border text-sm ${
-                          role === r
-                            ? 'border-brand-600 bg-brand-50 text-brand-700'
-                            : takenBy
-                              ? 'border-slate-100 bg-slate-50 text-slate-300'
-                              : 'border-slate-200 text-slate-600'
+                          role === r ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600'
                         }`}
                       >
                         <div className="flex items-center justify-between px-3 py-2 gap-2">
                           <button
                             type="button"
-                            disabled={!!takenBy}
                             onClick={() => setRole(r)}
-                            className="flex-1 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
+                            className="flex-1 flex items-center gap-2.5 text-left"
                           >
                             <MascotAvatar role={r} size="sm" motion="idle" />
                             <span>
@@ -146,7 +136,13 @@ export default function JoinPage() {
                             </span>
                           </button>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs">{takenBy ? `${takenBy} 배정됨` : '선택 가능'}</span>
+                            <span
+                              className={`text-xs font-semibold rounded-full px-2 py-1 ${
+                                members.length > 0 ? 'bg-brand-100 text-brand-700' : 'bg-paper-100 text-slate-400'
+                              }`}
+                            >
+                              현재 {members.length}명 선택 중
+                            </span>
                             <button
                               type="button"
                               aria-label={`${ROLE_LABELS[r]} 역할 설명 보기`}
@@ -162,6 +158,9 @@ export default function JoinPage() {
                             </button>
                           </div>
                         </div>
+                        {members.length > 0 && (
+                          <p className="px-3 pb-2 text-xs text-slate-400">참여 중: {members.join(', ')}</p>
+                        )}
                         {showInfo && (
                           <p className="px-3 pb-2 text-xs text-slate-500 leading-relaxed">
                             {ROLE_DESCRIPTIONS[r].summary}
@@ -173,6 +172,9 @@ export default function JoinPage() {
                     )
                   })}
                 </div>
+                <p className="text-xs text-slate-400">
+                  한 역할에 여러 명이 함께 들어갈 수 있어요. 인원이 적은 팀을 골라 골고루 나눠주세요 🙂
+                </p>
               </section>
             )}
 

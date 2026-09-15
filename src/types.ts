@@ -125,6 +125,11 @@ export interface SessionGaps {
   weekendContactSystem: string
 }
 
+export interface ActiveQuiz {
+  startedAt: number
+  durationSec: number
+}
+
 export interface SessionDoc {
   code: string
   schoolName: string
@@ -133,18 +138,27 @@ export interface SessionDoc {
   orgChart: SessionOrgChart
   gaps: SessionGaps
   currentStage: StageId
+  stageStartedAt: number | null // 현재 단계 타이머 기준 시각
   revealed: boolean
   activeWildcardId: string | null
+  activeQuiz: ActiveQuiz | null // 진행자가 발송한 돌발 퀴즈(전 조 동시 진행)
   attendeeCount: number
   createdAt: number
   updatedAt: number
+}
+
+export interface GroupQuizAnswer {
+  quizStartedAt: number // 어느 돌발 퀴즈에 대한 응답인지 식별
+  correct: boolean
 }
 
 export interface GroupDoc {
   id: string
   name: string
   diseaseId: string // 이 조가 훈련할 감염병 (조마다 다르게 배정 가능)
-  members: Partial<Record<RoleId, string>> // roleId -> 참가자 이름
+  members: Partial<Record<RoleId, string[]>> // roleId -> 참가자 이름 목록(역할당 여러 명 가능)
+  badge: boolean // 돌발 퀴즈 성공 시 true(순위 없이 달성 배지만 부여)
+  quizAnswer: GroupQuizAnswer | null
   createdAt: number
 }
 

@@ -10,9 +10,10 @@ interface Props {
   onSelect: (role: RoleId, optionId: string) => void
   disabled: boolean
   revealed: boolean
+  groupMembers?: Partial<Record<RoleId, string[]>>
 }
 
-export default function RoleActionForm({ questions, myRole, answers, onSelect, disabled, revealed }: Props) {
+export default function RoleActionForm({ questions, myRole, answers, onSelect, disabled, revealed, groupMembers }: Props) {
   const answerFor = (role: RoleId) => answers.find((a) => a.role === role)?.optionId
 
   return (
@@ -39,6 +40,9 @@ export default function RoleActionForm({ questions, myRole, answers, onSelect, d
                   {!isMine && !selected && <span className="text-xs text-slate-400">아직 선택 전</span>}
                 </div>
                 <p className="text-sm sm:text-base font-medium text-slate-800">{q.prompt}</p>
+                {(groupMembers?.[q.role]?.length ?? 0) > 1 && (
+                  <p className="text-xs text-slate-400 mt-1">함께 담당: {groupMembers![q.role]!.join(', ')}</p>
+                )}
               </div>
             </div>
             <div className="space-y-2">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { GroupDoc } from '../types'
 import { useSession } from '../hooks/useSession'
@@ -7,8 +7,9 @@ import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { STAGES, nextStage, prevStage } from '../data/stages'
-import { advanceToStage, setActiveWildcard, setRevealed } from '../lib/session'
+import { advanceToStage, endWildcardQuiz, setActiveWildcard, setRevealed, startWildcardQuiz } from '../lib/session'
 import StageBanner from '../components/StageBanner'
+import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
@@ -20,6 +21,12 @@ export default function FacilitatorPresentPage() {
   const groups = useGroups(code)
   const submissions = useStageSubmissions(code, session?.currentStage)
   const [busy, setBusy] = useState(false)
+  const [now, setNow] = useState(Date.now())
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
   if (!session) return <div className="p-8 text-center text-slate-500">세션을 찾을 수 없습니다.</div>
@@ -80,6 +87,29 @@ export default function FacilitatorPresentPage() {
     }
   }
 
+  const quizActive = !!session.activeQuiz && now < session.activeQuiz.startedAt + session.activeQuiz.durationSec * 1000
+  const quizRemainingSec = session.activeQuiz
+    ? Math.max(0, Math.ceil((session.activeQuiz.startedAt + session.activeQuiz.durationSec * 1000 - now) / 1000))
+    : 0
+
+  async function handleSendQuiz() {
+    setBusy(true)
+    try {
+      await startWildcardQuiz(code)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleEndQuiz() {
+    setBusy(true)
+    try {
+      await endWildcardQuiz(code)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-paper-50">
       <StageBanner current={session.currentStage} />
@@ -88,7 +118,10 @@ export default function FacilitatorPresentPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm text-slate-500">{session.schoolName} · 참가 코드 {code}</p>
-            <h1 className="text-xl font-bold text-slate-800">진행자 화면</h1>
+            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2 flex-wrap">
+              진행자 화면
+              <StageTimer startedAt={session.stageStartedAt} minutes={STAGES.find((s) => s.id === session.currentStage)?.minutes ?? 0} />
+            </h1>
           </div>
           <div className="flex gap-2">
             <Link to={`/facilitator/${code}/groups`} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
@@ -127,9 +160,29 @@ export default function FacilitatorPresentPage() {
             {next ? `다음 단계로 (${STAGES.find((s) => s.id === next)?.shortLabel})` : '훈련 종료 · 결과 화면으로'}
           </button>
         </div>
+        {!allSubmitted && groups.length > 0 && (
+          <p className="text-xs text-slate-400 -mt-3">
+            제출 안 된 조가 있어도 "다음 단계로"를 눌러 진행할 수 있어요(진행자 권한). 일부 조원이 이탈해도 연수를 계속할 수 있습니다.
+          </p>
+        )}
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
-          <h2 className="font-semibold text-slate-800 mb-3">돌발 상황 카드</h2>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="font-semibold text-slate-800">돌발 상황 카드</h2>
+            <div className="flex items-center gap-2">
+              {quizActive && <span className="text-xs font-bold text-rose-600">진행 중 · {quizRemainingSec}초 남음</span>}
+              <button
+                type="button"
+                onClick={quizActive ? handleEndQuiz : handleSendQuiz}
+                disabled={busy}
+                className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+                  quizActive ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-amber-400 text-amber-950 hover:bg-amber-500'
+                }`}
+              >
+                {quizActive ? '⏹ 돌발 퀴즈 종료' : '🚨 돌발 퀴즈 발송'}
+              </button>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2">
             {applicableWildcards.map((w) => (
               <button
@@ -146,7 +199,11 @@ export default function FacilitatorPresentPage() {
                 {w.title}
               </button>
             ))}
-            {applicableWildcards.length === 0 && <p className="text-xs text-slate-400">이 단계에 적용 가능한 돌발 카드가 없습니다.</p>}
+            {applicableWildcards.length === 0 && (
+              <div className="w-full rounded-xl border-2 border-dashed border-brand-200 bg-paper-50 py-4 text-center">
+                <p className="text-xs text-slate-400">이 단계에 적용 가능한 돌발 카드가 없어요</p>
+              </div>
+            )}
           </div>
         </section>
 

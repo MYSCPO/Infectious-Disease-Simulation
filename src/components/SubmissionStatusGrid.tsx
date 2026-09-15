@@ -10,13 +10,22 @@ export default function SubmissionStatusGrid({ groups, submissions }: { groups: 
         return (
           <div
             key={g.id}
-            className={`rounded-2xl border p-3 text-center ${
+            className={`relative rounded-2xl border p-3 text-center ${
               done ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'
             }`}
           >
+            {g.badge && (
+              <span className="absolute -top-2 -right-2 text-lg" title="돌발 퀴즈 달성 배지">
+                👑
+              </span>
+            )}
             <div className="text-sm font-bold text-slate-800">{g.name}</div>
-            <div className={`mt-1 text-xs font-semibold ${done ? 'text-emerald-600' : 'text-slate-400'}`}>
-              {done ? '제출 완료' : '제출 대기'}
+            <div
+              className={`mt-1 inline-flex items-center gap-1 text-xs font-semibold rounded-full px-2 py-0.5 ${
+                done ? 'bg-emerald-100 text-emerald-700' : 'bg-paper-100 text-slate-500'
+              }`}
+            >
+              {done ? '✅ 제출 완료' : '✏️ 작성 중'}
             </div>
           </div>
         )

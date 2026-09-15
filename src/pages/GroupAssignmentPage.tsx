@@ -5,6 +5,7 @@ import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
 import { createGroup, updateGroupDisease } from '../lib/session'
 import { DISEASES } from '../data/diseases'
+import MascotAvatar from '../components/MascotAvatar'
 
 export default function GroupAssignmentPage() {
   const { code = '' } = useParams()
@@ -12,12 +13,23 @@ export default function GroupAssignmentPage() {
   const groups = useGroups(code)
   const [creating, setCreating] = useState(false)
   const [nextDiseaseId, setNextDiseaseId] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (session && !nextDiseaseId) setNextDiseaseId(session.diseaseId)
   }, [session, nextDiseaseId])
 
   const joinUrl = `${window.location.origin}/join/${code}`
+
+  async function handleCopyCode() {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // 클립보드 접근 실패 시 조용히 무시(코드가 화면에 이미 크게 보임)
+    }
+  }
 
   async function handleAddGroup() {
     setCreating(true)
@@ -36,9 +48,16 @@ export default function GroupAssignmentPage() {
           <p className="text-sm text-slate-500 mt-1">{session?.schoolName ?? '학교'} · 참가자는 아래 코드로 입장합니다.</p>
         </div>
 
-        <section className="bg-white rounded-2xl border border-slate-200 p-6 text-center">
+        <section className="bg-white rounded-2xl border-2 border-brand-200 p-6 text-center">
           <p className="text-xs text-slate-400 mb-1">참가 코드</p>
           <p className="text-4xl font-black tracking-widest text-brand-700">{code}</p>
+          <button
+            type="button"
+            onClick={handleCopyCode}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brand-600 text-white text-sm font-semibold px-4 py-2 hover:bg-brand-700 transition-colors"
+          >
+            {copied ? '✅ 복사됨!' : '📋 코드 복사'}
+          </button>
           <p className="text-xs text-slate-400 mt-2 break-all">{joinUrl}</p>
         </section>
 
@@ -91,15 +110,30 @@ export default function GroupAssignmentPage() {
                     ))}
                   </select>
                 </div>
-                <div className="space-y-1">
-                  {ROLE_ORDER.map((role) => (
-                    <div key={role} className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{ROLE_LABELS[role]}</span>
-                      <span className={g.members[role] ? 'text-brand-700 font-medium' : 'text-slate-300'}>
-                        {g.members[role] || '미배정'}
-                      </span>
-                    </div>
-                  ))}
+                <div className="space-y-1.5">
+                  {ROLE_ORDER.map((role) => {
+                    const members = g.members[role] ?? []
+                    return (
+                      <div key={role} className="flex items-start justify-between text-xs gap-2">
+                        <span className="text-slate-500 shrink-0 pt-1">{ROLE_LABELS[role]}</span>
+                        {members.length > 0 ? (
+                          <div className="flex flex-wrap justify-end gap-1">
+                            {members.map((name) => (
+                              <span
+                                key={name}
+                                className="inline-flex items-center gap-1 bg-brand-50 text-brand-700 rounded-full pl-0.5 pr-2 py-0.5"
+                              >
+                                <MascotAvatar role={role} size="sm" />
+                                {name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-300">미배정</span>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}

@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { SubmissionAnswer } from '../types'
-import { ROLE_ORDER } from '../types'
+import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
+import { getWildcardQuiz } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
-import { releaseRole, saveDraftAnswer, submitGroupAnswer } from '../lib/session'
+import { releaseRole, saveDraftAnswer, submitGroupAnswer, submitQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
+import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
 import RoleActionForm from '../components/RoleActionForm'
 import ChecklistPanel from '../components/ChecklistPanel'
 import WildcardModal from '../components/WildcardModal'
+import WildcardQuizModal from '../components/WildcardQuizModal'
 import MascotAvatar from '../components/MascotAvatar'
 import { ROLE_MASCOTS } from '../data/mascots'
+import { STAGES } from '../data/stages'
 
 export default function TeamTrainingPage() {
   const { code = '', groupId = '' } = useParams()
@@ -48,8 +52,15 @@ export default function TeamTrainingPage() {
   const scenarioStages = getScenarioForDisease(group?.diseaseId ?? session.diseaseId)
   const currentScenario = scenarioStages.find((s) => s.stage === session.currentStage)
   const activeWildcard = session.activeWildcardId ? WILDCARDS.find((w) => w.id === session.activeWildcardId) : null
-  const allAnswered = ROLE_ORDER.every((r) => answers.some((a) => a.role === r))
+  const missingRoles = ROLE_ORDER.filter((r) => !answers.some((a) => a.role === r))
+  const allAnswered = missingRoles.length === 0
   const submitted = submission?.submitted ?? false
+  const stageDef = STAGES.find((s) => s.id === session.currentStage)
+  const quiz = group ? getWildcardQuiz(group.diseaseId) : null
+  const quizAnsweredForActive =
+    group?.quizAnswer && session.activeQuiz && group.quizAnswer.quizStartedAt === session.activeQuiz.startedAt
+      ? group.quizAnswer
+      : null
 
   async function handleSelect(role: (typeof ROLE_ORDER)[number], optionId: string) {
     const next = [...answers.filter((a) => a.role !== role), { role, optionId }]
@@ -71,7 +82,7 @@ export default function TeamTrainingPage() {
 
   async function handleChangeRole() {
     if (isMine) {
-      await releaseRole(code, groupId, myRole!)
+      await releaseRole(code, groupId, myRole!, identity!.name)
       clearParticipantIdentity()
     }
   }
@@ -81,16 +92,18 @@ export default function TeamTrainingPage() {
       <StageBanner current={session.currentStage} />
 
       <div className="max-w-5xl mx-auto px-4 py-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
           <div>
             <p className="text-sm text-slate-500">{session.schoolName}</p>
-            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2 flex-wrap">
               {group?.name ?? '조'}
               {group && (
                 <span className="text-xs font-semibold bg-brand-100 text-brand-700 rounded-full px-2 py-0.5">
                   {getDiseaseById(group.diseaseId).name}
                 </span>
               )}
+              {group?.badge && <span className="text-lg" title="돌발 퀴즈 달성 배지">👑</span>}
+              {stageDef && <StageTimer startedAt={session.stageStartedAt} minutes={stageDef.minutes} />}
             </h1>
           </div>
           {isMine && myRole ? (
@@ -122,6 +135,7 @@ export default function TeamTrainingPage() {
                 onSelect={handleSelect}
                 disabled={submitted}
                 revealed={session.revealed}
+                groupMembers={group?.members}
               />
             )}
 
@@ -130,15 +144,19 @@ export default function TeamTrainingPage() {
                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm text-center py-3 font-semibold">
                   제출 완료 · 진행자가 전체 공개할 때까지 기다려 주세요
                 </div>
-              ) : (
+              ) : allAnswered ? (
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={!allAnswered || submitting}
-                  className="w-full rounded-full bg-brand-600 text-white py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-40"
+                  disabled={submitting}
+                  className="w-full rounded-full bg-brand-600 text-white py-3.5 text-sm font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
                 >
-                  {allAnswered ? (submitting ? '제출 중...' : '조 답변 제출하기') : '모든 역할의 조치를 선택하면 제출할 수 있어요'}
+                  {submitting ? '제출 중...' : '모든 역할 선택 완료! 다음 단계로 제출하기 🚀'}
                 </button>
+              ) : (
+                <div className="w-full rounded-full bg-paper-100 border border-slate-200 text-slate-500 py-3 text-sm font-semibold text-center px-3">
+                  진행 현황 {ROLE_ORDER.length - missingRoles.length}/{ROLE_ORDER.length} · 미제출: {missingRoles.map((r) => ROLE_LABELS[r]).join(', ')} ⏳
+                </div>
               )}
             </div>
           </div>
@@ -151,6 +169,16 @@ export default function TeamTrainingPage() {
 
       {activeWildcard && dismissedWildcard !== activeWildcard.id && (
         <WildcardModal card={activeWildcard} onClose={() => setDismissedWildcard(activeWildcard.id)} />
+      )}
+
+      {session.activeQuiz && group && quiz && (
+        <WildcardQuizModal
+          quiz={quiz}
+          startedAt={session.activeQuiz.startedAt}
+          durationSec={session.activeQuiz.durationSec}
+          alreadyAnswered={quizAnsweredForActive}
+          onSubmit={(correct) => submitQuizAnswer(code, groupId, session.activeQuiz!.startedAt, correct)}
+        />
       )}
     </div>
   )
