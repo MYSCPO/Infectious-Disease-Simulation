@@ -41,6 +41,16 @@ export const ROLE_DESCRIPTIONS: Record<RoleId, { summary: string; example: strin
 
 export const ROLE_ORDER: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
+// 역할별 정원 안내. max가 있으면 그 인원에서 선택 마감(서버에서도 강제), recommended는
+// 권장 인원일 뿐 강제하지 않는다(예: 행정지원팀은 보통 행정실 전담 인력이 1명이라 권장만 함).
+export const ROLE_CAPACITY: Record<RoleId, { max: number | null; recommended?: number }> = {
+  surveillance: { max: null },
+  health: { max: null },
+  academic: { max: null },
+  admin: { max: null, recommended: 1 },
+  principal: { max: 2 },
+}
+
 export type StageId = 'prevention' | 'response1' | 'response2' | 'response3' | 'recovery'
 
 export interface StageDef {

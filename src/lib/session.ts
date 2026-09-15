@@ -165,16 +165,25 @@ export async function updateGroupDisease(code: string, groupId: string, diseaseI
 }
 
 // 한 역할을 여러 명이 함께 맡을 수 있다(조 인원이 5명을 넘어도 모두 입장 가능하도록).
-// 같은 이름이 중복 등록되지 않도록 트랜잭션으로 확인 후 배열에 추가한다.
-export async function claimRole(code: string, groupId: string, role: RoleId, memberName: string): Promise<void> {
+// 같은 이름이 중복 등록되지 않도록, 정원(maxCap)이 있으면 그 인원을 넘지 않도록
+// 트랜잭션으로 확인 후 배열에 추가한다(동시 클릭으로 정원을 초과하는 경쟁을 막기 위함).
+export async function claimRole(
+  code: string,
+  groupId: string,
+  role: RoleId,
+  memberName: string,
+  maxCap?: number | null,
+): Promise<'ok' | 'duplicate' | 'full'> {
   await ensureSignedIn()
   const ref = groupRef(code, groupId)
-  await runTransaction(db, async (tx) => {
+  return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref)
     const current = (snap.data() as GroupDoc | undefined)?.members ?? {}
     const list = current[role] ?? []
-    if (list.includes(memberName)) return
+    if (list.includes(memberName)) return 'duplicate'
+    if (maxCap != null && list.length >= maxCap) return 'full'
     tx.update(ref, { members: { ...current, [role]: [...list, memberName] } })
+    return 'ok'
   })
 }
 

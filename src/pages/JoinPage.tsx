@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { RoleId } from '../types'
-import { ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
+import { ROLE_CAPACITY, ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
+import { getDiseaseById } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
@@ -49,7 +50,12 @@ export default function JoinPage() {
     setJoining(true)
     setError(null)
     try {
-      await claimRole(confirmedCode, groupId, role, name.trim())
+      const result = await claimRole(confirmedCode, groupId, role, name.trim(), ROLE_CAPACITY[role].max)
+      if (result === 'full') {
+        setError(`방금 정원이 다 찼습니다(${ROLE_LABELS[role]} 최대 ${ROLE_CAPACITY[role].max}명). 다른 역할을 선택해 주세요.`)
+        setRole('')
+        return
+      }
       saveParticipantIdentity({ sessionCode: confirmedCode, groupId, role, name: name.trim() })
       navigate(`/team/${confirmedCode}/${groupId}`)
     } catch (e) {
@@ -97,11 +103,12 @@ export default function JoinPage() {
                     key={g.id}
                     type="button"
                     onClick={() => setGroupId(g.id)}
-                    className={`rounded-lg border py-2 text-sm font-semibold ${
+                    className={`rounded-lg border py-2 px-2 text-sm font-semibold flex items-center justify-center gap-1.5 ${
                       groupId === g.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600'
                     }`}
                   >
-                    {g.name}
+                    <span>{g.name}</span>
+                    <span className="text-xs font-medium text-slate-400">| {getDiseaseById(g.diseaseId).name}</span>
                   </button>
                 ))}
                 {groups.length === 0 && <p className="text-xs text-slate-400 col-span-2">진행자가 조를 편성하면 표시됩니다.</p>}
@@ -110,24 +117,48 @@ export default function JoinPage() {
 
             {selectedGroup && (
               <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                <span className="text-sm font-medium text-slate-700">역할 선택</span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-sm font-medium text-slate-700">역할 선택</span>
+                  <span className="inline-flex items-center gap-1.5 bg-brand-600 text-white text-sm font-bold rounded-full px-3 py-1.5">
+                    선택한 조: {selectedGroup.name} ({getDiseaseById(selectedGroup.diseaseId).name})
+                  </span>
+                </div>
                 <p className="text-xs text-slate-400 -mt-1">역할 이름 옆 ⓘ에 마우스를 올리거나 눌러보면 무슨 일을 하는지 볼 수 있어요.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {ROLE_ORDER.map((r) => {
                     const members = selectedGroup.members[r] ?? []
                     const showInfo = infoRole === r
+                    const cap = ROLE_CAPACITY[r]
+                    const isFull = cap.max != null && members.length >= cap.max
+                    let badgeLabel: string
+                    let badgeClass: string
+                    if (cap.max != null) {
+                      badgeLabel = isFull ? `선택 마감 (${members.length}/${cap.max}명)` : `${members.length}/${cap.max}명 선택 중`
+                      badgeClass = isFull ? 'bg-rose-100 text-rose-600' : 'bg-amber-50 text-amber-700'
+                    } else if (cap.recommended) {
+                      badgeLabel = `현재 ${members.length}명 선택 중 (권장 ${cap.recommended}명)`
+                      badgeClass = members.length > 0 ? 'bg-brand-100 text-brand-700' : 'bg-paper-100 text-slate-400'
+                    } else {
+                      badgeLabel = `현재 ${members.length}명 선택 중 (자유)`
+                      badgeClass = members.length > 0 ? 'bg-brand-100 text-brand-700' : 'bg-paper-100 text-slate-400'
+                    }
                     return (
                       <div
                         key={r}
                         className={`rounded-lg border text-sm ${
-                          role === r ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600'
+                          role === r
+                            ? 'border-brand-600 bg-brand-50 text-brand-700'
+                            : isFull
+                              ? 'border-slate-100 bg-slate-50 text-slate-300'
+                              : 'border-slate-200 text-slate-600'
                         }`}
                       >
                         <div className="flex items-center justify-between px-3 py-2 gap-2">
                           <button
                             type="button"
+                            disabled={isFull}
                             onClick={() => setRole(r)}
-                            className="flex-1 flex items-center gap-2.5 text-left"
+                            className="flex-1 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
                           >
                             <MascotAvatar role={r} size="sm" motion="idle" />
                             <span>
@@ -136,12 +167,8 @@ export default function JoinPage() {
                             </span>
                           </button>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span
-                              className={`text-xs font-semibold rounded-full px-2 py-1 ${
-                                members.length > 0 ? 'bg-brand-100 text-brand-700' : 'bg-paper-100 text-slate-400'
-                              }`}
-                            >
-                              현재 {members.length}명 선택 중
+                            <span className={`text-xs font-semibold rounded-full px-2 py-1 whitespace-nowrap ${badgeClass}`}>
+                              {badgeLabel}
                             </span>
                             <button
                               type="button"
@@ -173,7 +200,7 @@ export default function JoinPage() {
                   })}
                 </div>
                 <p className="text-xs text-slate-400">
-                  한 역할에 여러 명이 함께 들어갈 수 있어요. 인원이 적은 팀을 골라 골고루 나눠주세요 🙂
+                  감시맨·예방벨·학사대장은 인원 제한 없이 자유롭게, 지원통은 되도록 1명, 관리자는 최대 2명까지 함께할 수 있어요 🙂
                 </p>
               </section>
             )}
