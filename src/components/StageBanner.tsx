@@ -26,8 +26,13 @@ export default function StageBanner({ current }: { current: StageId }) {
             </div>
           ))}
         </div>
-        <h2 className="mt-2 text-base sm:text-lg font-bold text-slate-800">{stage.label}</h2>
-        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{stage.description}</p>
+
+        <div className="mt-3 bg-brand-50 border-2 border-brand-200 rounded-2xl px-4 py-3">
+          <h2 className="text-lg sm:text-2xl font-black text-brand-800 flex items-center gap-2">
+            📍 {stage.label}
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">{stage.description}</p>
+        </div>
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import { useGroups, useStageSubmissions } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
+import { getWildcardQuiz } from '../data/wildcardQuiz'
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import { advanceToStage, endWildcardQuiz, setActiveWildcard, setRevealed, startWildcardQuiz } from '../lib/session'
 import StageBanner from '../components/StageBanner'
@@ -116,12 +117,9 @@ export default function FacilitatorPresentPage() {
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-slate-500">{session.schoolName} · 참가 코드 {code}</p>
-            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2 flex-wrap">
-              진행자 화면
-              <StageTimer startedAt={session.stageStartedAt} minutes={STAGES.find((s) => s.id === session.currentStage)?.minutes ?? 0} />
-            </h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-slate-800">{session.schoolName} · 참가 코드 {code}</h1>
+            <StageTimer startedAt={session.stageStartedAt} minutes={STAGES.find((s) => s.id === session.currentStage)?.minutes ?? 0} />
           </div>
           <div className="flex gap-2">
             <Link to={`/facilitator/${code}/groups`} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
@@ -160,11 +158,6 @@ export default function FacilitatorPresentPage() {
             {next ? `다음 단계로 (${STAGES.find((s) => s.id === next)?.shortLabel})` : '훈련 종료 · 결과 화면으로'}
           </button>
         </div>
-        {!allSubmitted && groups.length > 0 && (
-          <p className="text-xs text-slate-400 -mt-3">
-            제출 안 된 조가 있어도 "다음 단계로"를 눌러 진행할 수 있어요(진행자 권한). 일부 조원이 이탈해도 연수를 계속할 수 있습니다.
-          </p>
-        )}
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -183,6 +176,22 @@ export default function FacilitatorPresentPage() {
               </button>
             </div>
           </div>
+
+          <div className="mb-4 space-y-1.5">
+            <p className="text-xs font-semibold text-slate-500">🎲 발송 시 감염병별로 나갈 문제 미리보기(단계와 무관하게 항상 발송 가능)</p>
+            {clusterEntries.map(([diseaseId]) => {
+              const disease = getDiseaseById(diseaseId)
+              const quiz = getWildcardQuiz(diseaseId)
+              if (!quiz) return null
+              return (
+                <div key={diseaseId} className="text-xs bg-paper-50 border border-slate-100 rounded-xl px-3 py-2">
+                  <span className="font-bold text-brand-700">{disease.name}</span>
+                  <span className="text-slate-600"> · {quiz.prompt}</span>
+                </div>
+              )
+            })}
+          </div>
+
           <div className="flex flex-wrap gap-2">
             {applicableWildcards.map((w) => (
               <button

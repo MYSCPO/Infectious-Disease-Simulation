@@ -124,7 +124,7 @@ export default function MainPage() {
       </main>
 
       <p className="text-center text-xs text-slate-400 pb-2">
-        방과 후 연수 20~30분 기준 · 초·중·고 전 교직원 대상 · 4~6인 1조 편성
+        방과 후 연수 20~30분 기준 · 초·중·고 전 교직원 대상
       </p>
 
       <footer className="bg-slate-900 text-slate-300 py-10 px-4 text-center">
