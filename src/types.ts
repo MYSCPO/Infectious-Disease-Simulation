@@ -48,7 +48,7 @@ export const ROLE_CAPACITY: Record<RoleId, { max: number | null; recommended?: n
   health: { max: null },
   academic: { max: null },
   admin: { max: null, recommended: 1 },
-  principal: { max: 2 },
+  principal: { max: null, recommended: 2 }, // 교장·교감 2인 체제가 일반적이라 권장 2명(강제 마감은 없음)
 }
 
 export type StageId = 'prevention' | 'response1' | 'response2' | 'response3' | 'recovery'
