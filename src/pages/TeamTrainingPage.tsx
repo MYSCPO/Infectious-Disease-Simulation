@@ -17,6 +17,7 @@ import RoleActionForm from '../components/RoleActionForm'
 import ChecklistPanel from '../components/ChecklistPanel'
 import WildcardModal from '../components/WildcardModal'
 import WildcardQuizModal from '../components/WildcardQuizModal'
+import DiseaseManualModal from '../components/DiseaseManualModal'
 import MascotAvatar from '../components/MascotAvatar'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
@@ -35,6 +36,7 @@ export default function TeamTrainingPage() {
   const [answers, setAnswers] = useState<SubmissionAnswer[]>([])
   const [dismissedWildcard, setDismissedWildcard] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showManual, setShowManual] = useState(false)
 
   useEffect(() => {
     setAnswers(submission?.answers ?? [])
@@ -49,6 +51,7 @@ export default function TeamTrainingPage() {
     )
   }
 
+  const disease = getDiseaseById(group?.diseaseId ?? session.diseaseId)
   const scenarioStages = getScenarioForDisease(group?.diseaseId ?? session.diseaseId)
   const currentScenario = scenarioStages.find((s) => s.stage === session.currentStage)
   const activeWildcard = session.activeWildcardId ? WILDCARDS.find((w) => w.id === session.activeWildcardId) : null
@@ -123,6 +126,14 @@ export default function TeamTrainingPage() {
           )}
         </div>
 
+        <button
+          type="button"
+          onClick={() => setShowManual(true)}
+          className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold px-3 py-2 hover:bg-amber-100 transition-colors"
+        >
+          💡 {disease.name} 감염병 매뉴얼 보기
+        </button>
+
         <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
           <div className="space-y-4">
             {currentScenario && <ScenarioCard scenario={currentScenario} />}
@@ -166,6 +177,10 @@ export default function TeamTrainingPage() {
           </div>
         </div>
       </div>
+
+      {showManual && (
+        <DiseaseManualModal disease={disease} greetRole={myRole} onClose={() => setShowManual(false)} />
+      )}
 
       {activeWildcard && dismissedWildcard !== activeWildcard.id && (
         <WildcardModal card={activeWildcard} onClose={() => setDismissedWildcard(activeWildcard.id)} />

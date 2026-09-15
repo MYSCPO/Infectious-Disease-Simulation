@@ -11,6 +11,7 @@ import { STAGES, nextStage, prevStage } from '../data/stages'
 import { advanceToStage, endWildcardQuiz, setActiveWildcard, setRevealed, startWildcardQuiz } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
+import MascotAvatar from '../components/MascotAvatar'
 import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
@@ -209,8 +210,13 @@ export default function FacilitatorPresentPage() {
               </button>
             ))}
             {applicableWildcards.length === 0 && (
-              <div className="w-full rounded-xl border-2 border-dashed border-brand-200 bg-paper-50 py-4 text-center">
-                <p className="text-xs text-slate-400">이 단계에 적용 가능한 돌발 카드가 없어요</p>
+              <div className="w-full rounded-xl border-2 border-dashed border-brand-200 bg-paper-50 py-4 px-4 flex items-center justify-center gap-2 text-center">
+                <MascotAvatar role="surveillance" size="sm" />
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  💡 {STAGES.find((s) => s.id === session.currentStage)?.label ?? '이 단계'}입니다. 상단의{' '}
+                  <span className="font-bold text-amber-700">[돌발 퀴즈 발송]</span> 버튼을 통해 질병 기본 지식 퀴즈를
+                  전 조에 발송할 수 있습니다.
+                </p>
               </div>
             )}
           </div>
