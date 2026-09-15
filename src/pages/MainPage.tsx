@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import type { RoleId } from '../types'
+import { ROLE_MASCOTS } from '../data/mascots'
+
+const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin']
 
 export default function MainPage() {
   const navigate = useNavigate()
@@ -38,6 +42,16 @@ export default function MainPage() {
       <main className="flex-1 w-full">
         <div className="max-w-md w-full mx-auto px-4 py-10">
           <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 sm:p-8 text-center">
+            <div className="flex justify-center gap-3 sm:gap-4 mb-3">
+              {TEAM_ROLES.map((r) => (
+                <div key={r} className="flex flex-col items-center">
+                  <div className="text-3xl sm:text-4xl">{ROLE_MASCOTS[r].emoji}</div>
+                  <span className="text-[10px] text-slate-400 mt-0.5">{ROLE_MASCOTS[r].name}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400 mb-4">감시맨·예방벨·학사대장·지원통이 함께 기다리고 있어요!</p>
+
             <div className="text-4xl mb-2">🚨</div>
             <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-1">감염병 모의 훈련 참가하기</h2>
             <p className="text-sm text-slate-500 mb-5 leading-relaxed">

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { RoleId } from '../types'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
+import { ROLE_MASCOTS } from '../data/mascots'
+import MascotAvatar from '../components/MascotAvatar'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
 import { claimRole } from '../lib/session'
@@ -130,14 +132,18 @@ export default function JoinPage() {
                               : 'border-slate-200 text-slate-600'
                         }`}
                       >
-                        <div className="flex items-center justify-between px-3 py-2">
+                        <div className="flex items-center justify-between px-3 py-2 gap-2">
                           <button
                             type="button"
                             disabled={!!takenBy}
                             onClick={() => setRole(r)}
-                            className="flex-1 text-left font-medium disabled:cursor-not-allowed"
+                            className="flex-1 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
                           >
-                            {ROLE_LABELS[r]}
+                            <MascotAvatar role={r} size="sm" />
+                            <span>
+                              <span className="block font-bold leading-tight">{ROLE_MASCOTS[r].name}</span>
+                              <span className="block text-xs text-slate-400 leading-tight">{ROLE_LABELS[r]}</span>
+                            </span>
                           </button>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-xs">{takenBy ? `${takenBy} 배정됨` : '선택 가능'}</span>

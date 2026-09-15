@@ -14,6 +14,8 @@ import ScenarioCard from '../components/ScenarioCard'
 import RoleActionForm from '../components/RoleActionForm'
 import ChecklistPanel from '../components/ChecklistPanel'
 import WildcardModal from '../components/WildcardModal'
+import MascotAvatar from '../components/MascotAvatar'
+import { ROLE_MASCOTS } from '../data/mascots'
 
 export default function TeamTrainingPage() {
   const { code = '', groupId = '' } = useParams()
@@ -91,10 +93,16 @@ export default function TeamTrainingPage() {
               )}
             </h1>
           </div>
-          {isMine ? (
-            <Link to={`/join/${code}`} onClick={handleChangeRole} className="text-xs text-slate-400 underline">
-              역할 변경
-            </Link>
+          {isMine && myRole ? (
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <p className="text-xs font-bold text-brand-700">{ROLE_MASCOTS[myRole].name}</p>
+                <Link to={`/join/${code}`} onClick={handleChangeRole} className="text-xs text-slate-400 underline">
+                  역할 변경
+                </Link>
+              </div>
+              <MascotAvatar role={myRole} />
+            </div>
           ) : (
             <Link to={`/join/${code}`} className="text-xs text-brand-600 underline">
               내 역할로 입장하기

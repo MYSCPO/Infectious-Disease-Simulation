@@ -1,5 +1,7 @@
 import type { RoleId, RoleQuestion, SubmissionAnswer } from '../types'
 import { ROLE_LABELS } from '../types'
+import { ROLE_MASCOTS } from '../data/mascots'
+import MascotAvatar from './MascotAvatar'
 
 interface Props {
   questions: RoleQuestion[]
@@ -25,18 +27,20 @@ export default function RoleActionForm({ questions, myRole, answers, onSelect, d
               isMine ? 'border-brand-300 bg-brand-50/40' : 'border-slate-200 bg-white opacity-90'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  isMine ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                {ROLE_LABELS[q.role]}
-                {isMine ? ' · 내 역할' : ''}
-              </span>
-              {!isMine && !selected && <span className="text-xs text-slate-400">아직 선택 전</span>}
+            <div className="flex items-start gap-2.5 mb-3">
+              <MascotAvatar role={q.role} />
+              <div className="relative flex-1 bg-paper-50 border border-slate-100 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold text-brand-700">
+                    {ROLE_MASCOTS[q.role].name}
+                    <span className="ml-1 font-normal text-slate-400">· {ROLE_LABELS[q.role]}</span>
+                    {isMine ? <span className="ml-1 font-semibold text-brand-600">(내 역할)</span> : ''}
+                  </span>
+                  {!isMine && !selected && <span className="text-xs text-slate-400">아직 선택 전</span>}
+                </div>
+                <p className="text-sm sm:text-base font-medium text-slate-800">{q.prompt}</p>
+              </div>
             </div>
-            <p className="text-sm sm:text-base font-medium text-slate-800 mb-3">{q.prompt}</p>
             <div className="space-y-2">
               {q.options.map((opt) => {
                 const isSelected = selected === opt.id
