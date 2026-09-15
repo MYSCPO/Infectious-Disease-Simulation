@@ -24,9 +24,8 @@ export default function StageTimer({
   const elapsed = Math.floor((now - startedAt) / 1000)
   const remaining = totalSec - elapsed
   const over = remaining <= 0
-  const abs = Math.abs(remaining)
-  const mm = String(Math.floor(abs / 60)).padStart(2, '0')
-  const ss = String(abs % 60).padStart(2, '0')
+  const mm = String(Math.floor(remaining / 60)).padStart(2, '0')
+  const ss = String(remaining % 60).padStart(2, '0')
 
   const baseClass =
     tone === 'dark'
@@ -37,10 +36,11 @@ export default function StageTimer({
         ? 'bg-rose-50 text-rose-600 border border-rose-200'
         : 'bg-white text-brand-700 border border-brand-200'
 
+  // 초과 시간이 길어지면(세션을 계속 열어둔 경우 등) 의미 없는 큰 숫자 대신
+  // 간단히 "시간 초과"만 표시한다. 진행 속도 참고용일 뿐 강제 규칙은 아니다.
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold ${baseClass}`}>
-      ⏱ {over ? `+${mm}:${ss}` : `${mm}:${ss}`}
-      {over && <span className="text-xs font-semibold">시간 종료</span>}
+      {over ? '⏱ 시간 초과' : `⏱ ${mm}:${ss}`}
     </span>
   )
 }
