@@ -4,7 +4,7 @@ import type { RoleId } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
 import MascotAvatar from '../components/MascotAvatar'
 
-const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin']
+const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
 export default function MainPage() {
   const navigate = useNavigate()
@@ -43,15 +43,15 @@ export default function MainPage() {
       <main className="flex-1 w-full">
         <div className="max-w-md w-full mx-auto px-4 py-10">
           <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 sm:p-8 text-center">
-            <div className="flex justify-center gap-3 sm:gap-4 mb-3">
+            <div className="flex justify-center flex-wrap gap-3 sm:gap-4 mb-3">
               {TEAM_ROLES.map((r) => (
                 <div key={r} className="flex flex-col items-center">
-                  <MascotAvatar role={r} size="lg" />
+                  <MascotAvatar role={r} size="lg" motion="idle" />
                   <span className="text-[10px] text-slate-400 mt-0.5">{ROLE_MASCOTS[r].name}</span>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-400 mb-4">감시맨·예방벨·학사대장·지원통이 함께 기다리고 있어요!</p>
+            <p className="text-xs text-slate-400 mb-4">감시맨·예방벨·학사대장·지원통·관리자가 함께 기다리고 있어요!</p>
 
             <div className="text-4xl mb-2">🚨</div>
             <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-1">감염병 모의 훈련 참가하기</h2>

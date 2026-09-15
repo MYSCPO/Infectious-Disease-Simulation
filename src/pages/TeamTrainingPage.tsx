@@ -101,7 +101,7 @@ export default function TeamTrainingPage() {
                   역할 변경
                 </Link>
               </div>
-              <MascotAvatar role={myRole} />
+              <MascotAvatar role={myRole} motion={submitted ? 'bounce' : 'idle'} />
             </div>
           ) : (
             <Link to={`/join/${code}`} className="text-xs text-brand-600 underline">

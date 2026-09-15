@@ -28,7 +28,7 @@ export default function RoleActionForm({ questions, myRole, answers, onSelect, d
             }`}
           >
             <div className="flex items-start gap-2.5 mb-3">
-              <MascotAvatar role={q.role} />
+              <MascotAvatar role={q.role} motion={revealed ? 'bounce' : 'idle'} />
               <div className="relative flex-1 bg-paper-50 border border-slate-100 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-brand-700">

@@ -12,6 +12,21 @@ body {
 
 /* 디자인 컨벤션: 카드=rounded-2xl/3xl + shadow-sm, 주요 버튼=rounded-full(필 형태), 배경=paper 톤 */
 
+/* 마스코트 상황별 모션: 그림 자체를 바꾸는 게 아니라 같은 이미지를 CSS로 움직여 상태를 표현한다 */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes mascot-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(7deg); }
+  60% { transform: rotate(-6deg); }
+  80% { transform: rotate(5deg); }
+}
+.mascot-motion-idle { animation: mascot-float 2.6s ease-in-out infinite; }
+.mascot-motion-shake { animation: mascot-shake 0.5s ease-in-out 2; }
+
 @media print {
   @page {
     size: A4;

@@ -139,7 +139,7 @@ export default function JoinPage() {
                             onClick={() => setRole(r)}
                             className="flex-1 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
                           >
-                            <MascotAvatar role={r} size="sm" />
+                            <MascotAvatar role={r} size="sm" motion="idle" />
                             <span>
                               <span className="block font-bold leading-tight">{ROLE_MASCOTS[r].name}</span>
                               <span className="block text-xs text-slate-400 leading-tight">{ROLE_LABELS[r]}</span>
