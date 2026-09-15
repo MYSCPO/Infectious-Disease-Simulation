@@ -3,13 +3,25 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { RoleId } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
 import MascotAvatar from '../components/MascotAvatar'
+import { createTestSession } from '../lib/session'
+import { saveParticipantIdentity } from '../lib/participant'
 
 const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
+
+// 실제 보안 장치가 아니라, 교직원이 실수로 진행자 설정에 들어가는 것만 막는 가벼운 진입장벽입니다.
+const FACILITATOR_PASSWORD = 'admin1234'
 
 export default function MainPage() {
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
+
+  const [showGate, setShowGate] = useState(false)
+  const [password, setPassword] = useState('')
+  const [gateError, setGateError] = useState<string | null>(null)
+
+  const [testLoading, setTestLoading] = useState(false)
+  const [testError, setTestError] = useState<string | null>(null)
 
   function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -21,15 +33,43 @@ export default function MainPage() {
     navigate(`/join/${trimmed}`)
   }
 
+  function handleGateSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (password === FACILITATOR_PASSWORD) {
+      setShowGate(false)
+      setPassword('')
+      setGateError(null)
+      navigate('/facilitator/setup')
+    } else {
+      setGateError('비밀번호가 올바르지 않습니다.')
+    }
+  }
+
+  async function handleTestMode() {
+    setTestLoading(true)
+    setTestError(null)
+    try {
+      const { code: testCode, groupId, role } = await createTestSession()
+      saveParticipantIdentity({ sessionCode: testCode, groupId, role, name: '테스트 참가자(나)' })
+      navigate(`/facilitator/${testCode}/present`)
+    } catch (e) {
+      console.error(e)
+      setTestError('테스트 방 생성에 실패했습니다. 다시 시도해 주세요.')
+    } finally {
+      setTestLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-paper-50">
       <header className="relative bg-brand-600 text-white py-12 px-4 text-center rounded-b-[2.5rem]">
-        <Link
-          to="/facilitator/setup"
+        <button
+          type="button"
+          onClick={() => setShowGate(true)}
           className="absolute top-4 right-4 text-xs sm:text-sm font-semibold text-brand-50 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1.5 transition-colors"
         >
-          ⚙️ 진행자(관리자) 세팅
-        </Link>
+          ⚙️ 진행자 설정
+        </button>
 
         <p className="text-brand-50 text-sm font-semibold mb-2">🌱 하나 된 대응, 건강한 학교생활</p>
         <h1 className="text-2xl sm:text-3xl font-black">학교 감염병 위기 대응 모의훈련</h1>
@@ -79,6 +119,21 @@ export default function MainPage() {
                 입장하기 →
               </button>
             </form>
+
+            <div className="mt-4 pt-4 border-t border-dashed border-slate-200">
+              <button
+                type="button"
+                onClick={handleTestMode}
+                disabled={testLoading}
+                className="w-full rounded-full bg-slate-50 border border-slate-200 text-slate-500 py-2.5 text-xs font-bold hover:bg-slate-100 disabled:opacity-50"
+              >
+                {testLoading ? '테스트 방 만드는 중...' : '🧪 테스트 모드 (1인 흐름 체험)'}
+              </button>
+              {testError && <p className="text-xs text-rose-600 mt-1">{testError}</p>}
+              <p className="text-[11px] text-slate-400 mt-1">
+                진행자 세팅과 참가자 입장을 자동으로 만들어 혼자서 전체 흐름을 바로 체험해볼 수 있어요.
+              </p>
+            </div>
           </section>
         </div>
 
@@ -140,6 +195,50 @@ export default function MainPage() {
         </p>
         <p className="text-xs text-slate-500 font-mono mt-6">Developed for educational purposes by jeong mi ae</p>
       </footer>
+
+      {showGate && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
+          <form
+            onSubmit={handleGateSubmit}
+            className="bg-white rounded-3xl shadow-xl max-w-xs w-full p-6 text-center space-y-3"
+          >
+            <div className="text-3xl">🔒</div>
+            <h3 className="text-base font-bold text-slate-800">진행자 설정 비밀번호</h3>
+            <p className="text-xs text-slate-400">교직원이 실수로 들어오지 않도록 막는 간단한 확인이에요.</p>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setGateError(null)
+              }}
+              autoFocus
+              placeholder="비밀번호 입력"
+              className="w-full text-center rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+            />
+            {gateError && <p className="text-xs text-rose-600">{gateError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGate(false)
+                  setPassword('')
+                  setGateError(null)
+                }}
+                className="flex-1 rounded-full border border-slate-200 text-slate-500 py-2.5 text-sm font-semibold hover:bg-slate-50"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-full bg-brand-600 text-white py-2.5 text-sm font-bold hover:bg-brand-700"
+              >
+                확인
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

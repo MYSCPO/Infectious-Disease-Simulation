@@ -18,6 +18,7 @@ import {
   startWildcardQuiz,
   submitGroupAnswer,
 } from '../lib/session'
+import { loadParticipantIdentity } from '../lib/participant'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import MascotAvatar from '../components/MascotAvatar'
@@ -33,6 +34,8 @@ export default function FacilitatorPresentPage() {
   const submissions = useStageSubmissions(code, session?.currentStage)
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(Date.now())
+  const savedIdentity = loadParticipantIdentity()
+  const myIdentityHere = savedIdentity && savedIdentity.sessionCode === code ? savedIdentity : null
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000)
@@ -194,6 +197,14 @@ export default function FacilitatorPresentPage() {
             >
               ⚡ 현재 단계 전체 자동 제출
             </button>
+            {myIdentityHere && (
+              <Link
+                to={`/team/${code}/${myIdentityHere.groupId}`}
+                className="rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
+              >
+                👤 내 참가자 화면 보기
+              </Link>
+            )}
           </div>
           {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
         </div>
