@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { RoleId } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
 import MascotAvatar from '../components/MascotAvatar'
-import { createTestSession } from '../lib/session'
-import { saveParticipantIdentity } from '../lib/participant'
 
 const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
@@ -19,9 +17,6 @@ export default function MainPage() {
   const [showGate, setShowGate] = useState(false)
   const [password, setPassword] = useState('')
   const [gateError, setGateError] = useState<string | null>(null)
-
-  const [testLoading, setTestLoading] = useState(false)
-  const [testError, setTestError] = useState<string | null>(null)
 
   function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,21 +37,6 @@ export default function MainPage() {
       navigate('/facilitator/setup')
     } else {
       setGateError('비밀번호가 올바르지 않습니다.')
-    }
-  }
-
-  async function handleTestMode() {
-    setTestLoading(true)
-    setTestError(null)
-    try {
-      const { code: testCode, groupId, role } = await createTestSession()
-      saveParticipantIdentity({ sessionCode: testCode, groupId, role, name: '테스트 참가자(나)' })
-      navigate(`/facilitator/${testCode}/present`)
-    } catch (e) {
-      console.error(e)
-      setTestError('테스트 방 생성에 실패했습니다. 다시 시도해 주세요.')
-    } finally {
-      setTestLoading(false)
     }
   }
 
@@ -119,21 +99,6 @@ export default function MainPage() {
                 입장하기 →
               </button>
             </form>
-
-            <div className="mt-4 pt-4 border-t border-dashed border-slate-200">
-              <button
-                type="button"
-                onClick={handleTestMode}
-                disabled={testLoading}
-                className="w-full rounded-full bg-slate-50 border border-slate-200 text-slate-500 py-2.5 text-xs font-bold hover:bg-slate-100 disabled:opacity-50"
-              >
-                {testLoading ? '테스트 방 만드는 중...' : '🧪 테스트 모드 (1인 흐름 체험)'}
-              </button>
-              {testError && <p className="text-xs text-rose-600 mt-1">{testError}</p>}
-              <p className="text-[11px] text-slate-400 mt-1">
-                진행자 세팅과 참가자 입장을 자동으로 만들어 혼자서 전체 흐름을 바로 체험해볼 수 있어요.
-              </p>
-            </div>
           </section>
         </div>
 
@@ -177,10 +142,6 @@ export default function MainPage() {
           </div>
         </div>
       </main>
-
-      <p className="text-center text-xs text-slate-400 pb-2">
-        방과 후 연수 20~30분 기준 · 초·중·고 전 교직원 대상
-      </p>
 
       <footer className="bg-slate-900 text-slate-300 py-10 px-4 text-center">
         <p className="text-white font-bold mb-3">🩺 학교 감염병 모의훈련 프로그램</p>

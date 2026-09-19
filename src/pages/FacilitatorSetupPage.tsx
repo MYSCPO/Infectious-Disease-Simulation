@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { SchoolLevel } from '../types'
 import { DISEASES, getDiseaseById } from '../data/diseases'
-import { createSession, updateSession } from '../lib/session'
+import { createSession, createTestSession, updateSession } from '../lib/session'
+import { saveParticipantIdentity } from '../lib/participant'
 import OrgChartEditor from '../components/OrgChartEditor'
 
 const SCHOOL_LEVELS: SchoolLevel[] = ['초등학교', '중학교', '고등학교']
@@ -18,6 +19,23 @@ export default function FacilitatorSetupPage() {
   const [gaps, setGaps] = useState({ observationRoomLocation: '', homeroomBackupPlan: '', weekendContactSystem: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [testLoading, setTestLoading] = useState(false)
+  const [testError, setTestError] = useState<string | null>(null)
+
+  async function handleTestMode() {
+    setTestLoading(true)
+    setTestError(null)
+    try {
+      const { code: testCode, groupId, role } = await createTestSession()
+      saveParticipantIdentity({ sessionCode: testCode, groupId, role, name: '테스트 참가자(나)' })
+      navigate(`/facilitator/${testCode}/present`)
+    } catch (e) {
+      console.error(e)
+      setTestError('테스트 방 생성에 실패했습니다. 다시 시도해 주세요.')
+    } finally {
+      setTestLoading(false)
+    }
+  }
 
   async function handleCreate() {
     if (!schoolName.trim()) {
@@ -47,6 +65,25 @@ export default function FacilitatorSetupPage() {
             학교급·조직도·대상 감염병과 우리 학교 대응 공백 확인 항목을 입력하면 참가 코드가 발급됩니다.
           </p>
         </div>
+
+        <section className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
+          <p className="text-xs font-bold text-slate-500 mb-2">
+            🧪 실제 학교 설정 없이 전체 흐름부터 빠르게 보고 싶으신가요?
+          </p>
+          <button
+            type="button"
+            onClick={handleTestMode}
+            disabled={testLoading}
+            className="w-full rounded-full bg-white border border-slate-300 text-slate-700 py-2.5 text-xs font-bold hover:bg-slate-100 disabled:opacity-50"
+          >
+            {testLoading ? '테스트 방 만드는 중...' : '🧪 테스트 모드 (1인 흐름 체험)'}
+          </button>
+          {testError && <p className="text-xs text-rose-600 mt-1">{testError}</p>}
+          <p className="text-[11px] text-slate-400 mt-1">
+            테스트용 학교·조·참가자를 자동으로 만들어 진행자 대시보드로 바로 이동해요. 실제 연수에는 아래 설정을
+            채워 정식으로 진행해 주세요.
+          </p>
+        </section>
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
           <h2 className="font-semibold text-slate-800">기본 정보</h2>
