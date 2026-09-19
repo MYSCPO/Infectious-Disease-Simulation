@@ -1,11 +1,23 @@
-import type { DiseaseInfo, RoleQuestion, ScenarioStage } from '../types'
+import type { DiseaseInfo, RoleQuestion, ScenarioStage, StageId } from '../types'
 import { SCENARIO_CHICKENPOX } from './scenario_chickenpox'
 import { getDiseaseById } from './diseases'
+import { SCENARIO_NARRATIVES } from './scenarioNarratives'
 
 // PRD: "시나리오 하드코딩 대신 감염병 테이블 + 단계별 조치 템플릿 + 문항 테이블 조합으로 생성"
-// 수두는 첨부 자료의 실제 서사를 그대로 사용하고, 그 외 감염병은 동일 절차 템플릿에
-// 감염병 테이블 값(병명·잠복기·격리기간·밀접접촉자 파악 여부 등)을 치환해 생성한다.
+// 수두는 첨부 자료의 실제 서사를 그대로 사용하고, 그 외 감염병은 매뉴얼의 모의 훈련용 시나리오
+// 서술 방식을 본떠 질병별로 직접 작성한 상황 서사(scenarioNarratives.ts)를 사용한다.
+// 해당 감염병·단계의 서사가 없는 경우에만 감염병 테이블 값으로 치환한 기본 문장으로 대체한다.
 function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
+  const narratives = SCENARIO_NARRATIVES[disease.id] ?? {}
+  const fallbackNarrative: Record<StageId, string> = {
+    prevention: `${disease.name} 유행 징후는 아직 없다. 학교는 평상시 감시체계와 예방 활동을 점검해야 한다. (잠복기: ${disease.incubationPeriod})`,
+    response1: `학생이 ${disease.symptoms} 등 증상을 호소한다. 아직 진단 전이다.`,
+    response2: `학생이 ${disease.name}(으)로 확진되었다는 통보를 받았다. (등교중지 기간: ${disease.exclusionPeriod})`,
+    response3: `같은 학급에서 추가 학생이 ${disease.name} 확진을 받아 동일 질병 2명 이상 발생, 대응 제3단계(경계)로 전환한다.`,
+    recovery: `최대잠복기(${disease.incubationPeriod}) 동안 추가 환자가 없어 유행종료 시점으로 판단한다.`,
+  }
+  const narrativeFor = (stage: StageId) => narratives[stage] ?? fallbackNarrative[stage]
+
   const contactNote = disease.contactTracing
     ? '밀접접촉자(같은 학급 등)를 파악하고 관리한다.'
     : '이 감염병은 밀접접촉자 파악 대상이 아니므로 개인위생 수칙 준수 여부만 확인한다.'
@@ -29,7 +41,7 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
     {
       stage: 'prevention',
       title: '평상시 준비',
-      narrative: `${disease.name} 유행 징후는 아직 없다. 학교는 평상시 감시체계와 예방 활동을 점검해야 한다. (잠복기: ${disease.incubationPeriod})`,
+      narrative: narrativeFor('prevention'),
       questions: buildQuestions({
         surveillance: { correct: '각반에서 이상 증상을 수동감시하고 일시적 관찰실을 지정해 둔다.', wrong: ['결석 사유는 학기말에 한꺼번에 확인한다.'], rationale: '예방단계 체크리스트(발생감시팀)' },
         health: { correct: '예방접종 현황을 파악하고 가정통신문(안)을 미리 작성한다.', wrong: ['예방접종 현황은 유행 후에 확인한다.'], rationale: '예방단계 체크리스트(예방관리팀)' },
@@ -41,7 +53,7 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
     {
       stage: 'response1',
       title: '의심환자 발생 (진단 전)',
-      narrative: `학생이 ${disease.symptoms} 등 증상을 호소한다. 아직 진단 전이다.`,
+      narrative: narrativeFor('response1'),
       questions: buildQuestions({
         surveillance: { correct: '보건교사에게 즉시 연락하고 마스크를 씌워 보건실로 이동시키며 필요 시 관찰실로 격리한다.', wrong: ['증상이 가벼워 보이므로 계속 수업을 듣게 한다.'], rationale: '대응1단계 체크리스트(발생감시팀)' },
         health: { correct: '체온 및 증상을 관찰하여 감염병 의심 여부를 확인하고, 담임교사에게 보호자 연락 및 의료기관 진료 안내와 일시적 관찰실 격리를 요청한다.', wrong: ['확진 전이므로 아무 조치도 하지 않는다.'], rationale: '대응1단계 체크리스트(예방관리팀)' },
@@ -53,7 +65,7 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
     {
       stage: 'response2',
       title: '확진환자 발생',
-      narrative: `학생이 ${disease.name}(으)로 확진되었다는 통보를 받았다. (등교중지 기간: ${disease.exclusionPeriod})`,
+      narrative: narrativeFor('response2'),
       questions: buildQuestions({
         surveillance: { correct: '능동감시 대상 학급 담임교사들에게 능동감시를 지시하고 결과를 보건교사에게 통보한다.', wrong: ['확진 사실을 학급에 알리지 않는다.'], rationale: '대응2단계 체크리스트(발생감시팀)' },
         health: { correct: '보건소·학교장·교육지원청에 보고하고 추가 의심환자를 파악한다.', wrong: ['확진자가 1명뿐이므로 보고하지 않는다.'], rationale: '대응2단계 체크리스트(예방관리팀)' },
@@ -65,7 +77,7 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
     {
       stage: 'response3',
       title: '경계 (추가 환자 발생)',
-      narrative: `같은 학급에서 추가 학생이 ${disease.name} 확진을 받아 동일 질병 2명 이상 발생, 대응 제3단계(경계)로 전환한다.`,
+      narrative: narrativeFor('response3'),
       questions: buildQuestions({
         surveillance: { correct: '능동감시·보고체계를 가동해 매일 발생 추이를 모니터링하고 역학조사 대비 학생 명부를 작성한다.', wrong: ['담임교사는 관여하지 않는다.'], rationale: '대응3단계 체크리스트(발생감시팀)' },
         health: { correct: '보건소에 역학조사를 요청하고 고위험군을 파악해 관리 조치를 요청한다.', wrong: ['아직 역학조사를 요청할 단계가 아니다.'], rationale: '대응3단계 체크리스트(예방관리팀)' },
@@ -77,7 +89,7 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
     {
       stage: 'recovery',
       title: '복구 (유행종료)',
-      narrative: `최대잠복기(${disease.incubationPeriod}) 동안 추가 환자가 없어 유행종료 시점으로 판단한다.`,
+      narrative: narrativeFor('recovery'),
       questions: buildQuestions({
         surveillance: { correct: '추가 (의심)환자 발생이 없음을 최종 확인하고 감시체계를 평상시 수준으로 전환한다.', wrong: ['능동감시 강도를 계속 유지한다.'], rationale: '복구단계 체크리스트(발생감시팀)' },
         health: { correct: '발생 현황을 정리해 보고하고 유행종료 가정통신문(안)을 작성한다.', wrong: ['보고 없이 종료한다.'], rationale: '복구단계 체크리스트(예방관리팀)' },
