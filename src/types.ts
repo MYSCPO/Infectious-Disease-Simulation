@@ -135,9 +135,13 @@ export interface SessionGaps {
   weekendContactSystem: string
 }
 
+export type QuizType = 'speed' | 'coop'
+
 export interface ActiveQuiz {
   startedAt: number
   durationSec: number
+  quizType: QuizType
+  firstBloodGroupId: string | null // speed 모드에서 전체 조 중 가장 먼저 정답을 맞힌 조(트랜잭션으로 1회만 선점)
 }
 
 export interface SessionDoc {
@@ -162,13 +166,21 @@ export interface GroupQuizAnswer {
   correct: boolean
 }
 
+export interface GroupCoopProgress {
+  quizStartedAt: number
+  answers: Record<string, boolean> // 참가자 이름 -> 정답 여부(협동 미션은 전원이 개별 제출)
+  awarded: boolean // 팀워크 보너스 중복 지급 방지
+}
+
 export interface GroupDoc {
   id: string
   name: string
   diseaseId: string // 이 조가 훈련할 감염병 (조마다 다르게 배정 가능)
   members: Partial<Record<RoleId, string[]>> // roleId -> 참가자 이름 목록(역할당 여러 명 가능)
-  badge: boolean // 돌발 퀴즈 성공 시 true(순위 없이 달성 배지만 부여)
-  quizAnswer: GroupQuizAnswer | null
+  score: number // 돌발 퀴즈 누적 점수(스피드 퍼스트블러드 +50, 협동 미션 전원성공 +100)
+  badge: boolean // 돌발 퀴즈에서 한 번이라도 보너스를 받았는지(달성 표시용)
+  quizAnswer: GroupQuizAnswer | null // 스피드 퀴즈: 조 대표 답
+  coopProgress: GroupCoopProgress | null // 협동 미션: 조원별 개별 응답 현황
   createdAt: number
 }
 

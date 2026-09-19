@@ -25,6 +25,9 @@ import MascotAvatar from '../components/MascotAvatar'
 import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
+import Leaderboard from '../components/Leaderboard'
+
+const SIMPLIFIED_STAGES = ['response1', 'response2']
 
 export default function FacilitatorPresentPage() {
   const { code = '' } = useParams()
@@ -59,6 +62,8 @@ export default function FacilitatorPresentPage() {
   const next = nextStage(session.currentStage)
   const prev = prevStage(session.currentStage)
   const applicableWildcards = WILDCARDS.filter((w) => w.applicableStages.includes(session.currentStage))
+  const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
+  const topGroup = [...groups].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0]
 
   async function handleReveal() {
     setBusy(true)
@@ -106,10 +111,10 @@ export default function FacilitatorPresentPage() {
     ? Math.max(0, Math.ceil((session.activeQuiz.startedAt + session.activeQuiz.durationSec * 1000 - now) / 1000))
     : 0
 
-  async function handleSendQuiz() {
+  async function handleSendQuiz(quizType: 'speed' | 'coop') {
     setBusy(true)
     try {
-      await startWildcardQuiz(code)
+      await startWildcardQuiz(code, quizType)
     } finally {
       setBusy(false)
     }
@@ -209,15 +214,29 @@ export default function FacilitatorPresentPage() {
           {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
         </div>
 
+        <section className="bg-white rounded-2xl border-2 border-amber-200 p-5">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="font-semibold text-slate-800">🏆 실시간 순위표</h2>
+            {topGroup && (topGroup.score ?? 0) > 0 && (
+              <span className="text-xs font-bold bg-amber-400 text-amber-950 rounded-full px-3 py-1">
+                🥇 1위 {topGroup.name} · {topGroup.score}pt
+              </span>
+            )}
+          </div>
+          <Leaderboard groups={groups} />
+        </section>
+
         <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleReveal}
-            disabled={busy || session.revealed || submittedCount === 0}
-            className="flex-1 min-w-[200px] rounded-full bg-emerald-600 text-white py-3 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40"
-          >
-            {session.revealed ? '공개됨' : allSubmitted ? '전체 공개하기' : `일부만 제출됨(${submittedCount}/${groups.length}) · 지금 공개하기`}
-          </button>
+          {!isSimplifiedStage && (
+            <button
+              type="button"
+              onClick={handleReveal}
+              disabled={busy || session.revealed || submittedCount === 0}
+              className="flex-1 min-w-[200px] rounded-full bg-emerald-600 text-white py-3 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-40"
+            >
+              {session.revealed ? '공개됨' : allSubmitted ? '전체 공개하기' : `일부만 제출됨(${submittedCount}/${groups.length}) · 지금 공개하기`}
+            </button>
+          )}
           <button
             type="button"
             onClick={handleBack}
@@ -240,18 +259,41 @@ export default function FacilitatorPresentPage() {
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h2 className="font-semibold text-slate-800">돌발 상황 카드</h2>
-            <div className="flex items-center gap-2">
-              {quizActive && <span className="text-xs font-bold text-rose-600">진행 중 · {quizRemainingSec}초 남음</span>}
-              <button
-                type="button"
-                onClick={quizActive ? handleEndQuiz : handleSendQuiz}
-                disabled={busy}
-                className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-                  quizActive ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-amber-400 text-amber-950 hover:bg-amber-500'
-                }`}
-              >
-                {quizActive ? '⏹ 돌발 퀴즈 종료' : '🚨 돌발 퀴즈 발송'}
-              </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {quizActive && (
+                <span className="text-xs font-bold text-rose-600">
+                  {session.activeQuiz?.quizType === 'coop' ? '🤝 협동 미션' : '⚡ 스피드 퀴즈'} 진행 중 · {quizRemainingSec}초 남음
+                </span>
+              )}
+              {quizActive ? (
+                <button
+                  type="button"
+                  onClick={handleEndQuiz}
+                  disabled={busy}
+                  className="rounded-full px-4 py-2 text-xs font-bold transition-colors bg-rose-100 text-rose-700 hover:bg-rose-200"
+                >
+                  ⏹ 돌발 퀴즈 종료
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleSendQuiz('speed')}
+                    disabled={busy}
+                    className="rounded-full px-4 py-2 text-xs font-bold transition-colors bg-amber-400 text-amber-950 hover:bg-amber-500"
+                  >
+                    ⚡ 스피드 퀴즈 발송
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSendQuiz('coop')}
+                    disabled={busy}
+                    className="rounded-full px-4 py-2 text-xs font-bold transition-colors bg-emerald-400 text-emerald-950 hover:bg-emerald-500"
+                  >
+                    🤝 협동 미션 발송
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -294,8 +336,9 @@ export default function FacilitatorPresentPage() {
                 <MascotAvatar role="surveillance" size="sm" />
                 <p className="text-xs text-slate-500 leading-relaxed">
                   💡 {STAGES.find((s) => s.id === session.currentStage)?.label ?? '이 단계'}입니다. 상단의{' '}
-                  <span className="font-bold text-amber-700">[돌발 퀴즈 발송]</span> 버튼을 통해 질병 기본 지식 퀴즈를
-                  전 조에 발송할 수 있습니다.
+                  <span className="font-bold text-amber-700">[⚡ 스피드 퀴즈 발송]</span> 또는{' '}
+                  <span className="font-bold text-emerald-700">[🤝 협동 미션 발송]</span> 버튼을 통해 질병 기본 지식
+                  퀴즈를 전 조에 발송할 수 있습니다.
                 </p>
               </div>
             )}
@@ -319,19 +362,32 @@ export default function FacilitatorPresentPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold bg-brand-600 text-white rounded-full px-3 py-1">{disease.name}</span>
                 <span className="text-xs text-slate-500">
-                  {clusterGroups.map((g) => g.name).join(', ')} · {clusterSubmittedCount}/{clusterGroups.length} 제출
+                  {clusterGroups.map((g) => g.name).join(', ')}
+                  {!isSimplifiedStage && ` · ${clusterSubmittedCount}/${clusterGroups.length} 제출`}
                 </span>
               </div>
 
               {currentScenario && <ScenarioCard scenario={currentScenario} />}
 
-              <SubmissionStatusGrid groups={clusterGroups} submissions={clusterSubmissions} />
-
-              {session.revealed && currentScenario && (
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-2">공개된 답변 비교 · {disease.name}</h3>
-                  <RevealComparison questions={currentScenario.questions} submissions={clusterSubmissions} />
+              {isSimplifiedStage ? (
+                <div className="rounded-xl border border-brand-200 bg-brand-50/50 px-4 py-3">
+                  <p className="text-xs font-bold text-brand-700">📢 공통 브리핑 + 돌발 퀴즈 중심 단계입니다</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    이 단계는 역할별 문항 제출이 없어요. 참가자 화면에는 공통 브리핑과 체크리스트가 표시되고,
+                    위 돌발 퀴즈 버튼으로 진행 속도를 조절해 주세요.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <SubmissionStatusGrid groups={clusterGroups} submissions={clusterSubmissions} />
+
+                  {session.revealed && currentScenario && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-700 mb-2">공개된 답변 비교 · {disease.name}</h3>
+                      <RevealComparison questions={currentScenario.questions} submissions={clusterSubmissions} />
+                    </div>
+                  )}
+                </>
               )}
             </section>
           )

@@ -4,6 +4,7 @@ import { useGroups } from '../hooks/useGroupSubmissions'
 import { detectGaps } from '../lib/gapDetector'
 import { getDiseaseById } from '../data/diseases'
 import { STAGES } from '../data/stages'
+import Leaderboard from '../components/Leaderboard'
 
 export default function ResultPage() {
   const { code = '' } = useParams()
@@ -47,9 +48,14 @@ export default function ResultPage() {
           </div>
         </section>
 
+        <section className="bg-white rounded-2xl border border-amber-200 p-5 space-y-3">
+          <h2 className="font-semibold text-slate-800 mb-1">🏆 최종 순위</h2>
+          <Leaderboard groups={groups} />
+        </section>
+
         {badgedGroups.length > 0 && (
           <section className="bg-white rounded-2xl border border-amber-200 p-5 space-y-2">
-            <h2 className="font-semibold text-slate-800 mb-1">🏆 돌발 퀴즈 달성 배지</h2>
+            <h2 className="font-semibold text-slate-800 mb-1">👑 돌발 퀴즈 달성 배지</h2>
             <div className="flex flex-wrap gap-2">
               {badgedGroups.map((g) => (
                 <span key={g.id} className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold rounded-full px-3 py-1.5">
@@ -57,7 +63,7 @@ export default function ResultPage() {
                 </span>
               ))}
             </div>
-            <p className="text-xs text-slate-400">순위 없이, 돌발 퀴즈에 정답을 맞힌 조에게 주는 달성 기념 배지예요.</p>
+            <p className="text-xs text-slate-400">돌발 퀴즈에서 보너스 점수를 획득한 조에게 주는 달성 기념 배지예요.</p>
           </section>
         )}
 

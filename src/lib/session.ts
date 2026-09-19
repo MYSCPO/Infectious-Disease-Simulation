@@ -13,6 +13,7 @@ import {
 import { db, ensureSignedIn } from '../firebase'
 import type {
   GroupDoc,
+  QuizType,
   RoleId,
   SchoolLevel,
   SessionDoc,
@@ -125,21 +126,91 @@ export async function setActiveWildcard(code: string, wildcardId: string | null)
   await updateSession(code, { activeWildcardId: wildcardId })
 }
 
-// 돌발 퀴즈: 진행자가 발송하면 전 조 화면에 동시에 60초 팝업이 뜨고,
-// 각 조는 자신의 감염병에 맞는 문제를 받는다(순위 없이 조별 달성 배지만 부여).
-export async function startWildcardQuiz(code: string, durationSec = 60) {
-  await updateSession(code, { activeQuiz: { startedAt: Date.now(), durationSec } })
+// 돌발 퀴즈: 진행자가 발송하면 전 조 화면에 동시에 60초 팝업이 뜬다.
+// - 스피드(speed): 조 대표가 먼저 맞히면 그 조만 +50pt(퍼스트 블러드) 선점
+// - 협동(coop): 조원 전원이 개별 제출해서 모두 정답이면 그 조에 +100pt(팀워크 보너스)
+export async function startWildcardQuiz(code: string, quizType: QuizType, durationSec = 60) {
+  await updateSession(code, {
+    activeQuiz: { startedAt: Date.now(), durationSec, quizType, firstBloodGroupId: null },
+  })
 }
 
 export async function endWildcardQuiz(code: string) {
   await updateSession(code, { activeQuiz: null })
 }
 
-export async function submitQuizAnswer(code: string, groupId: string, quizStartedAt: number, correct: boolean) {
+// 스피드 퀴즈: 조 대표 답을 기록하고, 정답이면 세션 문서 트랜잭션으로 이 퀴즈의
+// firstBloodGroupId가 비어있을 때만 이 조로 선점(전체 조 중 가장 먼저 맞힌 조만 보너스).
+export async function submitSpeedQuizAnswer(
+  code: string,
+  groupId: string,
+  quizStartedAt: number,
+  correct: boolean,
+): Promise<boolean> {
   await ensureSignedIn()
-  await updateDoc(groupRef(code, groupId), {
-    quizAnswer: { quizStartedAt, correct },
-    ...(correct ? { badge: true } : {}),
+  await updateDoc(groupRef(code, groupId), { quizAnswer: { quizStartedAt, correct } })
+
+  if (!correct) return false
+
+  const sRef = sessionRef(code)
+  const wonFirstBlood = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(sRef)
+    const session = snap.data() as SessionDoc | undefined
+    const activeQuiz = session?.activeQuiz
+    if (!activeQuiz || activeQuiz.startedAt !== quizStartedAt) return false
+    if (activeQuiz.firstBloodGroupId != null) return false
+    tx.update(sRef, { 'activeQuiz.firstBloodGroupId': groupId, updatedAt: serverTimestamp() })
+    return true
+  })
+
+  if (wonFirstBlood) {
+    const gRef = groupRef(code, groupId)
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(gRef)
+      const group = snap.data() as GroupDoc | undefined
+      const currentScore = group?.score ?? 0
+      tx.update(gRef, { score: currentScore + 50, badge: true })
+    })
+  }
+
+  return wonFirstBlood
+}
+
+// 협동 미션: 조 문서 트랜잭션으로 조원별 응답을 기록하고, 조에 등록된 전체 인원(중복 제거)이
+// 모두 응답을 마쳤는지 확인해서 전원 정답이면 +100pt 지급(awarded로 중복 지급 방지).
+export async function submitCoopAnswer(
+  code: string,
+  groupId: string,
+  quizStartedAt: number,
+  memberName: string,
+  correct: boolean,
+) {
+  await ensureSignedIn()
+  const gRef = groupRef(code, groupId)
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(gRef)
+    const group = snap.data() as GroupDoc | undefined
+    if (!group) return
+
+    const prevProgress = group.coopProgress
+    const answers: Record<string, boolean> =
+      prevProgress && prevProgress.quizStartedAt === quizStartedAt ? { ...prevProgress.answers } : {}
+    answers[memberName] = correct
+    const alreadyAwarded = prevProgress && prevProgress.quizStartedAt === quizStartedAt ? prevProgress.awarded : false
+
+    const allMemberNames = new Set<string>()
+    for (const names of Object.values(group.members)) {
+      for (const n of names ?? []) allMemberNames.add(n)
+    }
+
+    const everyoneAnswered = [...allMemberNames].every((n) => n in answers)
+    const everyoneCorrect = everyoneAnswered && [...allMemberNames].every((n) => answers[n])
+    const shouldAward = everyoneCorrect && !alreadyAwarded
+
+    tx.update(gRef, {
+      coopProgress: { quizStartedAt, answers, awarded: alreadyAwarded || shouldAward },
+      ...(shouldAward ? { score: (group.score ?? 0) + 100, badge: true } : {}),
+    })
   })
 }
 
@@ -156,7 +227,16 @@ export function subscribeGroups(code: string, cb: (groups: GroupDoc[]) => void) 
 export async function createGroup(code: string, name: string, diseaseId: string): Promise<string> {
   await ensureSignedIn()
   const ref = doc(groupsCol(code))
-  const data: Omit<GroupDoc, 'id'> = { name, diseaseId, members: {}, badge: false, quizAnswer: null, createdAt: Date.now() }
+  const data: Omit<GroupDoc, 'id'> = {
+    name,
+    diseaseId,
+    members: {},
+    score: 0,
+    badge: false,
+    quizAnswer: null,
+    coopProgress: null,
+    createdAt: Date.now(),
+  }
   await setDoc(ref, data)
   return ref.id
 }

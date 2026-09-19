@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { SubmissionAnswer } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
@@ -9,7 +9,7 @@ import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { getWildcardQuiz } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
-import { releaseRole, saveDraftAnswer, submitGroupAnswer, submitQuizAnswer } from '../lib/session'
+import { releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
@@ -18,9 +18,12 @@ import ChecklistPanel from '../components/ChecklistPanel'
 import WildcardModal from '../components/WildcardModal'
 import WildcardQuizModal from '../components/WildcardQuizModal'
 import DiseaseManualModal from '../components/DiseaseManualModal'
+import LeaderboardPopup from '../components/LeaderboardPopup'
 import MascotAvatar from '../components/MascotAvatar'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
+
+const SIMPLIFIED_STAGES = ['response1', 'response2']
 
 export default function TeamTrainingPage() {
   const { code = '', groupId = '' } = useParams()
@@ -37,10 +40,20 @@ export default function TeamTrainingPage() {
   const [dismissedWildcard, setDismissedWildcard] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showManual, setShowManual] = useState(false)
+  const [showLeaderboardPopup, setShowLeaderboardPopup] = useState(false)
+  const prevStageRef = useRef<string | null>(null)
 
   useEffect(() => {
     setAnswers(submission?.answers ?? [])
   }, [submission?.id, session?.currentStage])
+
+  useEffect(() => {
+    if (!session) return
+    if (prevStageRef.current !== null && prevStageRef.current !== session.currentStage) {
+      setShowLeaderboardPopup(true)
+    }
+    prevStageRef.current = session.currentStage
+  }, [session?.currentStage])
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
   if (!session) {
@@ -64,6 +77,8 @@ export default function TeamTrainingPage() {
     group?.quizAnswer && session.activeQuiz && group.quizAnswer.quizStartedAt === session.activeQuiz.startedAt
       ? group.quizAnswer
       : null
+  const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
+  const memberNames = group ? [...new Set(Object.values(group.members).flatMap((names) => names ?? []))] : []
 
   async function handleSelect(role: (typeof ROLE_ORDER)[number], optionId: string) {
     const next = [...answers.filter((a) => a.role !== role), { role, optionId }]
@@ -106,6 +121,11 @@ export default function TeamTrainingPage() {
                 </span>
               )}
               {group?.badge && <span className="text-lg" title="돌발 퀴즈 달성 배지">👑</span>}
+              {group && (
+                <span className="text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
+                  내 조 점수: {group.score ?? 0}pt
+                </span>
+              )}
               {stageDef && <StageTimer startedAt={session.stageStartedAt} minutes={stageDef.minutes} />}
             </h1>
           </div>
@@ -134,48 +154,62 @@ export default function TeamTrainingPage() {
           💡 {disease.name} 감염병 매뉴얼 보기
         </button>
 
-        <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
+        {isSimplifiedStage ? (
           <div className="space-y-4">
             {currentScenario && <ScenarioCard scenario={currentScenario} />}
-
-            {currentScenario && (
-              <RoleActionForm
-                questions={currentScenario.questions}
-                myRole={myRole}
-                answers={answers}
-                onSelect={handleSelect}
-                disabled={submitted}
-                revealed={session.revealed}
-                groupMembers={group?.members}
-              />
-            )}
-
-            <div className="sticky bottom-0 bg-paper-50/95 backdrop-blur py-3">
-              {submitted ? (
-                <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm text-center py-3 font-semibold">
-                  제출 완료 · 진행자가 전체 공개할 때까지 기다려 주세요
-                </div>
-              ) : allAnswered ? (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="w-full rounded-full bg-brand-600 text-white py-3.5 text-sm font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
-                >
-                  {submitting ? '제출 중...' : '모든 역할 선택 완료! 다음 단계로 제출하기 🚀'}
-                </button>
-              ) : (
-                <div className="w-full rounded-full bg-paper-100 border border-slate-200 text-slate-500 py-3 text-sm font-semibold text-center px-3">
-                  진행 현황 {ROLE_ORDER.length - missingRoles.length}/{ROLE_ORDER.length} · 미제출: {missingRoles.map((r) => ROLE_LABELS[r]).join(', ')} ⏳
-                </div>
-              )}
+            <div className="rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
+              <p className="text-sm font-bold text-brand-700 mb-1">📢 공통 브리핑 + 돌발 퀴즈 단계예요</p>
+              <p className="text-xs text-slate-500">
+                이 단계는 역할별로 문항을 따로 풀지 않아요. 아래 체크리스트로 우리 역할의 핵심 조치를 확인하고,
+                진행자가 보내는 돌발 퀴즈에 빠르게 참여해 보세요!
+              </p>
             </div>
-          </div>
-
-          <div>
             <ChecklistPanel stage={session.currentStage} myRole={myRole} />
           </div>
-        </div>
+        ) : (
+          <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
+            <div className="space-y-4">
+              {currentScenario && <ScenarioCard scenario={currentScenario} />}
+
+              {currentScenario && (
+                <RoleActionForm
+                  questions={currentScenario.questions}
+                  myRole={myRole}
+                  answers={answers}
+                  onSelect={handleSelect}
+                  disabled={submitted}
+                  revealed={session.revealed}
+                  groupMembers={group?.members}
+                />
+              )}
+
+              <div className="sticky bottom-0 bg-paper-50/95 backdrop-blur py-3">
+                {submitted ? (
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm text-center py-3 font-semibold">
+                    제출 완료 · 진행자가 전체 공개할 때까지 기다려 주세요
+                  </div>
+                ) : allAnswered ? (
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="w-full rounded-full bg-brand-600 text-white py-3.5 text-sm font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
+                  >
+                    {submitting ? '제출 중...' : '모든 역할 선택 완료! 다음 단계로 제출하기 🚀'}
+                  </button>
+                ) : (
+                  <div className="w-full rounded-full bg-paper-100 border border-slate-200 text-slate-500 py-3 text-sm font-semibold text-center px-3">
+                    진행 현황 {ROLE_ORDER.length - missingRoles.length}/{ROLE_ORDER.length} · 미제출: {missingRoles.map((r) => ROLE_LABELS[r]).join(', ')} ⏳
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <ChecklistPanel stage={session.currentStage} myRole={myRole} />
+            </div>
+          </div>
+        )}
       </div>
 
       {showManual && (
@@ -186,16 +220,39 @@ export default function TeamTrainingPage() {
         <WildcardModal card={activeWildcard} onClose={() => setDismissedWildcard(activeWildcard.id)} />
       )}
 
-      {session.activeQuiz && group && quiz && (
+      {session.activeQuiz && group && quiz && session.activeQuiz.quizType === 'speed' && (
         <WildcardQuizModal
           quiz={quiz}
           disease={disease}
           greetRole={myRole}
           startedAt={session.activeQuiz.startedAt}
           durationSec={session.activeQuiz.durationSec}
+          quizType="speed"
           alreadyAnswered={quizAnsweredForActive}
-          onSubmit={(correct) => submitQuizAnswer(code, groupId, session.activeQuiz!.startedAt, correct)}
+          isFirstBlood={session.activeQuiz.firstBloodGroupId === group.id}
+          onSubmit={(correct) => submitSpeedQuizAnswer(code, groupId, session.activeQuiz!.startedAt, correct)}
         />
+      )}
+
+      {session.activeQuiz && group && quiz && session.activeQuiz.quizType === 'coop' && identity && (
+        <WildcardQuizModal
+          quiz={quiz}
+          disease={disease}
+          greetRole={myRole}
+          startedAt={session.activeQuiz.startedAt}
+          durationSec={session.activeQuiz.durationSec}
+          quizType="coop"
+          myName={identity.name}
+          memberNames={memberNames}
+          coopProgress={group.coopProgress}
+          onSubmit={(correct) =>
+            submitCoopAnswer(code, groupId, session.activeQuiz!.startedAt, identity.name, correct)
+          }
+        />
+      )}
+
+      {showLeaderboardPopup && (
+        <LeaderboardPopup groups={groups} highlightGroupId={groupId} onClose={() => setShowLeaderboardPopup(false)} />
       )}
     </div>
   )
