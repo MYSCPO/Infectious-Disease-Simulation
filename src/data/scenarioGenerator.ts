@@ -9,9 +9,6 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
   const contactNote = disease.contactTracing
     ? '밀접접촉자(같은 학급 등)를 파악하고 관리한다.'
     : '이 감염병은 밀접접촉자 파악 대상이 아니므로 개인위생 수칙 준수 여부만 확인한다.'
-  const maskNote = disease.maskRequired
-    ? '마스크 착용을 확인·지도한다.'
-    : '마스크 착용은 필수 대상이 아니므로 개인위생 수칙 준수를 지도한다.'
 
   const buildQuestions = (
     stagePrompts: Record<RoleQuestion['role'], { correct: string; wrong: string[]; rationale: string }>,
@@ -47,7 +44,7 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
       narrative: `학생이 ${disease.symptoms} 등 증상을 호소한다. 아직 진단 전이다.`,
       questions: buildQuestions({
         surveillance: { correct: '보건교사에게 즉시 연락하고 마스크를 씌워 보건실로 이동시키며 필요 시 관찰실로 격리한다.', wrong: ['증상이 가벼워 보이므로 계속 수업을 듣게 한다.'], rationale: '대응1단계 체크리스트(발생감시팀)' },
-        health: { correct: `감염병 여부를 확인하고 ${maskNote}`, wrong: ['확진 전이므로 아무 조치도 하지 않는다.'], rationale: '대응1단계 체크리스트(예방관리팀)' },
+        health: { correct: '체온 및 증상을 관찰하여 감염병 의심 여부를 확인하고, 담임교사에게 보호자 연락 및 의료기관 진료 안내와 일시적 관찰실 격리를 요청한다.', wrong: ['확진 전이므로 아무 조치도 하지 않는다.'], rationale: '대응1단계 체크리스트(예방관리팀)' },
         academic: { correct: '격리 담당교사 지정에 협조하고 이동·격리로 발생한 수업 공백을 조치한다.', wrong: ['수업 공백은 학기말에 정리한다.'], rationale: '대응1단계 체크리스트(학사관리팀)' },
         admin: { correct: '해당 학급 교실과 관찰실 소독을 지원한다.', wrong: ['소독은 다음 주로 미룬다.'], rationale: '대응1단계 체크리스트(행정지원팀)' },
         principal: { correct: '보고 체계를 유지하며 다음 단계 전환에 대비한다.', wrong: ['확진 전이므로 보고받지 않는다.'], rationale: '신속한 대응을 위한 상시 보고 체계' },

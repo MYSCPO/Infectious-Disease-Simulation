@@ -8,6 +8,7 @@ import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { getWildcardQuiz } from '../data/wildcardQuiz'
+import { RESPONSE_JOB_TITLES } from '../data/roleChecklist'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
 import { releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
@@ -19,6 +20,7 @@ import WildcardModal from '../components/WildcardModal'
 import WildcardQuizModal from '../components/WildcardQuizModal'
 import DiseaseManualModal from '../components/DiseaseManualModal'
 import LeaderboardPopup from '../components/LeaderboardPopup'
+import FirstBloodToast from '../components/FirstBloodToast'
 import MascotAvatar from '../components/MascotAvatar'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
@@ -41,7 +43,10 @@ export default function TeamTrainingPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showManual, setShowManual] = useState(false)
   const [showLeaderboardPopup, setShowLeaderboardPopup] = useState(false)
+  const [quizDismissedAt, setQuizDismissedAt] = useState<number | null>(null)
+  const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
   const prevStageRef = useRef<string | null>(null)
+  const prevFirstBloodRef = useRef<string | null>(null)
 
   useEffect(() => {
     setAnswers(submission?.answers ?? [])
@@ -54,6 +59,14 @@ export default function TeamTrainingPage() {
     }
     prevStageRef.current = session.currentStage
   }, [session?.currentStage])
+
+  useEffect(() => {
+    const current = session?.activeQuiz?.firstBloodGroupId ?? null
+    if (current && current !== prevFirstBloodRef.current) {
+      setFirstBloodToastGroupId(current)
+    }
+    prevFirstBloodRef.current = current
+  }, [session?.activeQuiz?.firstBloodGroupId])
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
   if (!session) {
@@ -158,13 +171,18 @@ export default function TeamTrainingPage() {
           <div className="space-y-4">
             {currentScenario && <ScenarioCard scenario={currentScenario} />}
             <div className="rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
-              <p className="text-sm font-bold text-brand-700 mb-1">📢 공통 브리핑 + 돌발 퀴즈 단계예요</p>
+              <p className="text-sm font-bold text-brand-700 mb-1">📢 공통 상황 지침 + 돌발 퀴즈로 빠르게 워밍업해요</p>
               <p className="text-xs text-slate-500">
-                이 단계는 역할별로 문항을 따로 풀지 않아요. 아래 체크리스트로 우리 역할의 핵심 조치를 확인하고,
-                진행자가 보내는 돌발 퀴즈에 빠르게 참여해 보세요!
+                이 단계는 역할별 문항을 풀지 않아요. 위 상황 개요를 다 함께 훑어보고, 아래 직무별 핵심 조치를 가볍게
+                확인한 뒤 진행자가 보내는 돌발 퀴즈로 다 같이 재미있게 지식을 다져 보세요!
               </p>
             </div>
-            <ChecklistPanel stage={session.currentStage} myRole={myRole} />
+            <ChecklistPanel
+              stage={session.currentStage}
+              myRole={myRole}
+              title="직무별 핵심 조치 한눈에 보기"
+              roleLabels={RESPONSE_JOB_TITLES}
+            />
           </div>
         ) : (
           <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
@@ -220,34 +238,57 @@ export default function TeamTrainingPage() {
         <WildcardModal card={activeWildcard} onClose={() => setDismissedWildcard(activeWildcard.id)} />
       )}
 
-      {session.activeQuiz && group && quiz && session.activeQuiz.quizType === 'speed' && (
-        <WildcardQuizModal
-          quiz={quiz}
-          disease={disease}
-          greetRole={myRole}
-          startedAt={session.activeQuiz.startedAt}
-          durationSec={session.activeQuiz.durationSec}
-          quizType="speed"
-          alreadyAnswered={quizAnsweredForActive}
-          isFirstBlood={session.activeQuiz.firstBloodGroupId === group.id}
-          onSubmit={(correct) => submitSpeedQuizAnswer(code, groupId, session.activeQuiz!.startedAt, correct)}
-        />
-      )}
+      {session.activeQuiz &&
+        group &&
+        quiz &&
+        session.activeQuiz.quizType === 'speed' &&
+        quizDismissedAt !== session.activeQuiz.startedAt && (
+          <WildcardQuizModal
+            quiz={quiz}
+            disease={disease}
+            greetRole={myRole}
+            startedAt={session.activeQuiz.startedAt}
+            durationSec={session.activeQuiz.durationSec}
+            quizType="speed"
+            alreadyAnswered={quizAnsweredForActive}
+            isFirstBlood={session.activeQuiz.firstBloodGroupId === group.id}
+            firstBloodGroupName={
+              session.activeQuiz.firstBloodGroupId
+                ? (groups.find((g) => g.id === session.activeQuiz!.firstBloodGroupId)?.name ?? null)
+                : null
+            }
+            onSubmit={(correct) => submitSpeedQuizAnswer(code, groupId, session.activeQuiz!.startedAt, correct)}
+            onClose={() => setQuizDismissedAt(session.activeQuiz!.startedAt)}
+          />
+        )}
 
-      {session.activeQuiz && group && quiz && session.activeQuiz.quizType === 'coop' && identity && (
-        <WildcardQuizModal
-          quiz={quiz}
-          disease={disease}
-          greetRole={myRole}
-          startedAt={session.activeQuiz.startedAt}
-          durationSec={session.activeQuiz.durationSec}
-          quizType="coop"
-          myName={identity.name}
-          memberNames={memberNames}
-          coopProgress={group.coopProgress}
-          onSubmit={(correct) =>
-            submitCoopAnswer(code, groupId, session.activeQuiz!.startedAt, identity.name, correct)
-          }
+      {session.activeQuiz &&
+        group &&
+        quiz &&
+        session.activeQuiz.quizType === 'coop' &&
+        identity &&
+        quizDismissedAt !== session.activeQuiz.startedAt && (
+          <WildcardQuizModal
+            quiz={quiz}
+            disease={disease}
+            greetRole={myRole}
+            startedAt={session.activeQuiz.startedAt}
+            durationSec={session.activeQuiz.durationSec}
+            quizType="coop"
+            myName={identity.name}
+            memberNames={memberNames}
+            coopProgress={group.coopProgress}
+            onSubmit={(correct) =>
+              submitCoopAnswer(code, groupId, session.activeQuiz!.startedAt, identity.name, correct)
+            }
+            onClose={() => setQuizDismissedAt(session.activeQuiz!.startedAt)}
+          />
+        )}
+
+      {firstBloodToastGroupId && (
+        <FirstBloodToast
+          groupName={groups.find((g) => g.id === firstBloodToastGroupId)?.name ?? '어느 조'}
+          onClose={() => setFirstBloodToastGroupId(null)}
         />
       )}
 

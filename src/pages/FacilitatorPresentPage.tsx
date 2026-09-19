@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { GroupDoc } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
@@ -26,6 +26,7 @@ import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
+import FirstBloodToast from '../components/FirstBloodToast'
 
 const SIMPLIFIED_STAGES = ['response1', 'response2']
 
@@ -37,6 +38,8 @@ export default function FacilitatorPresentPage() {
   const submissions = useStageSubmissions(code, session?.currentStage)
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(Date.now())
+  const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
+  const prevFirstBloodRef = useRef<string | null>(null)
   const savedIdentity = loadParticipantIdentity()
   const myIdentityHere = savedIdentity && savedIdentity.sessionCode === code ? savedIdentity : null
 
@@ -44,6 +47,14 @@ export default function FacilitatorPresentPage() {
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    const current = session?.activeQuiz?.firstBloodGroupId ?? null
+    if (current && current !== prevFirstBloodRef.current) {
+      setFirstBloodToastGroupId(current)
+    }
+    prevFirstBloodRef.current = current
+  }, [session?.activeQuiz?.firstBloodGroupId])
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
   if (!session) return <div className="p-8 text-center text-slate-500">세션을 찾을 수 없습니다.</div>
@@ -393,6 +404,13 @@ export default function FacilitatorPresentPage() {
           )
         })}
       </div>
+
+      {firstBloodToastGroupId && (
+        <FirstBloodToast
+          groupName={groups.find((g) => g.id === firstBloodToastGroupId)?.name ?? '어느 조'}
+          onClose={() => setFirstBloodToastGroupId(null)}
+        />
+      )}
     </div>
   )
 }
