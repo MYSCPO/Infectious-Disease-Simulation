@@ -4,10 +4,28 @@ import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { ROLE_CHECKLISTS } from '../data/roleChecklist'
 import { getStage } from '../data/stages'
 
-export default function ChecklistPanel({ stage, myRole }: { stage: StageId; myRole: RoleId | null }) {
+export default function ChecklistPanel({
+  stage,
+  myRole,
+  checkable = false,
+}: {
+  stage: StageId
+  myRole: RoleId | null
+  checkable?: boolean
+}) {
   const [open, setOpen] = useState(true)
+  const [checked, setChecked] = useState<Set<string>>(new Set())
   const checklist = ROLE_CHECKLISTS[stage]
   const stageDef = getStage(stage)
+
+  function toggleItem(key: string) {
+    setChecked((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
@@ -35,11 +53,33 @@ export default function ChecklistPanel({ stage, myRole }: { stage: StageId; myRo
                 {ROLE_LABELS[role]} {isMine && '(내 역할)'}
               </div>
               {content.items.length > 0 ? (
-                <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
-                  {content.items.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
+                checkable ? (
+                  <ul className="text-xs text-slate-600 space-y-1.5">
+                    {content.items.map((item, i) => {
+                      const key = `${role}-${i}`
+                      const done = checked.has(key)
+                      return (
+                        <li key={i}>
+                          <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={done}
+                              onChange={() => toggleItem(key)}
+                              className="mt-0.5 w-4 h-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                            />
+                            <span className={done ? 'line-through text-slate-300' : ''}>{item}</span>
+                          </label>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                    {content.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                )
               ) : (
                 <p className="text-xs text-slate-400">이 단계에서 별도로 명시된 조치가 없습니다.</p>
               )}

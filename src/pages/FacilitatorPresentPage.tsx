@@ -28,7 +28,7 @@ import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
 import FirstBloodToast from '../components/FirstBloodToast'
 
-const SIMPLIFIED_STAGES = ['response1', 'response2']
+const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2']
 
 export default function FacilitatorPresentPage() {
   const { code = '' } = useParams()
