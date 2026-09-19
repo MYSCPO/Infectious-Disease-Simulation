@@ -4,17 +4,7 @@ import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { ROLE_CHECKLISTS } from '../data/roleChecklist'
 import { getStage } from '../data/stages'
 
-export default function ChecklistPanel({
-  stage,
-  myRole,
-  title = '구성원별 대응 체크리스트',
-  roleLabels = ROLE_LABELS,
-}: {
-  stage: StageId
-  myRole: RoleId | null
-  title?: string
-  roleLabels?: Record<RoleId, string>
-}) {
+export default function ChecklistPanel({ stage, myRole }: { stage: StageId; myRole: RoleId | null }) {
   const [open, setOpen] = useState(true)
   const checklist = ROLE_CHECKLISTS[stage]
   const stageDef = getStage(stage)
@@ -27,7 +17,7 @@ export default function ChecklistPanel({
         className="w-full flex items-center justify-between px-4 py-3 lg:pointer-events-none"
       >
         <div>
-          <div className="text-xs font-semibold text-brand-600 uppercase tracking-wide">{title}</div>
+          <div className="text-xs font-semibold text-brand-600 uppercase tracking-wide">구성원별 대응 체크리스트</div>
           <div className="text-sm font-bold text-slate-800">{stageDef.shortLabel} · {checklist[ROLE_ORDER[0]].situation}</div>
         </div>
         <span className="text-slate-400 lg:hidden">{open ? '▲' : '▼'}</span>
@@ -42,7 +32,7 @@ export default function ChecklistPanel({
               className={`rounded-lg border p-3 ${isMine ? 'border-brand-300 bg-brand-50/50' : 'border-slate-100 bg-slate-50'}`}
             >
               <div className={`text-sm font-semibold mb-1 ${isMine ? 'text-brand-700' : 'text-slate-700'}`}>
-                {roleLabels[role]} {isMine && '(나)'}
+                {ROLE_LABELS[role]} {isMine && '(내 역할)'}
               </div>
               {content.items.length > 0 ? (
                 <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">

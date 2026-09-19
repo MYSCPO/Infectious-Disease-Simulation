@@ -8,7 +8,6 @@ import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { getWildcardQuiz } from '../data/wildcardQuiz'
-import { RESPONSE_JOB_TITLES } from '../data/roleChecklist'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
 import { releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
@@ -177,12 +176,7 @@ export default function TeamTrainingPage() {
                 확인한 뒤 진행자가 보내는 돌발 퀴즈로 다 같이 재미있게 지식을 다져 보세요!
               </p>
             </div>
-            <ChecklistPanel
-              stage={session.currentStage}
-              myRole={myRole}
-              title="직무별 핵심 조치 한눈에 보기"
-              roleLabels={RESPONSE_JOB_TITLES}
-            />
+            <ChecklistPanel stage={session.currentStage} myRole={myRole} />
           </div>
         ) : (
           <div className="grid lg:grid-cols-[2fr_1fr] gap-5">

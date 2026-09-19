@@ -1,20 +1,8 @@
-import type { RoleChecklist, RoleId, StageId } from '../types'
+import type { RoleChecklist, StageId } from '../types'
 
 // 출처: 「2025년도 학생 감염병 대응 모의훈련 워크북」의 단계별(0~4단계) 시나리오·체크포인트·주요조치사항.
 // 팀 단위로 재구성하면서, 원문에서 특정 교사(담임교사·생활담당부장급 교사 등)가 실제로 수행하는 항목은
 // 그 교사가 속한 팀(발생감시팀 등)의 체크리스트로, 보건교사가 수행하는 항목은 예방관리팀으로 배정했다.
-
-// 대응1~2단계는 "팀 명칭"보다 "지금 이 순간 누가 움직이는지"가 더 빨리 와닿도록,
-// 같은 항목을 실제 직무 단위 이름으로 바꿔서 보여준다(ROLE_LABELS의 팀 명칭은 JoinPage 등
-// 다른 화면에서 계속 쓰이므로 그대로 두고, 이 표시용 매핑만 별도로 둔다).
-export const RESPONSE_JOB_TITLES: Record<RoleId, string> = {
-  surveillance: '담임교사',
-  health: '보건교사',
-  academic: '교무부장',
-  admin: '행정실',
-  principal: '관리자',
-}
-
 export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
   prevention: {
     surveillance: {

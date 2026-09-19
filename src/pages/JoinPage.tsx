@@ -21,6 +21,7 @@ export default function JoinPage() {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [claiming, setClaiming] = useState(false)
+  const [showOrgChart, setShowOrgChart] = useState(false)
 
   const { session, loading } = useSession(confirmedCode || undefined)
   const groups = useGroups(confirmedCode || undefined)
@@ -128,6 +129,40 @@ export default function JoinPage() {
         ) : (
           <>
             <p className="text-center text-sm text-slate-500">{session.schoolName} · 참가 코드 {confirmedCode}</p>
+
+            <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+              <button
+                type="button"
+                onClick={() => setShowOrgChart((o) => !o)}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <span className="text-sm font-medium text-slate-700">🗂️ 우리 학교 감염병 대응 조직도</span>
+                <span className="text-slate-400 text-xs">{showOrgChart ? '▲ 접기' : '▼ 역할별 담당자 보기'}</span>
+              </button>
+              {showOrgChart && (
+                <div className="pt-1 space-y-2">
+                  <div className="rounded-xl border-2 border-brand-300 bg-brand-50 p-3 text-center">
+                    <p className="text-xs font-bold text-brand-700">{ROLE_LABELS.principal}</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                      {session.orgChart.principal || '담당자 미입력'}
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">{ROLE_DESCRIPTIONS.principal.summary}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ROLE_ORDER.filter((r) => r !== 'principal').map((r) => (
+                      <div key={r} className="rounded-xl border border-slate-200 p-3">
+                        <p className="text-xs font-bold text-slate-500">{ROLE_LABELS[r]}</p>
+                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{session.orgChart[r] || '담당자 미입력'}</p>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">{ROLE_DESCRIPTIONS[r].summary}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-slate-400 text-center pt-1">
+                    출처: 학교 감염병 예방·위기대응 매뉴얼(교육부) [그림 2-1] 학교감염병관리조직 구성
+                  </p>
+                </div>
+              )}
+            </section>
 
             <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
               <span className="text-sm font-medium text-slate-700">조 선택</span>
