@@ -140,24 +140,28 @@ export default function JoinPage() {
                 <span className="text-slate-400 text-xs">{showOrgChart ? '▲ 접기' : '▼ 역할별 담당자 보기'}</span>
               </button>
               {showOrgChart && (
-                <div className="pt-1 space-y-2">
-                  <div className="rounded-xl border-2 border-brand-300 bg-brand-50 p-3 text-center">
-                    <p className="text-xs font-bold text-brand-700">{ROLE_LABELS.principal}</p>
-                    <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                      {session.orgChart.principal || '담당자 미입력'}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">{ROLE_DESCRIPTIONS.principal.summary}</p>
+                <div className="pt-1 space-y-3">
+                  <img
+                    src="/org-chart.png"
+                    alt="학교감염병관리조직 구성도: 학교장·협력기관, 교감, 발생감시팀·예방관리팀·학사관리팀·행정지원팀"
+                    className="w-full rounded-xl border border-slate-100"
+                  />
+                  <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-3">
+                    <p className="text-xs font-bold text-brand-700 mb-2">우리 학교 실제 담당자</p>
+                    <ul className="text-xs text-slate-600 space-y-1">
+                      <li>
+                        <span className="font-semibold text-slate-700">{ROLE_LABELS.principal}</span>:{' '}
+                        {session.orgChart.principal || '담당자 미입력'}
+                      </li>
+                      {ROLE_ORDER.filter((r) => r !== 'principal').map((r) => (
+                        <li key={r}>
+                          <span className="font-semibold text-slate-700">{ROLE_LABELS[r]}</span>:{' '}
+                          {session.orgChart[r] || '담당자 미입력'}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ROLE_ORDER.filter((r) => r !== 'principal').map((r) => (
-                      <div key={r} className="rounded-xl border border-slate-200 p-3">
-                        <p className="text-xs font-bold text-slate-500">{ROLE_LABELS[r]}</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{session.orgChart[r] || '담당자 미입력'}</p>
-                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">{ROLE_DESCRIPTIONS[r].summary}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-slate-400 text-center pt-1">
+                  <p className="text-[11px] text-slate-400 text-center">
                     출처: 학교 감염병 예방·위기대응 매뉴얼(교육부) [그림 2-1] 학교감염병관리조직 구성
                   </p>
                 </div>
