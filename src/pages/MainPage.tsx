@@ -104,7 +104,7 @@ export default function MainPage() {
 
         <div className="max-w-3xl w-full mx-auto px-4 pb-6">
           <h3 className="text-sm font-bold text-slate-500 mb-3">📚 사전/사후 학습 참고 자료실</h3>
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Link
               to="/diseases"
               className="bg-white rounded-2xl border border-brand-100 shadow-sm p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
@@ -124,6 +124,17 @@ export default function MainPage() {
               <h4 className="text-sm font-bold text-slate-800 mb-1">호발 감염병 10종 가이드</h4>
               <p className="text-xs text-slate-500 leading-relaxed flex-1">
                 원인부터 등교 중지 기준까지 인포그래픽으로 봐요.
+              </p>
+            </Link>
+
+            <Link
+              to="/attendance-guide"
+              className="bg-white rounded-2xl border border-brand-100 shadow-sm p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
+            >
+              <div className="text-2xl mb-1">📋</div>
+              <h4 className="text-sm font-bold text-slate-800 mb-1">등교중지 출결 처리 기준</h4>
+              <p className="text-xs text-slate-500 leading-relaxed flex-1">
+                출석 인정 원칙부터 제출 서류까지 한 번에 정리했어요.
               </p>
             </Link>
 

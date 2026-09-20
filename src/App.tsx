@@ -11,6 +11,7 @@ import DiseaseGalleryPage from './pages/DiseaseGalleryPage'
 import DiseaseDetailPage from './pages/DiseaseDetailPage'
 import DiseaseRoleGuidePage from './pages/DiseaseRoleGuidePage'
 import GuideDocumentPage from './pages/GuideDocumentPage'
+import AttendanceGuidePage from './pages/AttendanceGuidePage'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/diseases/:id" element={<DiseaseDetailPage />} />
       <Route path="/diseases/:id/roles" element={<DiseaseRoleGuidePage />} />
       <Route path="/guide" element={<GuideDocumentPage />} />
+      <Route path="/attendance-guide" element={<AttendanceGuidePage />} />
       <Route path="/facilitator/setup" element={<FacilitatorSetupPage />} />
       <Route path="/facilitator/:code/groups" element={<GroupAssignmentPage />} />
       <Route path="/facilitator/:code/present" element={<FacilitatorPresentPage />} />
