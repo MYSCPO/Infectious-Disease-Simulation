@@ -214,6 +214,89 @@ export async function submitCoopAnswer(
   })
 }
 
+const RELAY_TIME_LIMIT_MS = 180_000 // 3분
+
+// 대응3단계 릴레이 시작: 조원 누구나 시작할 수 있다.
+export async function startRelay(code: string, groupId: string) {
+  await ensureSignedIn()
+  await updateDoc(groupRef(code, groupId), {
+    relay: {
+      startedAt: Date.now(),
+      turnIndex: 0,
+      turnResults: [],
+      finishedAt: null,
+      timeBonusAwarded: false,
+      finalQuiz: null,
+    },
+  })
+}
+
+// 릴레이 한 차례(낭독) 제출. 지금 차례가 아니면 무시(동시 클릭으로 인한 중복 진행을 트랜잭션으로 방지).
+// 마지막 차례(관리자)까지 끝나면 finishedAt을 기록하고, 3분 이내 완주 시 +50pt를 함께 지급한다.
+export async function submitRelayTurn(
+  code: string,
+  groupId: string,
+  role: RoleId,
+  bonus: boolean,
+  method: 'stt' | 'manual',
+): Promise<'ok' | 'not-your-turn' | 'no-relay'> {
+  await ensureSignedIn()
+  const gRef = groupRef(code, groupId)
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(gRef)
+    const group = snap.data() as GroupDoc | undefined
+    const relay = group?.relay
+    if (!group || !relay) return 'no-relay'
+    if (ROLE_ORDER[relay.turnIndex] !== role) return 'not-your-turn'
+
+    const turnResults = [...relay.turnResults, { role, bonus, method }]
+    const turnIndex = relay.turnIndex + 1
+    const isDone = turnIndex >= ROLE_ORDER.length
+    const finishedAt = isDone ? Date.now() : null
+    const withinTime = isDone && finishedAt !== null && finishedAt - relay.startedAt <= RELAY_TIME_LIMIT_MS
+    const scoreDelta = (bonus ? 30 : 0) + (withinTime ? 50 : 0)
+
+    tx.update(gRef, {
+      relay: {
+        ...relay,
+        turnIndex,
+        turnResults,
+        finishedAt,
+        timeBonusAwarded: relay.timeBonusAwarded || withinTime,
+      },
+      ...(scoreDelta > 0 ? { score: (group.score ?? 0) + scoreDelta, badge: true } : {}),
+    })
+    return 'ok'
+  })
+}
+
+// 릴레이 완주 후 "관리자" 대표가 제출하는 최종 의사결정 퀴즈. 정답이면 +100pt(1회만 지급).
+export async function submitRelayFinalQuiz(
+  code: string,
+  groupId: string,
+  optionId: string,
+  correct: boolean,
+): Promise<'ok' | 'already-answered' | 'no-relay'> {
+  await ensureSignedIn()
+  const gRef = groupRef(code, groupId)
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(gRef)
+    const group = snap.data() as GroupDoc | undefined
+    const relay = group?.relay
+    if (!group || !relay) return 'no-relay'
+    if (relay.finalQuiz?.answered) return 'already-answered'
+
+    tx.update(gRef, {
+      relay: {
+        ...relay,
+        finalQuiz: { answered: true, optionId, correct, awarded: correct },
+      },
+      ...(correct ? { score: (group.score ?? 0) + 100, badge: true } : {}),
+    })
+    return 'ok'
+  })
+}
+
 function docsToArray<T>(snap: QuerySnapshot<DocumentData>): T[] {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as T)
 }
@@ -235,6 +318,7 @@ export async function createGroup(code: string, name: string, diseaseId: string)
     badge: false,
     quizAnswer: null,
     coopProgress: null,
+    relay: null,
     createdAt: Date.now(),
   }
   await setDoc(ref, data)

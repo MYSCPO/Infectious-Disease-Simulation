@@ -20,11 +20,14 @@ import WildcardQuizModal from '../components/WildcardQuizModal'
 import DiseaseManualModal from '../components/DiseaseManualModal'
 import LeaderboardPopup from '../components/LeaderboardPopup'
 import FirstBloodToast from '../components/FirstBloodToast'
+import ScoreToast from '../components/ScoreToast'
+import RelayPanel from '../components/RelayPanel'
 import MascotAvatar from '../components/MascotAvatar'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2']
+const RELAY_STAGE = 'response3'
 
 export default function TeamTrainingPage() {
   const { code = '', groupId = '' } = useParams()
@@ -44,8 +47,10 @@ export default function TeamTrainingPage() {
   const [showLeaderboardPopup, setShowLeaderboardPopup] = useState(false)
   const [quizDismissedAt, setQuizDismissedAt] = useState<number | null>(null)
   const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
+  const [scoreToast, setScoreToast] = useState<{ message: string; color: 'amber' | 'emerald' | 'violet' } | null>(null)
   const prevStageRef = useRef<string | null>(null)
   const prevFirstBloodRef = useRef<string | null>(null)
+  const prevRelayRef = useRef<{ turnCount: number; finished: boolean; quizAnswered: boolean } | null>(null)
 
   useEffect(() => {
     setAnswers(submission?.answers ?? [])
@@ -66,6 +71,31 @@ export default function TeamTrainingPage() {
     }
     prevFirstBloodRef.current = current
   }, [session?.activeQuiz?.firstBloodGroupId])
+
+  useEffect(() => {
+    const relay = group?.relay
+    const snapshot = {
+      turnCount: relay?.turnResults.length ?? 0,
+      finished: !!relay?.finishedAt,
+      quizAnswered: !!relay?.finalQuiz?.answered,
+    }
+    const prev = prevRelayRef.current
+    if (prev && relay) {
+      if (snapshot.turnCount > prev.turnCount) {
+        const last = relay.turnResults[relay.turnResults.length - 1]
+        if (last?.bonus) {
+          setScoreToast({ message: `🎙️ ${ROLE_LABELS[last.role]} 명확한 대사 전달 보너스! (+30pt)`, color: 'amber' })
+        }
+      }
+      if (!prev.finished && snapshot.finished && relay.timeBonusAwarded) {
+        setScoreToast({ message: '⏱️ 3분 내 릴레이 완수! (+50pt)', color: 'emerald' })
+      }
+      if (!prev.quizAnswered && snapshot.quizAnswered && relay.finalQuiz?.correct) {
+        setScoreToast({ message: '🏆 비상대책본부 최종 의사결정 성공! (+100pt)', color: 'violet' })
+      }
+    }
+    prevRelayRef.current = snapshot
+  }, [group?.relay])
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
   if (!session) {
@@ -90,6 +120,7 @@ export default function TeamTrainingPage() {
       ? group.quizAnswer
       : null
   const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
+  const isRelayStage = session.currentStage === RELAY_STAGE
   const memberNames = group ? [...new Set(Object.values(group.members).flatMap((names) => names ?? []))] : []
 
   async function handleSelect(role: (typeof ROLE_ORDER)[number], optionId: string) {
@@ -177,6 +208,15 @@ export default function TeamTrainingPage() {
               </p>
             </div>
             <ChecklistPanel key={session.currentStage} stage={session.currentStage} myRole={myRole} checkable />
+          </div>
+        ) : isRelayStage ? (
+          <div className="space-y-4">
+            {currentScenario && <ScenarioCard scenario={currentScenario} />}
+            {group ? (
+              <RelayPanel code={code} groupId={groupId} group={group} myRole={myRole} />
+            ) : (
+              <div className="p-6 text-center text-slate-400 text-sm">조 정보를 불러오는 중...</div>
+            )}
           </div>
         ) : (
           <div className="grid lg:grid-cols-[2fr_1fr] gap-5">
@@ -284,6 +324,10 @@ export default function TeamTrainingPage() {
           groupName={groups.find((g) => g.id === firstBloodToastGroupId)?.name ?? '어느 조'}
           onClose={() => setFirstBloodToastGroupId(null)}
         />
+      )}
+
+      {scoreToast && (
+        <ScoreToast message={scoreToast.message} color={scoreToast.color} onClose={() => setScoreToast(null)} />
       )}
 
       {showLeaderboardPopup && (

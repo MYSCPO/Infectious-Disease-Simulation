@@ -172,15 +172,40 @@ export interface GroupCoopProgress {
   awarded: boolean // 팀워크 보너스 중복 지급 방지
 }
 
+export interface RelayTurnResult {
+  role: RoleId
+  bonus: boolean // 명확한 대사 전달 보너스(+30pt) 지급 여부
+  method: 'stt' | 'manual' // 음성인식 통과 vs 미지원 기기의 수동 완료 버튼
+}
+
+export interface GroupRelayFinalQuiz {
+  answered: boolean
+  optionId: string | null
+  correct: boolean | null
+  awarded: boolean // 최종 의사결정 성공 보너스(+100pt) 중복 지급 방지
+}
+
+// 대응3단계: 5개 역할이 ROLE_ORDER 순서대로 돌아가며 대사를 소리 내어 읽는 릴레이.
+// turnIndex가 ROLE_ORDER.length(5)에 도달하면 전원 완료, finishedAt이 채워진다.
+export interface GroupRelayState {
+  startedAt: number
+  turnIndex: number
+  turnResults: RelayTurnResult[]
+  finishedAt: number | null
+  timeBonusAwarded: boolean // 3분(180초) 내 완주 보너스(+50pt) 중복 지급 방지
+  finalQuiz: GroupRelayFinalQuiz | null
+}
+
 export interface GroupDoc {
   id: string
   name: string
   diseaseId: string // 이 조가 훈련할 감염병 (조마다 다르게 배정 가능)
   members: Partial<Record<RoleId, string[]>> // roleId -> 참가자 이름 목록(역할당 여러 명 가능)
-  score: number // 돌발 퀴즈 누적 점수(스피드 퍼스트블러드 +50, 협동 미션 전원성공 +100)
-  badge: boolean // 돌발 퀴즈에서 한 번이라도 보너스를 받았는지(달성 표시용)
+  score: number // 돌발 퀴즈·릴레이 누적 점수
+  badge: boolean // 보너스를 한 번이라도 받았는지(달성 표시용)
   quizAnswer: GroupQuizAnswer | null // 스피드 퀴즈: 조 대표 답
   coopProgress: GroupCoopProgress | null // 협동 미션: 조원별 개별 응답 현황
+  relay: GroupRelayState | null // 대응3단계 릴레이 낭독 + 최종 의사결정 퀴즈 진행 상태
   createdAt: number
 }
 

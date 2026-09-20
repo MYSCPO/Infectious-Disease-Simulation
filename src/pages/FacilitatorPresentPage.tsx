@@ -29,6 +29,7 @@ import Leaderboard from '../components/Leaderboard'
 import FirstBloodToast from '../components/FirstBloodToast'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2']
+const RELAY_STAGE = 'response3'
 
 export default function FacilitatorPresentPage() {
   const { code = '' } = useParams()
@@ -74,6 +75,7 @@ export default function FacilitatorPresentPage() {
   const prev = prevStage(session.currentStage)
   const applicableWildcards = WILDCARDS.filter((w) => w.applicableStages.includes(session.currentStage))
   const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
+  const isRelayStage = session.currentStage === RELAY_STAGE
   const topGroup = [...groups].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0]
 
   async function handleReveal() {
@@ -238,7 +240,7 @@ export default function FacilitatorPresentPage() {
         </section>
 
         <div className="flex flex-wrap gap-3">
-          {!isSimplifiedStage && (
+          {!isSimplifiedStage && !isRelayStage && (
             <button
               type="button"
               onClick={handleReveal}
@@ -374,7 +376,7 @@ export default function FacilitatorPresentPage() {
                 <span className="text-xs font-bold bg-brand-600 text-white rounded-full px-3 py-1">{disease.name}</span>
                 <span className="text-xs text-slate-500">
                   {clusterGroups.map((g) => g.name).join(', ')}
-                  {!isSimplifiedStage && ` · ${clusterSubmittedCount}/${clusterGroups.length} 제출`}
+                  {!isSimplifiedStage && !isRelayStage && ` · ${clusterSubmittedCount}/${clusterGroups.length} 제출`}
                 </span>
               </div>
 
@@ -387,6 +389,17 @@ export default function FacilitatorPresentPage() {
                     이 단계는 역할별 문항 제출이 없어요. 참가자 화면에는 공통 브리핑과 체크리스트가 표시되고,
                     위 돌발 퀴즈 버튼으로 진행 속도를 조절해 주세요.
                   </p>
+                </div>
+              ) : isRelayStage ? (
+                <div className="space-y-2">
+                  <div className="rounded-xl border border-violet-200 bg-violet-50/50 px-4 py-3">
+                    <p className="text-xs font-bold text-violet-700">🎙️ 5인 릴레이 낭독 + 최종 의사결정 퀴즈 단계입니다</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      각 조가 발생감시팀→예방관리팀→학사관리팀→행정지원팀→관리자 순서로 대사를 낭독하고, 관리자가
+                      최종 의사결정 퀴즈를 제출합니다.
+                    </p>
+                  </div>
+                  <RelayStatusGrid groups={clusterGroups} />
                 </div>
               ) : (
                 <>
@@ -411,6 +424,28 @@ export default function FacilitatorPresentPage() {
           onClose={() => setFirstBloodToastGroupId(null)}
         />
       )}
+    </div>
+  )
+}
+
+function RelayStatusGrid({ groups }: { groups: GroupDoc[] }) {
+  return (
+    <div className="grid sm:grid-cols-2 gap-2">
+      {groups.map((g) => {
+        const relay = g.relay
+        let status: string
+        if (!relay) status = '아직 시작 전'
+        else if (relay.turnIndex < ROLE_ORDER.length) status = `${ROLE_LABELS[ROLE_ORDER[relay.turnIndex]]} 낭독 중 (${relay.turnIndex}/${ROLE_ORDER.length})`
+        else if (!relay.finalQuiz?.answered) status = '릴레이 완주 · 최종 퀴즈 대기 중'
+        else status = relay.finalQuiz.correct ? '🏆 최종 의사결정 성공!' : '최종 퀴즈 제출 완료'
+
+        return (
+          <div key={g.id} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs">
+            <span className="font-bold text-slate-700">{g.name}</span>
+            <span className="text-slate-500"> · {status}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
