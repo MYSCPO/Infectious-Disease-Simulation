@@ -12,20 +12,25 @@ import {
 import { startRelay, submitRelayFinalQuiz, submitRelayTurn } from '../lib/session'
 import MascotAvatar from './MascotAvatar'
 
+const RELAY_BONUS_LIMIT_SEC = 180
+
 export default function RelayPanel({
   code,
   groupId,
   group,
   myRole,
+  isTestSession = false,
 }: {
   code: string
   groupId: string
   group: GroupDoc
   myRole: RoleId | null
+  isTestSession?: boolean
 }) {
   const [starting, setStarting] = useState(false)
   const [listening, setListening] = useState(false)
   const [completing, setCompleting] = useState(false)
+  const [testOverride, setTestOverride] = useState(false)
   const [quizSelected, setQuizSelected] = useState<string | null>(null)
   const [quizSubmitting, setQuizSubmitting] = useState(false)
   const micRef = useRef<RecognitionController | null>(null)
@@ -34,10 +39,12 @@ export default function RelayPanel({
   const sttSupported = isSpeechRecognitionSupported()
   const currentRole = relay && relay.turnIndex < ROLE_ORDER.length ? ROLE_ORDER[relay.turnIndex] : null
   const isMyTurn = !!currentRole && myRole === currentRole
+  const canAct = isMyTurn || (isTestSession && testOverride)
 
   // 차례가 바뀌거나 화면을 벗어나면 혹시 남아있는 인식을 정리한다(진행 자체는 항상 완료
   // 버튼으로만 이루어지므로, 여기서는 자원 정리 목적일 뿐 결과를 기다리지 않는다).
   useEffect(() => {
+    setTestOverride(false)
     return () => {
       micRef.current?.stop().catch(() => {})
       micRef.current = null
@@ -105,7 +112,8 @@ export default function RelayPanel({
         <h3 className="text-base font-bold text-slate-800">대응3단계 릴레이 낭독을 시작해요</h3>
         <p className="text-xs text-slate-500 leading-relaxed">
           발생감시팀 → 예방관리팀 → 학사관리팀 → 행정지원팀 → 관리자 순서로, 각 역할이 자기 차례에 대사를
-          소리 내어 읽어요. 3분 안에 5명이 모두 완주하면 보너스 점수를 받아요!
+          소리 내어 읽어요. 3분(180초) 안에 5명이 모두 완주하면 보너스 점수를 받아요! 시간이 넘어가도
+          실패 처리되지는 않으니 편하게 진행하세요.
         </p>
         <button
           type="button"
@@ -124,13 +132,17 @@ export default function RelayPanel({
 
     return (
       <div className="space-y-4">
+        <RelayTimer startedAt={relay.startedAt} />
         <RelayProgress relay={relay} />
-        {isMyTurn ? (
+        {canAct ? (
           <div className="bg-white rounded-2xl border-2 border-brand-400 p-5 space-y-3 text-center">
             <div className="flex justify-center">
               <MascotAvatar role={currentRole} size="lg" motion="idle" />
             </div>
-            <p className="text-xs font-bold text-brand-600">🎤 지금 당신 차례예요! 아래 조치사항을 순서대로 소리 내어 읽어주세요</p>
+            <p className="text-xs font-bold text-brand-600">
+              🎤 {isMyTurn ? '지금 당신 차례예요!' : `🧪 테스트로 ${ROLE_LABELS[currentRole]} 차례를 진행해요`} 아래
+              조치사항을 순서대로 소리 내어 읽어주세요
+            </p>
             <ul className="text-left text-sm font-semibold text-slate-800 leading-relaxed space-y-1.5 bg-paper-50 rounded-xl p-3">
               {items.map((item, i) => (
                 <li key={i} className="flex gap-1.5">
@@ -178,7 +190,7 @@ export default function RelayPanel({
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center space-y-2">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center space-y-3">
             <div className="flex justify-center">
               <MascotAvatar role={currentRole} size="lg" motion="idle" />
             </div>
@@ -186,6 +198,15 @@ export default function RelayPanel({
               ⏳ 지금은 <span className="text-brand-600 font-bold">{ROLE_LABELS[currentRole]}</span> 차례예요. 잠시만
               기다려 주세요.
             </p>
+            {isTestSession && (
+              <button
+                type="button"
+                onClick={() => setTestOverride(true)}
+                className="text-xs underline text-slate-400 hover:text-slate-600"
+              >
+                🧪 테스트 모드: 이 역할로 대신 낭독하기
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -194,6 +215,7 @@ export default function RelayPanel({
 
   const quiz = getRelayFinalQuiz(group.diseaseId)
   const finalQuiz = relay.finalQuiz
+  const canAnswerQuiz = myRole === 'principal' || (isTestSession && testOverride)
 
   return (
     <div className="space-y-4">
@@ -216,7 +238,7 @@ export default function RelayPanel({
               </>
             )}
           </div>
-        ) : myRole === 'principal' ? (
+        ) : canAnswerQuiz ? (
           <>
             <div className="space-y-2 text-left">
               {quiz.options.map((opt) => (
@@ -242,11 +264,49 @@ export default function RelayPanel({
             </button>
           </>
         ) : (
-          <p className="text-sm text-slate-500 text-center py-4">
-            🧑‍💼 관리자 대표가 조원들과 상의해 최종 답을 제출하고 있어요. 잠시만 기다려 주세요.
-          </p>
+          <>
+            <p className="text-sm text-slate-500 text-center py-4">
+              🧑‍💼 관리자 대표가 조원들과 상의해 최종 답을 제출하고 있어요. 잠시만 기다려 주세요.
+            </p>
+            {isTestSession && (
+              <button
+                type="button"
+                onClick={() => setTestOverride(true)}
+                className="text-xs underline text-slate-400 hover:text-slate-600 block mx-auto"
+              >
+                🧪 테스트 모드: 관리자 대신 제출하기
+              </button>
+            )}
+          </>
         )}
       </div>
+    </div>
+  )
+}
+
+function RelayTimer({ startedAt }: { startedAt: number }) {
+  const [now, setNow] = useState(Date.now())
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const elapsedSec = Math.floor((now - startedAt) / 1000)
+  const remainingSec = RELAY_BONUS_LIMIT_SEC - elapsedSec
+  const overTime = remainingSec <= 0
+  const mm = String(Math.floor(Math.abs(remainingSec) / 60)).padStart(2, '0')
+  const ss = String(Math.abs(remainingSec) % 60).padStart(2, '0')
+
+  return (
+    <div className="flex justify-center">
+      <span
+        className={`text-xs font-bold rounded-full px-3 py-1.5 ${
+          overTime ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-600'
+        }`}
+      >
+        {overTime ? `⏱️ 3분 보너스 시간 종료 (경과 ${mm}:${ss})` : `⏱️ 3분 내 완주 보너스까지 ${mm}:${ss} 남음`}
+      </span>
     </div>
   )
 }

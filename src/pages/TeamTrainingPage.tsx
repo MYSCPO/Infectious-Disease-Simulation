@@ -27,6 +27,7 @@ import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2']
+const TEST_SCHOOL_NAME = '테스트 학교(1인 체험)'
 const RELAY_STAGE = 'response3'
 
 export default function TeamTrainingPage() {
@@ -189,7 +190,7 @@ export default function TeamTrainingPage() {
           )}
         </div>
 
-        {session.schoolName === '테스트 학교(1인 체험)' && (
+        {session.schoolName === TEST_SCHOOL_NAME && (
           <Link
             to={`/facilitator/${code}/present`}
             className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-slate-800 text-white text-xs font-bold px-3 py-2 hover:bg-slate-700 transition-colors mr-2"
@@ -222,7 +223,13 @@ export default function TeamTrainingPage() {
           <div className="space-y-4">
             {currentScenario && <ScenarioCard scenario={currentScenario} />}
             {group ? (
-              <RelayPanel code={code} groupId={groupId} group={group} myRole={myRole} />
+              <RelayPanel
+                code={code}
+                groupId={groupId}
+                group={group}
+                myRole={myRole}
+                isTestSession={session.schoolName === TEST_SCHOOL_NAME}
+              />
             ) : (
               <div className="p-6 text-center text-slate-400 text-sm">조 정보를 불러오는 중...</div>
             )}
