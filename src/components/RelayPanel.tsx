@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { GroupDoc, RoleId } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { RELAY_LINES } from '../data/relayScript'
 import { getRelayFinalQuiz } from '../data/relayFinalQuiz'
-import { isSpeechRecognitionSupported, recognizeSpeech, scoreReading } from '../lib/speechRecognition'
+import {
+  isSpeechRecognitionSupported,
+  type RecognitionController,
+  scoreReading,
+  startContinuousRecognition,
+} from '../lib/speechRecognition'
 import { startRelay, submitRelayFinalQuiz, submitRelayTurn } from '../lib/session'
 import MascotAvatar from './MascotAvatar'
 
@@ -20,12 +25,24 @@ export default function RelayPanel({
 }) {
   const [starting, setStarting] = useState(false)
   const [listening, setListening] = useState(false)
-  const [attemptError, setAttemptError] = useState<string | null>(null)
+  const [completing, setCompleting] = useState(false)
   const [quizSelected, setQuizSelected] = useState<string | null>(null)
   const [quizSubmitting, setQuizSubmitting] = useState(false)
+  const micRef = useRef<RecognitionController | null>(null)
 
   const relay = group.relay
   const sttSupported = isSpeechRecognitionSupported()
+  const currentRole = relay && relay.turnIndex < ROLE_ORDER.length ? ROLE_ORDER[relay.turnIndex] : null
+  const isMyTurn = !!currentRole && myRole === currentRole
+
+  // 차례가 바뀌거나 화면을 벗어나면 혹시 남아있는 인식을 정리한다(진행 자체는 항상 완료
+  // 버튼으로만 이루어지므로, 여기서는 자원 정리 목적일 뿐 결과를 기다리지 않는다).
+  useEffect(() => {
+    return () => {
+      micRef.current?.stop().catch(() => {})
+      micRef.current = null
+    }
+  }, [currentRole])
 
   async function handleStart() {
     setStarting(true)
@@ -36,28 +53,37 @@ export default function RelayPanel({
     }
   }
 
-  async function handleReadWithMic(role: RoleId) {
-    setAttemptError(null)
-    setListening(true)
-    try {
-      const transcript = await recognizeSpeech()
-      const { items, keywords } = RELAY_LINES[role]
-      const score = scoreReading(transcript, items.join(' '), keywords)
-      if (!score.passed) {
-        setAttemptError('핵심 단어가 잘 인식되지 않았어요. 대사를 다시 또박또박 읽어주세요.')
-        return
-      }
-      await submitRelayTurn(code, groupId, role, score.bonus, 'stt')
-    } catch {
-      setAttemptError('음성인식에 문제가 생겼어요. 소리 내어 읽으셨다면 아래 버튼으로 완료 처리해 주세요.')
-    } finally {
-      setListening(false)
+  function handleStartListening() {
+    const controller = startContinuousRecognition()
+    if (controller) {
+      micRef.current = controller
+      setListening(true)
     }
   }
 
-  async function handleManualComplete(role: RoleId) {
-    setAttemptError(null)
-    await submitRelayTurn(code, groupId, role, true, 'manual')
+  // 음성인식 성공 여부와 무관하게, 참가자가 이 버튼을 누르면 그 즉시 다음 차례로 넘어간다.
+  // 인식된 내용이 있으면 정확도를 근사해 보너스 지급 여부만 판단한다.
+  async function handleComplete() {
+    if (!currentRole) return
+    setCompleting(true)
+    try {
+      let transcript = ''
+      if (micRef.current) {
+        transcript = await micRef.current.stop()
+        micRef.current = null
+      }
+      setListening(false)
+
+      if (!sttSupported) {
+        await submitRelayTurn(code, groupId, currentRole, true, 'manual')
+        return
+      }
+      const { items, keywords } = RELAY_LINES[currentRole]
+      const score = scoreReading(transcript, items.join(' '), keywords)
+      await submitRelayTurn(code, groupId, currentRole, score.bonus, transcript ? 'stt' : 'manual')
+    } finally {
+      setCompleting(false)
+    }
   }
 
   async function handleSubmitQuiz() {
@@ -93,9 +119,7 @@ export default function RelayPanel({
     )
   }
 
-  if (relay.turnIndex < ROLE_ORDER.length) {
-    const currentRole = ROLE_ORDER[relay.turnIndex]
-    const isMyTurn = myRole === currentRole
+  if (currentRole) {
     const { items } = RELAY_LINES[currentRole]
 
     return (
@@ -116,28 +140,27 @@ export default function RelayPanel({
               ))}
             </ul>
             {sttSupported ? (
-              <>
+              !listening ? (
                 <button
                   type="button"
-                  onClick={() => handleReadWithMic(currentRole)}
-                  disabled={listening}
-                  className="rounded-full bg-rose-500 text-white px-6 py-3 text-sm font-bold hover:bg-rose-600 disabled:opacity-50"
+                  onClick={handleStartListening}
+                  className="rounded-full bg-rose-500 text-white px-6 py-3 text-sm font-bold hover:bg-rose-600"
                 >
-                  {listening ? '🎙️ 듣고 있어요...' : '🎙️ 눌러서 소리 내어 읽기'}
+                  🎙️ 눌러서 낭독 시작
                 </button>
-                {attemptError && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-rose-600">{attemptError}</p>
-                    <button
-                      type="button"
-                      onClick={() => handleManualComplete(currentRole)}
-                      className="text-xs underline text-slate-400"
-                    >
-                      계속 안 되면 여기를 눌러 완료 처리
-                    </button>
-                  </div>
-                )}
-              </>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-rose-500 animate-pulse">🎙️ 듣고 있어요...</p>
+                  <button
+                    type="button"
+                    onClick={handleComplete}
+                    disabled={completing}
+                    className="rounded-full bg-brand-600 text-white px-6 py-3 text-sm font-bold hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    {completing ? '처리 중...' : '✅ 다 읽었어요 · 다음으로'}
+                  </button>
+                </div>
+              )
             ) : (
               <>
                 <p className="text-xs text-slate-400">
@@ -145,8 +168,9 @@ export default function RelayPanel({
                 </p>
                 <button
                   type="button"
-                  onClick={() => handleManualComplete(currentRole)}
-                  className="rounded-full bg-brand-600 text-white px-6 py-3 text-sm font-bold hover:bg-brand-700"
+                  onClick={handleComplete}
+                  disabled={completing}
+                  className="rounded-full bg-brand-600 text-white px-6 py-3 text-sm font-bold hover:bg-brand-700 disabled:opacity-50"
                 >
                   🔊 대사 소리 내어 읽기 완료
                 </button>

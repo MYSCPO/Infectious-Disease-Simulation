@@ -17,10 +17,7 @@ import {
   setRevealed,
   startWildcardQuiz,
   submitGroupAnswer,
-  submitRelayFinalQuiz,
-  submitRelayTurn,
 } from '../lib/session'
-import { getRelayFinalQuiz } from '../data/relayFinalQuiz'
 import { loadParticipantIdentity } from '../lib/participant'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
@@ -179,34 +176,6 @@ export default function FacilitatorPresentPage() {
     }
   }
 
-  // 개발/점검용: 대응3단계 릴레이는 실제로는 5명이 각자 자기 기기에서 낭독해야 다음 차례로
-  // 넘어간다. 테스트 모드처럼 혼자(+봇) 진행할 때는 아무도 봇 역할을 대신 읽어줄 수 없어 멈춰
-  // 있으므로, 남은 차례를 한 번에 완료 처리(+최종 퀴즈까지 정답 제출)해 전체 흐름을 빠르게 확인한다.
-  async function handleAdvanceRelayBots() {
-    setBusy(true)
-    try {
-      for (const g of groups) {
-        if (!g.relay) continue
-        let turnIndex = g.relay.turnIndex
-        while (turnIndex < ROLE_ORDER.length) {
-          const role = ROLE_ORDER[turnIndex]
-          const result = await submitRelayTurn(code, g.id, role, true, 'manual')
-          if (result !== 'ok') break
-          turnIndex += 1
-        }
-        if (turnIndex >= ROLE_ORDER.length) {
-          const quiz = getRelayFinalQuiz(g.diseaseId)
-          const correctOption = quiz.options.find((o) => o.correct)
-          if (correctOption) {
-            await submitRelayFinalQuiz(code, g.id, correctOption.id, true)
-          }
-        }
-      }
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-paper-50">
       <StageBanner current={session.currentStage} />
@@ -245,14 +214,6 @@ export default function FacilitatorPresentPage() {
               className="rounded-full bg-white border border-slate-300 text-slate-700 text-xs font-bold px-3 py-2 hover:bg-slate-100 disabled:opacity-40"
             >
               ⚡ 현재 단계 전체 자동 제출
-            </button>
-            <button
-              type="button"
-              onClick={handleAdvanceRelayBots}
-              disabled={busy || groups.length === 0}
-              className="rounded-full bg-white border border-slate-300 text-slate-700 text-xs font-bold px-3 py-2 hover:bg-slate-100 disabled:opacity-40"
-            >
-              🎙️ 릴레이 봇 자동 진행(대응3)
             </button>
             {myIdentityHere && (
               <Link
