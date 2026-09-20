@@ -41,8 +41,8 @@ export default function RelayPanel({
     setListening(true)
     try {
       const transcript = await recognizeSpeech()
-      const { line, keywords } = RELAY_LINES[role]
-      const score = scoreReading(transcript, line, keywords)
+      const { items, keywords } = RELAY_LINES[role]
+      const score = scoreReading(transcript, items.join(' '), keywords)
       if (!score.passed) {
         setAttemptError('핵심 단어가 잘 인식되지 않았어요. 대사를 다시 또박또박 읽어주세요.')
         return
@@ -96,7 +96,7 @@ export default function RelayPanel({
   if (relay.turnIndex < ROLE_ORDER.length) {
     const currentRole = ROLE_ORDER[relay.turnIndex]
     const isMyTurn = myRole === currentRole
-    const { line } = RELAY_LINES[currentRole]
+    const { items } = RELAY_LINES[currentRole]
 
     return (
       <div className="space-y-4">
@@ -106,8 +106,15 @@ export default function RelayPanel({
             <div className="flex justify-center">
               <MascotAvatar role={currentRole} size="lg" motion="idle" />
             </div>
-            <p className="text-xs font-bold text-brand-600">🎤 지금 당신 차례예요!</p>
-            <p className="text-base font-bold text-slate-800 leading-relaxed">"{line}"</p>
+            <p className="text-xs font-bold text-brand-600">🎤 지금 당신 차례예요! 아래 조치사항을 순서대로 소리 내어 읽어주세요</p>
+            <ul className="text-left text-sm font-semibold text-slate-800 leading-relaxed space-y-1.5 bg-paper-50 rounded-xl p-3">
+              {items.map((item, i) => (
+                <li key={i} className="flex gap-1.5">
+                  <span className="text-brand-500">{i + 1}.</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
             {sttSupported ? (
               <>
                 <button

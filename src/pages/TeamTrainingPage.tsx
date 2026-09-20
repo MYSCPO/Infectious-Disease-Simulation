@@ -189,6 +189,15 @@ export default function TeamTrainingPage() {
           )}
         </div>
 
+        {session.schoolName === '테스트 학교(1인 체험)' && (
+          <Link
+            to={`/facilitator/${code}/present`}
+            className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-slate-800 text-white text-xs font-bold px-3 py-2 hover:bg-slate-700 transition-colors mr-2"
+          >
+            🖥️ 진행자 화면으로 돌아가기
+          </Link>
+        )}
+
         <button
           type="button"
           onClick={() => setShowManual(true)}

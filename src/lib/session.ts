@@ -427,9 +427,10 @@ export async function createTestSession(): Promise<{ code: string; groupId: stri
     diseaseId: DISEASES[0].id,
   })
 
+  // 감염병 종류대로 전부 테스트해볼 수 있도록, 감염병 수만큼 조를 만들어 하나씩 배정한다.
   const groupIds: string[] = []
-  for (let i = 0; i < 4; i++) {
-    const gid = await createGroup(code, `${i + 1}조`, DISEASES[i % DISEASES.length].id)
+  for (let i = 0; i < DISEASES.length; i++) {
+    const gid = await createGroup(code, `${i + 1}조`, DISEASES[i].id)
     groupIds.push(gid)
   }
 
