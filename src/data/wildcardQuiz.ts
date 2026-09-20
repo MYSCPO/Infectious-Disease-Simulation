@@ -318,3 +318,45 @@ export function getWildcardQuiz(diseaseId: string, seed: number): WildcardQuizQu
 export function getWildcardQuizCount(diseaseId: string): number {
   return WILDCARD_QUIZZES[diseaseId]?.length ?? 0
 }
+
+// 보너스 퀴즈: 감염병 종류와 무관하게 전 조에 동일한 문제가 나가는 공통 지식 문제은행.
+// 근거: 「학교 감염병 예방·위기대응 매뉴얼」 Ⅲ. 등교 중지(출석 인정 원칙·제출 서류 등).
+export const COMMON_WILDCARD_QUIZZES: WildcardQuizQuestion[] = [
+  {
+    topic: '출결 처리',
+    prompt: '등교중지가 필요한 감염병이 의심되어 학교에 가지 못한 기간, 진료 결과 감염병이 아니었던 것으로 확인됐다면 그 기간은 어떻게 처리될까요?',
+    options: [
+      { id: 'a', text: '결과 확인까지의 기간도 출석으로 인정된다', correct: true },
+      { id: 'b', text: '무단결석으로 처리된다', correct: false },
+      { id: 'c', text: '조퇴로 처리된다', correct: false },
+      { id: 'd', text: '학교장 재량으로 매번 다르게 처리된다', correct: false },
+    ],
+  },
+  {
+    topic: '제출 서류',
+    prompt: '등교중지 학생이 등교를 재개할 때 제출 서류로 인정되지 않는 것은?',
+    options: [
+      { id: 'a', text: '진료확인서', correct: false },
+      { id: 'b', text: '의사소견서', correct: false },
+      { id: 'c', text: '학부모가 직접 작성한 확인 메모', correct: true },
+      { id: 'd', text: '진단서', correct: false },
+    ],
+  },
+  {
+    topic: '등교중지 원칙',
+    prompt: '신종감염병 유행 시 역학조사 결과 자가격리 통보를 받은 학생은, 증상이 없어도 등교중지 대상이다? (O/X)',
+    options: [
+      { id: 'o', text: 'O — 증상 유무와 무관하게 등교중지 실시', correct: true },
+      { id: 'x', text: 'X — 증상이 없으면 등교중지 대상이 아니다', correct: false },
+    ],
+  },
+]
+
+export function getCommonWildcardQuiz(seed: number): WildcardQuizQuestion {
+  const idx = Math.abs(Math.floor(seed)) % COMMON_WILDCARD_QUIZZES.length
+  return COMMON_WILDCARD_QUIZZES[idx]
+}
+
+export function getCommonWildcardQuizCount(): number {
+  return COMMON_WILDCARD_QUIZZES.length
+}

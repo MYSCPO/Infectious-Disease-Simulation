@@ -137,10 +137,15 @@ export interface SessionGaps {
 
 export type QuizType = 'speed' | 'coop'
 
+// disease: 조가 맡은 감염병별 문제은행에서 출제 · common: 감염병과 무관한 공통 지식
+// (출결 처리 기준 등) 보너스 문제은행에서 출제 — 모든 조에게 동일한 문제가 나간다.
+export type QuizSource = 'disease' | 'common'
+
 export interface ActiveQuiz {
   startedAt: number
   durationSec: number
   quizType: QuizType
+  source: QuizSource
   firstBloodGroupId: string | null // speed 모드에서 전체 조 중 가장 먼저 정답을 맞힌 조(트랜잭션으로 1회만 선점)
 }
 

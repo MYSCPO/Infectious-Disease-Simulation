@@ -7,7 +7,7 @@ import { useGroups, useStageSubmissions } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
-import { getWildcardQuizCount, WILDCARD_QUIZZES } from '../data/wildcardQuiz'
+import { COMMON_WILDCARD_QUIZZES, getCommonWildcardQuizCount, getWildcardQuizCount, WILDCARD_QUIZZES } from '../data/wildcardQuiz'
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import {
   advanceToStage,
@@ -128,6 +128,16 @@ export default function FacilitatorPresentPage() {
     setBusy(true)
     try {
       await startWildcardQuiz(code, quizType)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // 감염병과 무관하게 전 조에 동일한 문제가 나가는 보너스 퀴즈(현재: 출결 처리 기준).
+  async function handleSendBonusQuiz() {
+    setBusy(true)
+    try {
+      await startWildcardQuiz(code, 'speed', 'common')
     } finally {
       setBusy(false)
     }
@@ -275,7 +285,12 @@ export default function FacilitatorPresentPage() {
             <div className="flex items-center gap-2 flex-wrap">
               {quizActive && (
                 <span className="text-xs font-bold text-rose-600">
-                  {session.activeQuiz?.quizType === 'coop' ? '🤝 협동 미션' : '⚡ 스피드 퀴즈'} 진행 중 · {quizRemainingSec}초 남음
+                  {session.activeQuiz?.source === 'common'
+                    ? '📋 보너스 퀴즈'
+                    : session.activeQuiz?.quizType === 'coop'
+                      ? '🤝 협동 미션'
+                      : '⚡ 스피드 퀴즈'}{' '}
+                  진행 중 · {quizRemainingSec}초 남음
                 </span>
               )}
               {quizActive ? (
@@ -305,6 +320,14 @@ export default function FacilitatorPresentPage() {
                   >
                     🤝 협동 미션 발송
                   </button>
+                  <button
+                    type="button"
+                    onClick={handleSendBonusQuiz}
+                    disabled={busy}
+                    className="rounded-full px-4 py-2 text-xs font-bold transition-colors bg-violet-400 text-violet-950 hover:bg-violet-500"
+                  >
+                    📋 보너스 퀴즈 발송
+                  </button>
                 </>
               )}
             </div>
@@ -312,8 +335,17 @@ export default function FacilitatorPresentPage() {
 
           <div className="mb-4 space-y-1.5">
             <p className="text-xs font-semibold text-slate-500">
-              🎲 감염병별 문제 은행(발송할 때마다 아래 영역 중 하나가 무작위로 출제, 단계와 무관하게 항상 발송 가능)
+              🎲 문제 은행(발송할 때마다 아래 영역 중 하나가 무작위로 출제, 단계와 무관하게 항상 발송 가능)
             </p>
+            <div className="text-xs bg-violet-50 border border-violet-100 rounded-xl px-3 py-2">
+              <span className="font-bold text-violet-700">📋 보너스(공통)</span>
+              <span className="text-slate-600">
+                {' '}
+                · 문제 {getCommonWildcardQuizCount()}개 준비됨 (
+                {Array.from(new Set(COMMON_WILDCARD_QUIZZES.map((q) => q.topic))).join(' · ')}) · 감염병과 무관하게
+                전 조 동일 문제
+              </span>
+            </div>
             {clusterEntries.map(([diseaseId]) => {
               const disease = getDiseaseById(diseaseId)
               const count = getWildcardQuizCount(diseaseId)

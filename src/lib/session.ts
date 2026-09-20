@@ -13,6 +13,7 @@ import {
 import { db, ensureSignedIn } from '../firebase'
 import type {
   GroupDoc,
+  QuizSource,
   QuizType,
   RoleId,
   SchoolLevel,
@@ -129,9 +130,16 @@ export async function setActiveWildcard(code: string, wildcardId: string | null)
 // 돌발 퀴즈: 진행자가 발송하면 전 조 화면에 동시에 60초 팝업이 뜬다.
 // - 스피드(speed): 조 대표가 먼저 맞히면 그 조만 +50pt(퍼스트 블러드) 선점
 // - 협동(coop): 조원 전원이 개별 제출해서 모두 정답이면 그 조에 +100pt(팀워크 보너스)
-export async function startWildcardQuiz(code: string, quizType: QuizType, durationSec = 60) {
+// - source: 'disease'면 조가 맡은 감염병별 문제은행에서, 'common'이면 감염병과 무관한
+//   공통 지식(보너스) 문제은행에서 전 조에 동일한 문제가 나간다.
+export async function startWildcardQuiz(
+  code: string,
+  quizType: QuizType,
+  source: QuizSource = 'disease',
+  durationSec = 60,
+) {
   await updateSession(code, {
-    activeQuiz: { startedAt: Date.now(), durationSec, quizType, firstBloodGroupId: null },
+    activeQuiz: { startedAt: Date.now(), durationSec, quizType, source, firstBloodGroupId: null },
   })
 }
 

@@ -31,6 +31,7 @@ export default function WildcardQuizModal({
   greetRole,
   startedAt,
   durationSec,
+  isCommon = false,
   ...mode
 }: {
   quiz: WildcardQuizQuestion
@@ -38,6 +39,7 @@ export default function WildcardQuizModal({
   greetRole: RoleId | null
   startedAt: number
   durationSec: number
+  isCommon?: boolean
 } & ModeProps) {
   const [now, setNow] = useState(Date.now())
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -87,9 +89,13 @@ export default function WildcardQuizModal({
     }
   }
 
-  const badgeLabel = isSpeed ? '⚡ 스피드 퀴즈' : '🤝 협동 미션'
-  const badgeClass = isSpeed ? 'bg-amber-400 text-amber-950' : 'bg-emerald-400 text-emerald-950'
-  const borderClass = isSpeed ? 'border-amber-400' : 'border-emerald-400'
+  const badgeLabel = isCommon ? '📋 보너스 퀴즈' : isSpeed ? '⚡ 스피드 퀴즈' : '🤝 협동 미션'
+  const badgeClass = isCommon
+    ? 'bg-violet-400 text-violet-950'
+    : isSpeed
+      ? 'bg-amber-400 text-amber-950'
+      : 'bg-emerald-400 text-emerald-950'
+  const borderClass = isCommon ? 'border-violet-400' : isSpeed ? 'border-amber-400' : 'border-emerald-400'
 
   let resultBody: React.ReactNode | null = null
 
@@ -199,13 +205,15 @@ export default function WildcardQuizModal({
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={() => setShowHint(true)}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold px-3 py-2 hover:bg-amber-100"
-              >
-                💡 힌트 보기
-              </button>
+              {!isCommon && (
+                <button
+                  type="button"
+                  onClick={() => setShowHint(true)}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold px-3 py-2 hover:bg-amber-100"
+                >
+                  💡 힌트 보기
+                </button>
+              )}
               <p className="text-xs text-slate-400 mt-3">
                 {isSpeed
                   ? '우리 조에서 누구든 먼저 답을 고르면 바로 제출돼요. 전체에서 가장 빠른 조가 보너스를 받아요.'

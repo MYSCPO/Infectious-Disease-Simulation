@@ -7,7 +7,7 @@ import { useGroups, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
-import { getWildcardQuiz } from '../data/wildcardQuiz'
+import { getCommonWildcardQuiz, getWildcardQuiz } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
 import { releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
@@ -115,7 +115,12 @@ export default function TeamTrainingPage() {
   const allAnswered = missingRoles.length === 0
   const submitted = submission?.submitted ?? false
   const stageDef = STAGES.find((s) => s.id === session.currentStage)
-  const quiz = group && session.activeQuiz ? getWildcardQuiz(group.diseaseId, session.activeQuiz.startedAt) : null
+  const quiz =
+    group && session.activeQuiz
+      ? session.activeQuiz.source === 'common'
+        ? getCommonWildcardQuiz(session.activeQuiz.startedAt)
+        : getWildcardQuiz(group.diseaseId, session.activeQuiz.startedAt)
+      : null
   const quizAnsweredForActive =
     group?.quizAnswer && session.activeQuiz && group.quizAnswer.quizStartedAt === session.activeQuiz.startedAt
       ? group.quizAnswer
@@ -300,6 +305,7 @@ export default function TeamTrainingPage() {
             startedAt={session.activeQuiz.startedAt}
             durationSec={session.activeQuiz.durationSec}
             quizType="speed"
+            isCommon={session.activeQuiz.source === 'common'}
             alreadyAnswered={quizAnsweredForActive}
             isFirstBlood={session.activeQuiz.firstBloodGroupId === group.id}
             firstBloodGroupName={
@@ -325,6 +331,7 @@ export default function TeamTrainingPage() {
             startedAt={session.activeQuiz.startedAt}
             durationSec={session.activeQuiz.durationSec}
             quizType="coop"
+            isCommon={session.activeQuiz.source === 'common'}
             myName={identity.name}
             memberNames={memberNames}
             coopProgress={group.coopProgress}
