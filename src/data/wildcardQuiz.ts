@@ -350,6 +350,16 @@ export const COMMON_WILDCARD_QUIZZES: WildcardQuizQuestion[] = [
       { id: 'x', text: 'X — 증상이 없으면 등교중지 대상이 아니다', correct: false },
     ],
   },
+  {
+    topic: '출결 처리',
+    prompt: "감염병 의심 증상으로 검사 결과가 '음성'으로 나온 다음 날, 학생이 아프다고 등교하지 않았다면 이 날은 어떻게 처리될까요?",
+    options: [
+      { id: 'a', text: '결과 확인 후이므로 출석인정 아님 — 일반 결석(증빙서류 필요)', correct: true },
+      { id: 'b', text: '감염병 관련이니 자동으로 출석인정된다', correct: false },
+      { id: 'c', text: '조퇴로 처리한다', correct: false },
+      { id: 'd', text: '학교장 재량으로 매번 다르게 처리한다', correct: false },
+    ],
+  },
 ]
 
 export function getCommonWildcardQuiz(seed: number): WildcardQuizQuestion {
