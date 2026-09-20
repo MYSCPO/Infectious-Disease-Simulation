@@ -180,90 +180,6 @@ export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion[]> = {
       ],
     },
   ],
-  tuberculosis: [
-    {
-      topic: '등교중지 기준',
-      prompt: '결핵 학생은 치료 시작 후 보통 며칠 이상 지나야(담당 의사 확인 후) 등교가 가능할까요?',
-      options: [
-        { id: 'a', text: '1주 이상', correct: false },
-        { id: 'b', text: '2주 이상', correct: true },
-        { id: 'c', text: '1개월 이상', correct: false },
-        { id: 'd', text: '6개월 이상', correct: false },
-      ],
-    },
-    {
-      topic: '질병 특징',
-      prompt: '결핵의 대표 증상으로 가장 옳은 것은?',
-      options: [
-        { id: 'a', text: '2주 이상 지속되는 기침, 체중감소, 야간 발한', correct: true },
-        { id: 'b', text: '눈 충혈과 눈곱', correct: false },
-        { id: 'c', text: '귀밑 침샘 부종', correct: false },
-        { id: 'd', text: '손·발·입안의 수포성 발진', correct: false },
-      ],
-    },
-    {
-      topic: '잠복기',
-      prompt: '결핵은 감염 후 언제 발병할 수 있을까요?',
-      options: [
-        { id: 'a', text: '수년 뒤에도 발병할 수 있다', correct: true },
-        { id: 'b', text: '반드시 1~4일 이내', correct: false },
-        { id: 'c', text: '반드시 2주 이내', correct: false },
-        { id: 'd', text: '반드시 1개월 이내', correct: false },
-      ],
-    },
-    {
-      topic: '예방·소독 지침',
-      prompt: '결핵 치료 중 지켜야 할 수칙으로 옳은 것은?',
-      options: [
-        { id: 'a', text: '절대 금주·금연, 고단백 섭취, BCG 접종 권장', correct: true },
-        { id: 'b', text: '증상이 나아지면 임의로 약을 끊어도 된다', correct: false },
-        { id: 'c', text: '치료 시작 즉시 등교해도 무방하다', correct: false },
-        { id: 'd', text: '접촉자 관리는 필요 없다', correct: false },
-      ],
-    },
-  ],
-  norovirus: [
-    {
-      topic: '등교중지 기준',
-      prompt: '노로바이러스감염증은 구토·설사 증상이 완전히 사라진 후, 몇 시간이 지나야 등교할 수 있을까요?',
-      options: [
-        { id: 'a', text: '12시간', correct: false },
-        { id: 'b', text: '24시간', correct: false },
-        { id: 'c', text: '48시간', correct: true },
-        { id: 'd', text: '72시간', correct: false },
-      ],
-    },
-    {
-      topic: '질병 특징',
-      prompt: '노로바이러스감염증의 대표 증상으로 가장 옳은 것은?',
-      options: [
-        { id: 'a', text: '급성 구토, 설사, 복통', correct: true },
-        { id: 'b', text: '손·발·입안의 수포성 발진', correct: false },
-        { id: 'c', text: '귀밑 침샘 부종', correct: false },
-        { id: 'd', text: '2주 이상 지속되는 기침', correct: false },
-      ],
-    },
-    {
-      topic: '잠복기',
-      prompt: '노로바이러스감염증의 잠복기는 보통 어느 정도일까요?',
-      options: [
-        { id: 'a', text: '12~48시간', correct: true },
-        { id: 'b', text: '1~4일', correct: false },
-        { id: 'c', text: '10~21일', correct: false },
-        { id: 'd', text: '수년까지 가능', correct: false },
-      ],
-    },
-    {
-      topic: '예방·소독 지침',
-      prompt: '노로바이러스 구토물 처리 시 반드시 사용해야 하는 것은?',
-      options: [
-        { id: 'a', text: '염소계 소독제', correct: true },
-        { id: 'b', text: '알코올 소독제만', correct: false },
-        { id: 'c', text: '식초물', correct: false },
-        { id: 'd', text: '그냥 물로만 세척', correct: false },
-      ],
-    },
-  ],
   handFootMouth: [
     {
       topic: '등교중지 기준',
@@ -303,6 +219,90 @@ export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion[]> = {
         { id: 'b', text: '항생제 예방 복용', correct: false },
         { id: 'c', text: '마스크 2중 착용', correct: false },
         { id: 'd', text: '해열제 매일 복용', correct: false },
+      ],
+    },
+  ],
+  pertussis: [
+    {
+      topic: '등교중지 기준',
+      prompt: '백일해는 적절한 항생제 치료를 받은 경우, 투약 후 며칠까지 등교를 중지해야 할까요?',
+      options: [
+        { id: 'a', text: '3일까지', correct: false },
+        { id: 'b', text: '5일까지', correct: true },
+        { id: 'c', text: '10일까지', correct: false },
+        { id: 'd', text: '치료해도 최소 3주까지', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '백일해의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: "발작성 기침과 기침 후 '훕(Whoop)' 소리", correct: true },
+        { id: 'b', text: '눈 충혈과 눈곱', correct: false },
+        { id: 'c', text: '손·발·입안의 수포성 발진', correct: false },
+        { id: 'd', text: '급성 구토와 설사', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '백일해의 잠복기는 보통 며칠일까요?',
+      options: [
+        { id: 'a', text: '7~10일', correct: true },
+        { id: 'b', text: '1~4일', correct: false },
+        { id: 'c', text: '10~21일', correct: false },
+        { id: 'd', text: '2~3주', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '백일해 예방을 위해 반드시 확인해야 할 예방접종은?',
+      options: [
+        { id: 'a', text: 'DTaP/Tdap 접종 여부', correct: true },
+        { id: 'b', text: 'MMR 접종 여부', correct: false },
+        { id: 'c', text: 'BCG 접종 여부', correct: false },
+        { id: 'd', text: '매년 독감 접종 여부', correct: false },
+      ],
+    },
+  ],
+  scarletFever: [
+    {
+      topic: '등교중지 기준',
+      prompt: '성홍열은 항생제 치료를 시작한 후 몇 시간이 지나야 등교할 수 있을까요?',
+      options: [
+        { id: 'a', text: '12시간', correct: false },
+        { id: 'b', text: '24시간', correct: true },
+        { id: 'c', text: '48시간', correct: false },
+        { id: 'd', text: '72시간', correct: false },
+      ],
+    },
+    {
+      topic: '질병 특징',
+      prompt: '성홍열의 대표 증상으로 가장 옳은 것은?',
+      options: [
+        { id: 'a', text: '갑작스러운 발열, 전신 선홍색 발진, 딸기혀', correct: true },
+        { id: 'b', text: '귀밑 침샘(이하선) 부종', correct: false },
+        { id: 'c', text: '손·발·입안의 수포성 발진', correct: false },
+        { id: 'd', text: '급성 구토와 설사', correct: false },
+      ],
+    },
+    {
+      topic: '잠복기',
+      prompt: '성홍열의 잠복기는 보통 며칠일까요?',
+      options: [
+        { id: 'a', text: '1~7일(평균 2~5일)', correct: true },
+        { id: 'b', text: '10~21일', correct: false },
+        { id: 'c', text: '2~3주', correct: false },
+        { id: 'd', text: '12~48시간', correct: false },
+      ],
+    },
+    {
+      topic: '예방·소독 지침',
+      prompt: '성홍열 예방을 위해 특히 주의해야 할 것은?',
+      options: [
+        { id: 'a', text: '수저·컵·타월 등 개인 물품 공유 금지', correct: true },
+        { id: 'b', text: '전용 예방접종을 반드시 맞는다', correct: false },
+        { id: 'c', text: '항생제를 미리 예방적으로 복용한다', correct: false },
+        { id: 'd', text: '마스크 착용은 필요 없다', correct: false },
       ],
     },
   ],
