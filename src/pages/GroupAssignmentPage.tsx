@@ -156,7 +156,7 @@ export default function GroupAssignmentPage() {
           to={`/facilitator/${code}/present`}
           className="block text-center rounded-full bg-slate-800 text-white py-3 text-sm font-semibold hover:bg-slate-700"
         >
-          진행자 화면으로 이동 (훈련 시작)
+          진행자 화면으로 이동
         </Link>
       </div>
     </div>

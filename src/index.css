@@ -14,6 +14,12 @@ body {
   @apply bg-paper-50 text-slate-900 font-sans;
 }
 
+/* 문단 끝에 한 단어만 어색하게 남는 걸 브라우저가 자동으로 줄여준다(지원 브라우저 한정,
+   미지원이면 기존처럼 자연스럽게 줄바꿈될 뿐이라 안전하다) */
+p {
+  text-wrap: pretty;
+}
+
 /* 디자인 컨벤션: 카드=rounded-2xl/3xl + shadow-sm, 주요 버튼=rounded-full(필 형태), 배경=paper 톤 */
 
 /* 마스코트 상황별 모션: 그림 자체를 바꾸는 게 아니라 같은 이미지를 CSS로 움직여 상태를 표현한다 */

@@ -262,15 +262,15 @@ export default function JoinPage() {
                             type="button"
                             disabled={isFull || claiming}
                             onClick={() => handleSelectRole(r)}
-                            className="flex-1 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
+                            className="flex-1 min-w-0 flex items-center gap-2.5 text-left disabled:cursor-not-allowed"
                           >
                             <MascotAvatar role={r} size="sm" motion="idle" />
-                            <span>
-                              <span className="block font-bold leading-tight">
+                            <span className="min-w-0">
+                              <span className="block font-bold leading-tight whitespace-nowrap">
                                 {ROLE_MASCOTS[r].name}
                                 {role === r && <span className="ml-1 text-xs font-semibold text-brand-600">· 나</span>}
                               </span>
-                              <span className="block text-xs text-slate-400 leading-tight">{ROLE_LABELS[r]}</span>
+                              <span className="block text-xs text-slate-400 leading-tight truncate">{ROLE_LABELS[r]}</span>
                             </span>
                           </button>
                           <div className="flex items-center gap-2 shrink-0">
