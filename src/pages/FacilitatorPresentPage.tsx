@@ -20,6 +20,7 @@ import {
   updateSession,
 } from '../lib/session'
 import { AUTO_QUIZ_DELAY_SEC, AUTO_QUIZ_PLAN } from '../data/autoQuiz'
+import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
 import { loadParticipantIdentity } from '../lib/participant'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
@@ -60,26 +61,9 @@ export default function FacilitatorPresentPage() {
   }, [session?.activeQuiz?.firstBloodGroupId])
 
   // 진행자가 매번 수동으로 챙기지 않아도, 단계 진입 후 일정 시간이 지나면 그 단계에 맞는
-  // 돌발 퀴즈가 자동으로 나가도록 한다(진행자 탭이 이 타이머를 들고 있음). 이미 이번 단계에
-  // (자동이든 수동이든) 한 번 발송했으면 다시 쏘지 않는다.
-  useEffect(() => {
-    if (!session) return
-    const plan = AUTO_QUIZ_PLAN[session.currentStage]
-    if (!plan) return
-    if (session.stageStartedAt == null) return
-    if (session.autoQuizSentAt === session.stageStartedAt) return
-    if (session.activeQuiz) return
-
-    const stageStartedAt = session.stageStartedAt
-    const remainingMs = AUTO_QUIZ_DELAY_SEC * 1000 - (Date.now() - stageStartedAt)
-
-    const id = setTimeout(async () => {
-      await startWildcardQuiz(code, plan.quizType, plan.source)
-      await updateSession(code, { autoQuizSentAt: stageStartedAt })
-    }, Math.max(0, remainingMs))
-
-    return () => clearTimeout(id)
-  }, [code, session?.currentStage, session?.stageStartedAt, session?.autoQuizSentAt, !!session?.activeQuiz])
+  // 돌발 퀴즈가 자동으로 나가도록 한다. 참가자 화면(TeamTrainingPage)도 동일한 훅을 쓰고
+  // 있어서, 진행자가 참가자 화면을 보러 이동해 이 탭이 잠시 없어져도 자동 발송이 끊기지 않는다.
+  useAutoQuizDispatch(code, session)
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
   if (!session) return <div className="p-8 text-center text-slate-500">세션을 찾을 수 없습니다.</div>

@@ -4,6 +4,7 @@ import type { SubmissionAnswer } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
+import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
@@ -52,6 +53,10 @@ export default function TeamTrainingPage() {
   const prevStageRef = useRef<string | null>(null)
   const prevFirstBloodRef = useRef<string | null>(null)
   const prevRelayRef = useRef<{ turnCount: number; finished: boolean; quizAnswered: boolean } | null>(null)
+
+  // 진행자 탭이 잠시 없어져 있어도(예: 참가자 화면을 보러 이동) 자동 발송이 끊기지 않도록,
+  // 참가자 화면도 동일한 자동 발송 타이머를 함께 들고 있는다.
+  useAutoQuizDispatch(code, session)
 
   useEffect(() => {
     setAnswers(submission?.answers ?? [])

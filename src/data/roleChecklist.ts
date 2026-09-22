@@ -8,7 +8,7 @@ export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
     surveillance: {
       situation: '평상시',
       items: [
-        '발생감시팀 구성 확인(총괄: 생활안전부장 · 담임교사·학년부장·돌봄(늘봄)전담 등)',
+        '발생감시팀 구성 확인(총괄: 생활안전부장 · 담임교사·학년부장 등)',
         '평상시 각반·돌봄교실·늘봄수업에서 발진·미열 등 의심 증상 수동감시',
         '일시적 관찰실 지정(학생회실 또는 보건실 내 상담실)',
       ],
