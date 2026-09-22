@@ -23,6 +23,7 @@ export default function JoinPage() {
   const [error, setError] = useState<string | null>(null)
   const [claiming, setClaiming] = useState(false)
   const [showOrgChart, setShowOrgChart] = useState(false)
+  const [slowLoad, setSlowLoad] = useState(false)
 
   const { session, loading } = useSession(confirmedCode || undefined)
   const groups = useGroups(confirmedCode || undefined)
@@ -32,6 +33,17 @@ export default function JoinPage() {
       setError('해당 참가 코드를 찾을 수 없습니다. 코드를 다시 확인해 주세요.')
     }
   }, [confirmedCode, loading, session])
+
+  // QR·직접 링크로 갓 들어온 기기는 네트워크/인증 초기화가 느릴 수 있다. 너무 오래
+  // "불러오는 중"에 머물면 그냥 멈춘 것처럼 보이니, 일정 시간 후 새로고침 안내를 보여준다.
+  useEffect(() => {
+    if (!confirmedCode || !loading) {
+      setSlowLoad(false)
+      return
+    }
+    const id = setTimeout(() => setSlowLoad(true), 8000)
+    return () => clearTimeout(id)
+  }, [confirmedCode, loading])
 
   // 새로고침 시 이미 참여 중이던 조·역할·이름을 복원
   useEffect(() => {
@@ -135,7 +147,21 @@ export default function JoinPage() {
         {!confirmedCode ? (
           codeEntryForm
         ) : loading ? (
-          <p className="text-center text-sm text-slate-400 py-10">불러오는 중...</p>
+          <div className="text-center py-10 space-y-3">
+            <p className="text-sm text-slate-400">불러오는 중...</p>
+            {slowLoad && (
+              <div className="space-y-2">
+                <p className="text-xs text-amber-600">연결이 평소보다 오래 걸리고 있어요.</p>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="rounded-full bg-brand-600 text-white text-xs font-bold px-4 py-2 hover:bg-brand-700"
+                >
+                  새로고침
+                </button>
+              </div>
+            )}
+          </div>
         ) : !session ? (
           codeEntryForm
         ) : (
@@ -257,7 +283,7 @@ export default function JoinPage() {
                               : 'border-slate-200 text-slate-600'
                         }`}
                       >
-                        <div className="flex items-center justify-between px-3 py-2 gap-2">
+                        <div className="px-3 pt-2 flex items-center justify-between gap-2">
                           <button
                             type="button"
                             disabled={isFull || claiming}
@@ -270,27 +296,27 @@ export default function JoinPage() {
                                 {ROLE_MASCOTS[r].name}
                                 {role === r && <span className="ml-1 text-xs font-semibold text-brand-600">· 나</span>}
                               </span>
-                              <span className="block text-xs text-slate-400 leading-tight truncate">{ROLE_LABELS[r]}</span>
+                              <span className="block text-xs text-slate-400 leading-tight whitespace-nowrap">{ROLE_LABELS[r]}</span>
                             </span>
                           </button>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className={`text-xs font-semibold rounded-full px-2 py-1 whitespace-nowrap ${badgeClass}`}>
-                              {badgeLabel}
-                            </span>
-                            <button
-                              type="button"
-                              aria-label={`${ROLE_LABELS[r]} 역할 설명 보기`}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setInfoRole(showInfo ? null : r)
-                              }}
-                              onMouseEnter={() => setInfoRole(r)}
-                              onMouseLeave={() => setInfoRole((cur) => (cur === r ? null : cur))}
-                              className="w-5 h-5 rounded-full border border-current text-[11px] font-bold leading-none hover:bg-white/60"
-                            >
-                              i
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            aria-label={`${ROLE_LABELS[r]} 역할 설명 보기`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setInfoRole(showInfo ? null : r)
+                            }}
+                            onMouseEnter={() => setInfoRole(r)}
+                            onMouseLeave={() => setInfoRole((cur) => (cur === r ? null : cur))}
+                            className="shrink-0 w-5 h-5 rounded-full border border-current text-[11px] font-bold leading-none hover:bg-white/60"
+                          >
+                            i
+                          </button>
+                        </div>
+                        <div className="px-3 pt-1.5">
+                          <span className={`inline-block text-xs font-semibold rounded-full px-2 py-1 ${badgeClass}`}>
+                            {badgeLabel}
+                          </span>
                         </div>
                         <p className="px-3 pb-1 text-xs text-slate-400">
                           {members.length > 0 ? `참여 중: ${members.join(', ')}` : '아직 미배정 ⏳'}
