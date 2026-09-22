@@ -31,7 +31,7 @@ import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
 import FirstBloodToast from '../components/FirstBloodToast'
 
-const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2']
+const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
 const RELAY_STAGE = 'response3'
 
 export default function FacilitatorPresentPage() {
@@ -461,7 +461,7 @@ export default function FacilitatorPresentPage() {
               ) : isRelayStage ? (
                 <div className="space-y-2">
                   <div className="rounded-xl border border-violet-200 bg-violet-50/50 px-4 py-3">
-                    <p className="text-xs font-bold text-violet-700">🎙️ 5인 릴레이 낭독 + 최종 의사결정 퀴즈 단계입니다</p>
+                    <p className="text-xs font-bold text-violet-700">🎙️ 5개 역할 릴레이 낭독 + 최종 의사결정 퀴즈 단계입니다</p>
                     <p className="text-xs text-slate-500 mt-1">
                       각 조가 발생감시팀→예방관리팀→학사관리팀→행정지원팀→관리자 순서로 대사를 낭독하고, 관리자가
                       최종 의사결정 퀴즈를 제출합니다.

@@ -112,8 +112,8 @@ export default function RelayPanel({
         <h3 className="text-base font-bold text-slate-800">대응3단계 릴레이 낭독을 시작해요</h3>
         <p className="text-xs text-slate-500 leading-relaxed">
           발생감시팀 → 예방관리팀 → 학사관리팀 → 행정지원팀 → 관리자 순서로, 각 역할이 자기 차례에 대사를
-          소리 내어 읽어요. 3분(180초) 안에 5명이 모두 완주하면 보너스 점수를 받아요! 시간이 넘어가도
-          실패 처리되지는 않으니 편하게 진행하세요.
+          소리 내어 읽어요. 3분(180초) 안에 5개 역할 낭독을 모두 마치면 보너스 점수를 받아요! 시간이
+          넘어가도 실패 처리되지는 않으니 편하게 진행하세요.
         </p>
         <button
           type="button"

@@ -27,7 +27,7 @@ import MascotAvatar from '../components/MascotAvatar'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
 
-const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2']
+const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
 const TEST_SCHOOL_NAME = '테스트 학교(1인 체험)'
 const RELAY_STAGE = 'response3'
 
@@ -221,7 +221,11 @@ export default function TeamTrainingPage() {
           <div className="space-y-4">
             {currentScenario && <ScenarioCard scenario={currentScenario} />}
             <div className="rounded-2xl border border-brand-200 bg-brand-50/50 p-4">
-              <p className="text-sm font-bold text-brand-700 mb-1">📢 공통 상황 지침 + 돌발 퀴즈로 빠르게 워밍업해요</p>
+              <p className="text-sm font-bold text-brand-700 mb-1">
+                {session.currentStage === 'recovery'
+                  ? '📢 공통 상황 지침 + 체크리스트로 마무리해요'
+                  : '📢 공통 상황 지침 + 돌발 퀴즈로 빠르게 워밍업해요'}
+              </p>
               <p className="text-xs text-slate-500">
                 이 단계는 역할별 문항을 풀지 않아요. 위 상황 개요를 다 함께 훑어보고, 아래 체크리스트에서 역할별 핵심
                 조치를 하나씩 확인하며 체크해 보세요. 진행자가 보내는 돌발 퀴즈로 다 같이 재미있게 지식을 다져요!
