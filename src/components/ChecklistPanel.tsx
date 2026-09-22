@@ -53,8 +53,8 @@ export default function ChecklistPanel({
                 {ROLE_LABELS[role]} {isMine && '(내 역할)'}
               </div>
               {content.items.length > 0 ? (
-                checkable ? (
-                  <ul className="text-xs text-slate-600 space-y-1.5">
+                checkable && isMine ? (
+                  <ul className="text-xs space-y-1.5">
                     {content.items.map((item, i) => {
                       const key = `${role}-${i}`
                       const done = checked.has(key)
@@ -67,7 +67,7 @@ export default function ChecklistPanel({
                               onChange={() => toggleItem(key)}
                               className="mt-0.5 w-4 h-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
                             />
-                            <span className={done ? 'line-through text-slate-300' : ''}>{item}</span>
+                            <span className={done ? 'text-emerald-700 font-bold' : 'text-slate-600'}>{item}</span>
                           </label>
                         </li>
                       )
