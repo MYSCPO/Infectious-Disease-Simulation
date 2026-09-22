@@ -5,6 +5,7 @@ import { ROLE_CAPACITY, ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../ty
 import { ROLE_MASCOTS } from '../data/mascots'
 import { getDiseaseById } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
+import ReferenceGrid from '../components/ReferenceGrid'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
 import { claimRole, releaseRole } from '../lib/session'
@@ -334,6 +335,10 @@ export default function JoinPage() {
             )}
           </>
         )}
+      </div>
+
+      <div className="mt-8">
+        <ReferenceGrid />
       </div>
     </div>
   )

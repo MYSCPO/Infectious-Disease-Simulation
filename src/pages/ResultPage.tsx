@@ -5,6 +5,7 @@ import { detectGaps } from '../lib/gapDetector'
 import { getDiseaseById } from '../data/diseases'
 import { STAGES } from '../data/stages'
 import Leaderboard from '../components/Leaderboard'
+import ReferenceGrid from '../components/ReferenceGrid'
 
 export default function ResultPage() {
   const { code = '' } = useParams()
@@ -86,6 +87,10 @@ export default function ResultPage() {
         >
           맞춤형 가이드북 PDF 보기 / 다운로드
         </Link>
+      </div>
+
+      <div className="max-w-2xl mx-auto mt-8">
+        <ReferenceGrid title="📚 사후 학습 참고 자료실" />
       </div>
     </div>
   )
