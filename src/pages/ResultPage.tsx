@@ -6,6 +6,7 @@ import { getDiseaseById } from '../data/diseases'
 import { STAGES } from '../data/stages'
 import Leaderboard from '../components/Leaderboard'
 import ReferenceGrid from '../components/ReferenceGrid'
+import SiteFooter from '../components/SiteFooter'
 
 export default function ResultPage() {
   const { code = '' } = useParams()
@@ -24,7 +25,8 @@ export default function ResultPage() {
   const badgedGroups = groups.filter((g) => g.badge)
 
   return (
-    <div className="min-h-screen bg-paper-50 py-8 px-4">
+    <div className="min-h-screen bg-paper-50 flex flex-col">
+      <div className="flex-1 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-xl font-bold text-slate-800">훈련 결과</h1>
@@ -92,6 +94,9 @@ export default function ResultPage() {
       <div className="max-w-2xl mx-auto mt-8">
         <ReferenceGrid title="📚 사후 학습 참고 자료실" />
       </div>
+      </div>
+
+      <SiteFooter />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { ROLE_MASCOTS } from '../data/mascots'
 import { getDiseaseById } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
 import ReferenceGrid from '../components/ReferenceGrid'
+import SiteFooter from '../components/SiteFooter'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
 import { claimRole, releaseRole } from '../lib/session'
@@ -140,7 +141,8 @@ export default function JoinPage() {
   )
 
   return (
-    <div className="min-h-screen bg-paper-50 py-8 px-4">
+    <div className="min-h-screen bg-paper-50 flex flex-col">
+      <div className="flex-1 py-8 px-4">
       <div className="max-w-md mx-auto space-y-5">
         <h1 className="text-xl font-bold text-slate-800 text-center">모의훈련 참가하기</h1>
 
@@ -366,6 +368,9 @@ export default function JoinPage() {
       <div className="mt-8">
         <ReferenceGrid />
       </div>
+      </div>
+
+      <SiteFooter />
     </div>
   )
 }

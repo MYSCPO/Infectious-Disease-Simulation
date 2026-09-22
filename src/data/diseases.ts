@@ -113,7 +113,7 @@ export const DISEASES: DiseaseInfo[] = [
   {
     id: 'pertussis',
     name: '백일해',
-    emoji: '😤',
+    emoji: '🫁',
     grade: '2급',
     symptoms: "발작성 기침(Whooping cough), 발열, 콧물, 기침 후 '훕(Whoop)' 소리 또는 구토 동반",
     infectiousPeriod: '기침 시작 후 최소 3주 이상(적절한 항생제 치료 시 투약 후 5일까지)',
