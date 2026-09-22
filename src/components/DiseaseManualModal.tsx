@@ -65,6 +65,20 @@ export default function DiseaseManualModal({
             <p className="text-sm font-bold text-emerald-600 leading-relaxed">{disease.exclusionPeriod}</p>
           </div>
 
+          <div className="bg-paper-50 rounded-2xl p-3">
+            <h4 className="text-xs font-bold text-brand-700 mb-1">🛡️ 예방수칙</h4>
+            <ul className="text-sm text-slate-700 space-y-1 list-disc list-inside">
+              {disease.prevention.map((p, i) => (
+                <li key={i}>{p}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="bg-paper-50 rounded-2xl p-3">
+            <h4 className="text-xs font-bold text-brand-700 mb-1">💊 치료</h4>
+            <p className="text-sm text-slate-700 leading-relaxed">{disease.treatment}</p>
+          </div>
+
           <button
             type="button"
             onClick={onClose}

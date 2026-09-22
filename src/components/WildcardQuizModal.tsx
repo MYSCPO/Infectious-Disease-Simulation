@@ -45,6 +45,7 @@ export default function WildcardQuizModal({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [wrongFlash, setWrongFlash] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 250)
@@ -78,10 +79,23 @@ export default function WildcardQuizModal({
   }, [isLive])
 
   async function handleSubmit(optionId: string) {
-    if (submitting || myAnswered || timeUp) return
+    if (submitting || wrongFlash || myAnswered || timeUp) return
+    const correct = quiz.options.find((o) => o.id === optionId)?.correct ?? false
+
+    // 협동 미션은 오답이어도 잠그지 않고, 남은 시간 안에서 계속 다시 골라 전원이 정답을
+    // 맞힐 수 있게 한다(스피드 퀴즈는 한 번에 승부가 갈리는 게 재미 포인트라 그대로 둔다).
+    if (!isSpeed && !correct) {
+      setSelectedId(optionId)
+      setWrongFlash(true)
+      window.setTimeout(() => {
+        setWrongFlash(false)
+        setSelectedId(null)
+      }, 1200)
+      return
+    }
+
     setSelectedId(optionId)
     setSubmitting(true)
-    const correct = quiz.options.find((o) => o.id === optionId)?.correct ?? false
     try {
       await mode.onSubmit(correct)
     } finally {
@@ -191,20 +205,30 @@ export default function WildcardQuizModal({
               </div>
               <p className="text-base font-bold text-slate-800 mb-4 leading-relaxed">{quiz.prompt}</p>
               <div className="space-y-2 text-left">
-                {quiz.options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => handleSubmit(opt.id)}
-                    className={`w-full text-left rounded-xl border px-3 py-2.5 text-sm transition ${
-                      selectedId === opt.id ? 'border-brand-500 bg-brand-50' : 'border-slate-200 hover:border-brand-300'
-                    }`}
-                  >
-                    {opt.text}
-                  </button>
-                ))}
+                {quiz.options.map((opt) => {
+                  const isWrongPick = wrongFlash && selectedId === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={submitting || wrongFlash}
+                      onClick={() => handleSubmit(opt.id)}
+                      className={`w-full text-left rounded-xl border px-3 py-2.5 text-sm transition ${
+                        isWrongPick
+                          ? 'border-rose-400 bg-rose-50'
+                          : selectedId === opt.id
+                            ? 'border-brand-500 bg-brand-50'
+                            : 'border-slate-200 hover:border-brand-300'
+                      }`}
+                    >
+                      {opt.text}
+                    </button>
+                  )
+                })}
               </div>
+              {wrongFlash && (
+                <p className="text-xs font-bold text-rose-500 mt-2">❌ 오답이에요! 다시 골라보세요</p>
+              )}
               {!isCommon && (
                 <button
                   type="button"
@@ -217,7 +241,7 @@ export default function WildcardQuizModal({
               <p className="text-xs text-slate-400 mt-3">
                 {isSpeed
                   ? '우리 조에서 누구든 먼저 답을 고르면 바로 제출돼요. 전체에서 가장 빠른 조가 보너스를 받아요.'
-                  : '조원 각자 답을 고르고 제출해요. 전원이 정답을 맞혀야 보너스를 받아요.'}
+                  : '조원 각자 답을 골라요. 틀려도 시간 안에 다시 도전할 수 있어요 — 전원이 정답을 맞혀야 보너스를 받아요.'}
               </p>
             </>
           )}
