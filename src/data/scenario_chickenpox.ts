@@ -15,7 +15,7 @@ export const SCENARIO_CHICKENPOX: ScenarioStage[] = [
         options: [
           {
             id: 'p_su_a',
-            text: '각반·돌봄교실 등에서 발진·미열 등 의심 증상을 수동감시하고, 일시적 관찰실을 미리 지정해 둔다.',
+            text: '각반에서 발진·미열 등 의심 증상을 수동감시하고, 일시적 관찰실을 미리 지정해 둔다.',
             correct: true,
             rationale: '워크북(예방단계·발생감시팀): 수동감시체계 운영 / 일시적 관찰실 지정',
           },
