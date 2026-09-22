@@ -101,31 +101,42 @@ export default function JoinPage() {
     navigate(`/team/${confirmedCode}/${groupId}`)
   }
 
+  const codeEntryForm = (
+    <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+      <label className="block">
+        <span className="text-sm font-medium text-slate-700">참가 코드</span>
+        <input
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value.toUpperCase())
+            setError(null)
+          }}
+          placeholder="예: AB3CD"
+          className="mt-1 w-full text-center tracking-widest text-lg rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400"
+        />
+      </label>
+      {error && <p className="text-sm text-rose-600">{error}</p>}
+      <button
+        type="button"
+        onClick={handleCheckCode}
+        className="w-full rounded-full bg-brand-600 text-white py-2.5 text-sm font-semibold hover:bg-brand-700"
+      >
+        확인
+      </button>
+    </section>
+  )
+
   return (
     <div className="min-h-screen bg-paper-50 py-8 px-4">
       <div className="max-w-md mx-auto space-y-5">
         <h1 className="text-xl font-bold text-slate-800 text-center">모의훈련 참가하기</h1>
 
-        {!confirmedCode || !session ? (
-          <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">참가 코드</span>
-              <input
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="예: AB3CD"
-                className="mt-1 w-full text-center tracking-widest text-lg rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400"
-              />
-            </label>
-            {error && <p className="text-sm text-rose-600">{error}</p>}
-            <button
-              type="button"
-              onClick={handleCheckCode}
-              className="w-full rounded-full bg-brand-600 text-white py-2.5 text-sm font-semibold hover:bg-brand-700"
-            >
-              확인
-            </button>
-          </section>
+        {!confirmedCode ? (
+          codeEntryForm
+        ) : loading ? (
+          <p className="text-center text-sm text-slate-400 py-10">불러오는 중...</p>
+        ) : !session ? (
+          codeEntryForm
         ) : (
           <>
             <p className="text-center text-sm text-slate-500">{session.schoolName} · 참가 코드 {confirmedCode}</p>
