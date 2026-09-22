@@ -55,19 +55,21 @@ export default function MainPage() {
         <h1 className="text-2xl sm:text-3xl font-black">학교 감염병 위기 대응 모의훈련</h1>
         <p className="mt-3 text-brand-50 text-sm max-w-xl mx-auto leading-relaxed">
           시나리오를 단계별로 따라가며 발생감시팀·예방관리팀·학사관리팀·행정지원팀·관리자 역할을 조별로 수행하는 웹
-          기반 모의훈련 프로그램이에요. 순위나 감점 없이, 모든 조가 제출하면 답을 한꺼번에 공개해서 함께 비교하고
-          이야기 나눠요 :)
+          기반 모의훈련 프로그램이에요. 돌발 퀴즈와 릴레이 미션으로 점수를 모으고 실시간 순위표로 함께 경쟁하며,
+          재미있게 배워요 :)
         </p>
       </header>
 
       <main className="flex-1 w-full">
         <div className="max-w-md w-full mx-auto px-4 py-10">
           <section className="bg-white rounded-3xl border border-brand-100 shadow-sm p-6 sm:p-8 text-center">
-            <div className="flex justify-center flex-wrap gap-3 sm:gap-4 mb-3">
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-4 mb-3 justify-items-center">
               {TEAM_ROLES.map((r) => (
                 <div key={r} className="flex flex-col items-center">
-                  <MascotAvatar role={r} size="lg" motion="idle" />
-                  <span className="text-[10px] text-slate-400 mt-0.5">{ROLE_MASCOTS[r].name}</span>
+                  <MascotAvatar role={r} size="md" motion="idle" />
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 text-center leading-tight">
+                    {ROLE_MASCOTS[r].name}
+                  </span>
                 </div>
               ))}
             </div>

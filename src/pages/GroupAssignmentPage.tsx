@@ -20,6 +20,7 @@ export default function GroupAssignmentPage() {
   }, [session, nextDiseaseId])
 
   const joinUrl = `${window.location.origin}/join/${code}`
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(joinUrl)}`
 
   async function handleCopyCode() {
     try {
@@ -59,6 +60,17 @@ export default function GroupAssignmentPage() {
             {copied ? '✅ 복사됨!' : '📋 코드 복사'}
           </button>
           <p className="text-xs text-slate-400 mt-2 break-all">{joinUrl}</p>
+
+          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center">
+            <img
+              src={qrCodeUrl}
+              alt="참가 QR 코드"
+              width={180}
+              height={180}
+              className="rounded-xl border border-slate-200"
+            />
+            <p className="text-xs text-slate-400 mt-2">📱 이 QR을 스캔하면 참가 코드 입력 없이 바로 입장 화면으로 이동해요</p>
+          </div>
         </section>
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
