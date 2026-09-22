@@ -19,7 +19,7 @@ export const ROLE_LABELS: Record<RoleId, string> = {
 export const ROLE_DESCRIPTIONS: Record<RoleId, { summary: string; example: string }> = {
   surveillance: {
     summary: '학생의 이상 증상을 가장 먼저 발견해 보건교사에게 알리고, 확산 시 능동감시(추가 환자 파악)를 담당해요.',
-    example: '예: 생활안전부장, 담임교사, 학년부장, 늘봄전담 등',
+    example: '예: 생활안전부장, 담임교사, 학년부장 등',
   },
   health: {
     summary: '감염병 여부를 확인하고 격리·진료를 안내하며, 보건소·교육청 신고와 예방교육을 담당해요.',

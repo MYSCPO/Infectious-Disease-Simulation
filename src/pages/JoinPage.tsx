@@ -280,15 +280,12 @@ export default function JoinPage() {
                             </button>
                           </div>
                         </div>
-                        <p className="px-3 pb-2 text-xs text-slate-400">
+                        <p className="px-3 pb-1 text-xs text-slate-400">
                           {members.length > 0 ? `참여 중: ${members.join(', ')}` : '아직 미배정 ⏳'}
                         </p>
+                        <p className="px-3 pb-2 text-xs text-slate-400">{ROLE_DESCRIPTIONS[r].example}</p>
                         {showInfo && (
-                          <p className="px-3 pb-2 text-xs text-slate-500 leading-relaxed">
-                            {ROLE_DESCRIPTIONS[r].summary}
-                            <br />
-                            <span className="text-slate-400">{ROLE_DESCRIPTIONS[r].example}</span>
-                          </p>
+                          <p className="px-3 pb-2 text-xs text-slate-500 leading-relaxed">{ROLE_DESCRIPTIONS[r].summary}</p>
                         )}
                       </div>
                     )
