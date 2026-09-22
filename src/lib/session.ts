@@ -89,6 +89,7 @@ export async function createSession(input: CreateSessionInput): Promise<string> 
     revealed: false,
     activeWildcardId: null,
     activeQuiz: null,
+    autoQuizSentAt: null,
     attendeeCount: 0,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -116,6 +117,7 @@ export async function advanceToStage(code: string, stage: StageId) {
     revealed: false,
     activeWildcardId: null,
     activeQuiz: null,
+    autoQuizSentAt: null,
   })
 }
 

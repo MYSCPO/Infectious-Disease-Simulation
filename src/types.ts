@@ -161,6 +161,7 @@ export interface SessionDoc {
   revealed: boolean
   activeWildcardId: string | null
   activeQuiz: ActiveQuiz | null // 진행자가 발송한 돌발 퀴즈(전 조 동시 진행)
+  autoQuizSentAt: number | null // 이번 단계(stageStartedAt)에 자동 발송을 이미 했는지 표시(중복 발송 방지)
   attendeeCount: number
   createdAt: number
   updatedAt: number
