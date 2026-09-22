@@ -50,7 +50,7 @@ export const DISEASES: DiseaseInfo[] = [
   {
     id: 'mumps',
     name: '유행성이하선염',
-    emoji: '🐹',
+    emoji: '🥴',
     grade: '2급',
     symptoms: '귀밑 침샘(이하선) 부종, 씹거나 삼킬 때 통증',
     infectiousPeriod: '이하선염 발현 3일 전부터 5일 후까지',
