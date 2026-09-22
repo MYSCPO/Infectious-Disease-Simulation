@@ -8,6 +8,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  Unsubscribe,
   updateDoc,
 } from 'firebase/firestore'
 import { db, ensureSignedIn } from '../firebase'
@@ -36,6 +37,26 @@ export function generateSessionCode(length = 5): string {
     code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]
   }
   return code
+}
+
+// Firestore 보안 규칙이 인증 여부를 확인하므로, 익명 로그인이 끝나기 전에 리스너를 달면
+// 권한 거부로 조용히 실패해 콜백이 영영 안 불리는 문제가 있었다(특히 QR·직접 링크로 막
+// 들어온 새 기기처럼 로그인 기록이 전혀 없는 경우). 그래서 모든 구독 함수는 로그인이
+// 끝난 뒤에만 onSnapshot을 붙이도록 이 헬퍼를 통해서만 리스너를 연다.
+function subscribeAfterAuth(attach: () => Unsubscribe): Unsubscribe {
+  let unsub: Unsubscribe | null = null
+  let cancelled = false
+  ensureSignedIn()
+    .then(() => {
+      if (!cancelled) unsub = attach()
+    })
+    .catch((e) => {
+      console.error('익명 로그인 실패', e)
+    })
+  return () => {
+    cancelled = true
+    unsub?.()
+  }
 }
 
 function sessionRef(code: string) {
@@ -100,9 +121,11 @@ export async function createSession(input: CreateSessionInput): Promise<string> 
 }
 
 export function subscribeSession(code: string, cb: (session: SessionDoc | null) => void) {
-  return onSnapshot(sessionRef(code), (snap) => {
-    cb(snap.exists() ? (snap.data() as SessionDoc) : null)
-  })
+  return subscribeAfterAuth(() =>
+    onSnapshot(sessionRef(code), (snap) => {
+      cb(snap.exists() ? (snap.data() as SessionDoc) : null)
+    }),
+  )
 }
 
 export async function updateSession(code: string, partial: Partial<SessionDoc>) {
@@ -312,9 +335,11 @@ function docsToArray<T>(snap: QuerySnapshot<DocumentData>): T[] {
 }
 
 export function subscribeGroups(code: string, cb: (groups: GroupDoc[]) => void) {
-  return onSnapshot(groupsCol(code), (snap) => {
-    cb(docsToArray<GroupDoc>(snap))
-  })
+  return subscribeAfterAuth(() =>
+    onSnapshot(groupsCol(code), (snap) => {
+      cb(docsToArray<GroupDoc>(snap))
+    }),
+  )
 }
 
 export async function createGroup(code: string, name: string, diseaseId: string): Promise<string> {
@@ -372,10 +397,12 @@ export async function releaseRole(code: string, groupId: string, role: RoleId, m
 }
 
 export function subscribeStageSubmissions(code: string, stage: StageId, cb: (subs: SubmissionDoc[]) => void) {
-  return onSnapshot(submissionsCol(code), (snap) => {
-    const all = docsToArray<SubmissionDoc>(snap)
-    cb(all.filter((s) => s.stage === stage))
-  })
+  return subscribeAfterAuth(() =>
+    onSnapshot(submissionsCol(code), (snap) => {
+      const all = docsToArray<SubmissionDoc>(snap)
+      cb(all.filter((s) => s.stage === stage))
+    }),
+  )
 }
 
 export function subscribeGroupSubmission(
@@ -384,9 +411,11 @@ export function subscribeGroupSubmission(
   groupId: string,
   cb: (sub: SubmissionDoc | null) => void,
 ) {
-  return onSnapshot(submissionRef(code, stage, groupId), (snap) => {
-    cb(snap.exists() ? ({ id: snap.id, ...snap.data() } as SubmissionDoc) : null)
-  })
+  return subscribeAfterAuth(() =>
+    onSnapshot(submissionRef(code, stage, groupId), (snap) => {
+      cb(snap.exists() ? ({ id: snap.id, ...snap.data() } as SubmissionDoc) : null)
+    }),
+  )
 }
 
 export async function saveDraftAnswer(
