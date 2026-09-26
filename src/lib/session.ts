@@ -108,7 +108,8 @@ export async function createSession(input: CreateSessionInput): Promise<string> 
     orgChart: emptyOrgChart,
     gaps: emptyGaps,
     currentStage: STAGES[0].id,
-    stageStartedAt: Date.now(),
+    stageStartedAt: null,
+    trainingStartedAt: null,
     revealed: false,
     activeWildcardId: null,
     activeQuiz: null,
@@ -127,6 +128,16 @@ export async function getSessionOnce(code: string): Promise<SessionDoc | null> {
   await ensureSignedIn()
   const snap = await getDoc(sessionRef(code))
   return snap.exists() ? (snap.data() as SessionDoc) : null
+}
+
+// 방을 미리 만들어 두어도 예방단계 타이머·자동 퀴즈가 먼저 돌지 않도록, 진행자가 누른 순간을 시작점으로 삼는다.
+export function isAwaitingTrainingStart(session: SessionDoc): boolean {
+  return session.currentStage === 'prevention' && !session.trainingStartedAt
+}
+
+export async function startTraining(code: string) {
+  const now = Date.now()
+  await updateSession(code, { trainingStartedAt: now, stageStartedAt: now, autoQuizSentAt: null, activeQuiz: null })
 }
 
 export function subscribeSession(code: string, cb: (session: SessionDoc | null) => void) {

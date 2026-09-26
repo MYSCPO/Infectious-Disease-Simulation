@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { SessionDoc } from '../types'
 import { AUTO_QUIZ_DELAY_SEC, AUTO_QUIZ_PLAN } from '../data/autoQuiz'
-import { startWildcardQuiz, updateSession } from '../lib/session'
+import { isAwaitingTrainingStart, startWildcardQuiz, updateSession } from '../lib/session'
 
 // 단계 진입 후 일정 시간이 지나면 그 단계에 맞는 돌발 퀴즈가 자동으로 나가도록 하는 타이머.
 // 진행자 화면과 참가자 화면 양쪽에서 이 훅을 쓴다 — 진행자가 참가자 화면을 보러 이동해서
@@ -11,6 +11,7 @@ import { startWildcardQuiz, updateSession } from '../lib/session'
 export function useAutoQuizDispatch(code: string, session: SessionDoc | null | undefined) {
   useEffect(() => {
     if (!session) return
+    if (isAwaitingTrainingStart(session)) return
     const plan = AUTO_QUIZ_PLAN[session.currentStage]
     if (!plan) return
     if (session.stageStartedAt == null) return
@@ -26,5 +27,5 @@ export function useAutoQuizDispatch(code: string, session: SessionDoc | null | u
     }, Math.max(0, remainingMs))
 
     return () => clearTimeout(id)
-  }, [code, session?.currentStage, session?.stageStartedAt, session?.autoQuizSentAt, !!session?.activeQuiz])
+  }, [code, session?.currentStage, session?.stageStartedAt, session?.trainingStartedAt, session?.autoQuizSentAt, !!session?.activeQuiz])
 }

@@ -13,7 +13,9 @@ import {
   advanceToStage,
   claimRole,
   endWildcardQuiz,
+  isAwaitingTrainingStart,
   setActiveWildcard,
+  startTraining,
   setRevealed,
   startWildcardQuiz,
   submitGroupAnswer,
@@ -128,6 +130,17 @@ export default function FacilitatorPresentPage() {
     }
   }
 
+  const awaitingStart = isAwaitingTrainingStart(session)
+
+  async function handleStartTraining() {
+    setBusy(true)
+    try {
+      await startTraining(code)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const autoPlan = AUTO_QUIZ_PLAN[session.currentStage]
   const autoQuizLabel = autoPlan
     ? autoPlan.source === 'common'
@@ -138,7 +151,7 @@ export default function FacilitatorPresentPage() {
     : null
   const autoAlreadySent = session.autoQuizSentAt != null && session.autoQuizSentAt === session.stageStartedAt
   const autoRemainingSec =
-    autoPlan && !autoAlreadySent && session.stageStartedAt != null
+    autoPlan && !autoAlreadySent && !awaitingStart && session.stageStartedAt != null
       ? Math.max(0, AUTO_QUIZ_DELAY_SEC - Math.floor((now - session.stageStartedAt) / 1000))
       : null
 
@@ -220,7 +233,7 @@ export default function FacilitatorPresentPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-bold text-slate-800">{session.schoolName} · 참가 코드 {code}</h1>
-            <StageTimer startedAt={session.stageStartedAt} minutes={STAGES.find((s) => s.id === session.currentStage)?.minutes ?? 0} />
+            <StageTimer startedAt={awaitingStart ? null : session.stageStartedAt} minutes={STAGES.find((s) => s.id === session.currentStage)?.minutes ?? 0} />
           </div>
           <div className="flex gap-2">
             <Link to={`/facilitator/${code}/groups`} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
@@ -287,6 +300,24 @@ export default function FacilitatorPresentPage() {
           <Leaderboard groups={groups} />
         </section>
 
+        {awaitingStart ? (
+          <section className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-5 text-center space-y-3">
+            <p className="text-base font-bold text-brand-800">📖 훈련 시작 전 · 조별 감염병 매뉴얼 읽는 시간</p>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              지금 참가자 화면에는 각 조에 배정된 감염병 매뉴얼 카드가 떠 있어요. 1분 정도 읽을 시간을 준 뒤
+              <br className="hidden sm:block" />
+              아래 버튼을 누르면 예방단계 타이머가 시작되고, {AUTO_QUIZ_DELAY_SEC}초 뒤 ⚡ 스피드 퀴즈가 전 조에 동시에 나가요.
+            </p>
+            <button
+              type="button"
+              onClick={handleStartTraining}
+              disabled={busy}
+              className="w-full max-w-md rounded-full bg-brand-600 text-white py-3.5 text-base font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
+            >
+              ▶ 훈련 시작
+            </button>
+          </section>
+        ) : (
         <div className="flex flex-wrap gap-3">
           {!isSimplifiedStage && !isRelayStage && (
             <button
@@ -316,6 +347,7 @@ export default function FacilitatorPresentPage() {
             {next ? `다음 단계로 (${STAGES.find((s) => s.id === next)?.shortLabel})` : '훈련 종료 · 결과 화면으로'}
           </button>
         </div>
+        )}
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
@@ -374,7 +406,9 @@ export default function FacilitatorPresentPage() {
           {autoQuizLabel && (
             <p className="text-[11px] text-slate-400 mb-3">
               🤖 자동 발송:{' '}
-              {quizActive
+              {awaitingStart
+                ? `훈련 시작 후 ${AUTO_QUIZ_DELAY_SEC}초 뒤 ${autoQuizLabel} 발송 예정`
+                : quizActive
                 ? '이번 단계 발송 완료'
                 : autoAlreadySent
                   ? `${autoQuizLabel} 발송 완료`

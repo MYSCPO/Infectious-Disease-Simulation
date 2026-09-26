@@ -10,7 +10,7 @@ import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { getCommonWildcardQuiz, getWildcardQuiz } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
-import { releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
+import { isAwaitingTrainingStart, releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
@@ -53,6 +53,16 @@ export default function TeamTrainingPage() {
   const prevStageRef = useRef<string | null>(null)
   const prevFirstBloodRef = useRef<string | null>(null)
   const prevRelayRef = useRef<{ turnCount: number; finished: boolean; quizAnswered: boolean } | null>(null)
+  const manualAutoOpenedRef = useRef(false)
+  const awaitingStart = session ? isAwaitingTrainingStart(session) : false
+
+  // 훈련 시작 전에는 우리 조 감염병 매뉴얼 카드를 먼저 읽도록 한 번 자동으로 띄운다.
+  useEffect(() => {
+    if (awaitingStart && group && !manualAutoOpenedRef.current) {
+      manualAutoOpenedRef.current = true
+      setShowManual(true)
+    }
+  }, [awaitingStart, !!group])
 
   // 진행자 탭이 잠시 없어져 있어도(예: 참가자 화면을 보러 이동) 자동 발송이 끊기지 않도록,
   // 참가자 화면도 동일한 자동 발송 타이머를 함께 들고 있는다.
@@ -180,7 +190,7 @@ export default function TeamTrainingPage() {
                   내 조 점수: {group.score ?? 0}pt
                 </span>
               )}
-              {stageDef && <StageTimer startedAt={session.stageStartedAt} minutes={stageDef.minutes} />}
+              {stageDef && <StageTimer startedAt={awaitingStart ? null : session.stageStartedAt} minutes={stageDef.minutes} />}
             </h1>
           </div>
           {isMine && myRole ? (
@@ -207,6 +217,16 @@ export default function TeamTrainingPage() {
           >
             🖥️ 진행자 화면으로 돌아가기
           </Link>
+        )}
+
+        {awaitingStart && (
+          <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+            <p className="text-sm font-bold text-amber-800">⏳ 곧 훈련이 시작돼요</p>
+            <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+              진행자가 훈련을 시작하기 전에 우리 조 감염병({disease.name}) 매뉴얼을 먼저 읽어 두세요. 훈련이 시작되면 잠시 뒤
+              돌발 퀴즈가 나와요!
+            </p>
+          </div>
         )}
 
         <button
