@@ -14,7 +14,7 @@ export default function DiseaseGalleryPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 space-y-4">
-        <BackLink />
+        <BackLink to="/" label="← 메인 화면으로 돌아가기" />
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {DISEASES.map((d) => (
             <Link
