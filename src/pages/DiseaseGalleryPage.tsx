@@ -20,6 +20,7 @@ export default function DiseaseGalleryPage() {
             <Link
               key={d.id}
               to={`/diseases/${d.id}`}
+              state={{ from: '/diseases' }}
               className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5 flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all"
             >
               <div className="text-4xl mb-3">{d.emoji}</div>
