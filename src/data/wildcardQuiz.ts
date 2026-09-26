@@ -205,7 +205,7 @@ export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion[]> = {
       topic: '잠복기',
       prompt: '수족구병의 잠복기는 보통 며칠일까요?',
       options: [
-        { id: 'a', text: '3~6일', correct: true },
+        { id: 'a', text: '3~7일', correct: true },
         { id: 'b', text: '12~48시간', correct: false },
         { id: 'c', text: '10~21일', correct: false },
         { id: 'd', text: '2~3주', correct: false },

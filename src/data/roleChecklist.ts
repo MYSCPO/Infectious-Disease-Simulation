@@ -190,7 +190,7 @@ const DISEASE_CHECKLIST_OVERRIDES: Partial<Record<string, Partial<Record<StageId
       ],
       health: [
         '체온측정 및 손·발·입안 수포성 발진 관찰로 수족구병 의심 여부 확인',
-        "의사의 '전염력이 없다'는 소견서(진단서)가 있을 때까지 등교(등원) 중지 기준 안내(보통 발진 후 7~10일간)",
+        '수포 발생 후 6일간 또는 가피가 형성될 때까지 등교(등원) 중지 기준 안내',
         '담임교사에게 학급 능동감시(매일 발진·미열 체크·관찰일지 작성) 실시를 요청',
       ],
       academic: [
