@@ -143,10 +143,10 @@ export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion[]> = {
   epidemicKeratoconjunctivitis: [
     {
       topic: '등교중지 기준',
-      prompt: '유행성각결막염은 법정감염병이라서 강제로 등교를 중지시켜야 한다? (O/X)',
+      prompt: '유행성각결막염은 법정격리 의무가 없으니, 의사가 등교중지 소견을 내도 출석인정이 안 된다? (O/X)',
       options: [
-        { id: 'o', text: 'O — 법정감염병이라 강제 격리해야 한다', correct: false },
-        { id: 'x', text: 'X — 비법정감염병이라 강제 격리 없이 개인위생 수칙만 안내한다', correct: true },
+        { id: 'o', text: 'O — 법정격리 대상이 아니므로 일반 결석으로 처리한다', correct: false },
+        { id: 'x', text: "X — 의사의 '등교중지' 소견서/진단서를 제출하면 등교중지 및 출석인정 처리한다", correct: true },
       ],
     },
     {

@@ -34,7 +34,7 @@ export default function DiseaseManualModal({
             <h3 className="text-lg font-black text-slate-800 mt-1">{disease.name}</h3>
             <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
               <span className="text-xs font-semibold bg-paper-100 text-slate-600 rounded-full px-3 py-1">
-                법정감염병 {disease.grade}
+                {disease.grade.endsWith('급') ? `법정감염병 ${disease.grade}` : disease.grade}
               </span>
               {disease.badges.map((b) => (
                 <span key={b} className="text-xs font-semibold bg-brand-50 text-brand-700 rounded-full px-3 py-1">

@@ -11,7 +11,9 @@ export default function DiseaseDetailPage() {
         <div className="text-5xl mb-2">{disease.emoji}</div>
         <h1 className="text-2xl font-black">{disease.name}</h1>
         <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
-          <span className="text-xs font-semibold bg-white/20 rounded-full px-3 py-1">법정감염병 {disease.grade}</span>
+          <span className="text-xs font-semibold bg-white/20 rounded-full px-3 py-1">
+            {disease.grade.endsWith('급') ? `법정감염병 ${disease.grade}` : disease.grade}
+          </span>
           {disease.badges.map((b) => (
             <span key={b} className="text-xs font-semibold bg-white text-brand-700 rounded-full px-3 py-1">
               {b}
