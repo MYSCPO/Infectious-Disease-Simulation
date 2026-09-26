@@ -24,7 +24,6 @@ export default function FacilitatorSetupPage() {
   const [testError, setTestError] = useState<string | null>(null)
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
-  const [existingCode, setExistingCode] = useState('')
 
   async function handleTestMode() {
     setTestLoading(true)
@@ -78,37 +77,6 @@ export default function FacilitatorSetupPage() {
             학교급·조직도·대상 감염병과 우리 학교 대응 공백 확인 항목을 입력하면 참가 코드가 발급됩니다.
           </p>
         </div>
-
-        <section className="bg-white rounded-2xl border border-brand-200 p-4">
-          <p className="text-sm font-bold text-slate-700 mb-1">📂 이미 만든 훈련 이어서 관리하기</p>
-          <p className="text-xs text-slate-400 mb-2">
-            미리 만들어 둔 훈련의 참가 코드를 입력하면, 그 훈련의 진행자 비밀번호를 확인한 뒤 조 편성 화면으로 이동해요.
-          </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              const c = existingCode.trim().toUpperCase()
-              if (c.length >= 4) navigate(`/facilitator/${c}/groups`)
-            }}
-            className="flex gap-2"
-          >
-            <input
-              value={existingCode}
-              onChange={(e) => setExistingCode(e.target.value.toUpperCase())}
-              placeholder="참가 코드"
-              maxLength={8}
-              autoComplete="off"
-              className="flex-1 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm tracking-widest font-bold focus:outline-none focus:ring-2 focus:ring-brand-400"
-            />
-            <button
-              type="submit"
-              disabled={existingCode.trim().length < 4}
-              className="shrink-0 rounded-full bg-brand-600 text-white px-4 py-2 text-xs font-bold hover:bg-brand-700 disabled:opacity-40"
-            >
-              관리하기
-            </button>
-          </form>
-        </section>
 
         <section className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
           <p className="text-xs font-bold text-slate-500 mb-2">

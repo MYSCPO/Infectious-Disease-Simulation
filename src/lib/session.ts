@@ -123,6 +123,12 @@ export async function createSession(input: CreateSessionInput): Promise<string> 
   return code
 }
 
+export async function getSessionOnce(code: string): Promise<SessionDoc | null> {
+  await ensureSignedIn()
+  const snap = await getDoc(sessionRef(code))
+  return snap.exists() ? (snap.data() as SessionDoc) : null
+}
+
 export function subscribeSession(code: string, cb: (session: SessionDoc | null) => void) {
   return subscribeAfterAuth(() =>
     onSnapshot(sessionRef(code), (snap) => {

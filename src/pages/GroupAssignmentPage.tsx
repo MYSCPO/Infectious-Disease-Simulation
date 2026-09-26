@@ -71,6 +71,12 @@ export default function GroupAssignmentPage() {
             />
             <p className="text-xs text-slate-400 mt-2">📱 이 QR을 스캔하면 참가 코드 입력 없이 바로 입장 화면으로 이동해요</p>
           </div>
+          {session?.facilitatorPinHash && (
+            <p className="mt-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed px-3 py-2 text-left">
+              🔑 나중에 이 훈련에 다시 들어올 때: 첫 화면 <b>⚙️ 진행자 설정</b> → <b>내가 만든 훈련 들어가기</b>에서 이
+              참가 코드와 진행자 비밀번호를 입력하세요.
+            </p>
+          )}
         </section>
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">

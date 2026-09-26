@@ -5,6 +5,8 @@ import { ROLE_MASCOTS } from '../data/mascots'
 import MascotAvatar from '../components/MascotAvatar'
 import ReferenceGrid from '../components/ReferenceGrid'
 import SiteFooter from '../components/SiteFooter'
+import { getSessionOnce } from '../lib/session'
+import { hashFacilitatorPin, markFacilitatorUnlocked } from '../lib/facilitatorAuth'
 
 const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
@@ -16,9 +18,20 @@ export default function MainPage() {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const [showGate, setShowGate] = useState(false)
+  const [gateStep, setGateStep] = useState<'closed' | 'password' | 'choose' | 'open'>('closed')
   const [password, setPassword] = useState('')
   const [gateError, setGateError] = useState<string | null>(null)
+  const [openCode, setOpenCode] = useState('')
+  const [openPin, setOpenPin] = useState('')
+  const [opening, setOpening] = useState(false)
+
+  function closeGate() {
+    setGateStep('closed')
+    setPassword('')
+    setOpenCode('')
+    setOpenPin('')
+    setGateError(null)
+  }
 
   function handleJoinSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,12 +46,40 @@ export default function MainPage() {
   function handleGateSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password === FACILITATOR_PASSWORD) {
-      setShowGate(false)
       setPassword('')
       setGateError(null)
-      navigate('/facilitator/setup')
+      setGateStep('choose')
     } else {
       setGateError('비밀번호가 올바르지 않습니다.')
+    }
+  }
+
+  async function handleOpenSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const c = openCode.trim().toUpperCase()
+    setOpening(true)
+    setGateError(null)
+    try {
+      const session = await getSessionOnce(c)
+      if (!session) {
+        setGateError('해당 참가 코드의 훈련이 없어요. 코드를 다시 확인해 주세요.')
+        return
+      }
+      if (session.facilitatorPinHash) {
+        const hash = await hashFacilitatorPin(c, openPin)
+        if (hash !== session.facilitatorPinHash) {
+          setGateError('진행자 비밀번호가 달라요.')
+          return
+        }
+        markFacilitatorUnlocked(c, hash)
+      }
+      closeGate()
+      navigate(`/facilitator/${c}/groups`)
+    } catch (err) {
+      console.error(err)
+      setGateError('확인 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setOpening(false)
     }
   }
 
@@ -47,7 +88,7 @@ export default function MainPage() {
       <header className="relative bg-brand-600 text-white py-12 px-4 text-center rounded-b-[2.5rem]">
         <button
           type="button"
-          onClick={() => setShowGate(true)}
+          onClick={() => setGateStep('password')}
           className="absolute top-4 right-4 text-xs sm:text-sm font-semibold text-brand-50 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1.5 transition-colors"
         >
           ⚙️ 진행자 설정
@@ -113,47 +154,118 @@ export default function MainPage() {
 
       <SiteFooter />
 
-      {showGate && (
+      {gateStep !== 'closed' && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
-          <form
-            onSubmit={handleGateSubmit}
-            className="bg-white rounded-3xl shadow-xl max-w-xs w-full p-6 text-center space-y-3"
-          >
-            <div className="text-3xl">🔒</div>
-            <h3 className="text-base font-bold text-slate-800">진행자 설정 비밀번호</h3>
-            <p className="text-xs text-slate-400">교직원이 실수로 들어오지 않도록 막는 간단한 확인이에요.</p>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                setGateError(null)
-              }}
-              autoFocus
-              placeholder="비밀번호 입력"
-              className="w-full text-center rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-            />
-            {gateError && <p className="text-xs text-rose-600">{gateError}</p>}
-            <div className="flex gap-2">
+          {gateStep === 'password' && (
+            <form onSubmit={handleGateSubmit} className="bg-white rounded-3xl shadow-xl max-w-xs w-full p-6 text-center space-y-3">
+              <div className="text-3xl">🔒</div>
+              <h3 className="text-base font-bold text-slate-800">진행자 설정 비밀번호</h3>
+              <p className="text-xs text-slate-400">교직원이 실수로 들어오지 않도록 막는 간단한 확인이에요.</p>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setGateError(null)
+                }}
+                autoFocus
+                placeholder="비밀번호 입력"
+                className="w-full text-center rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+              />
+              {gateError && <p className="text-xs text-rose-600">{gateError}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={closeGate}
+                  className="flex-1 rounded-full border border-slate-200 text-slate-500 py-2.5 text-sm font-semibold hover:bg-slate-50"
+                >
+                  취소
+                </button>
+                <button type="submit" className="flex-1 rounded-full bg-brand-600 text-white py-2.5 text-sm font-bold hover:bg-brand-700">
+                  확인
+                </button>
+              </div>
+            </form>
+          )}
+
+          {gateStep === 'choose' && (
+            <div className="bg-white rounded-3xl shadow-xl max-w-xs w-full p-6 text-center space-y-3">
+              <div className="text-3xl">⚙️</div>
+              <h3 className="text-base font-bold text-slate-800">무엇을 할까요?</h3>
               <button
                 type="button"
                 onClick={() => {
-                  setShowGate(false)
-                  setPassword('')
-                  setGateError(null)
+                  closeGate()
+                  navigate('/facilitator/setup')
                 }}
-                className="flex-1 rounded-full border border-slate-200 text-slate-500 py-2.5 text-sm font-semibold hover:bg-slate-50"
+                className="w-full rounded-2xl bg-brand-600 text-white py-3 px-4 text-left hover:bg-brand-700"
               >
-                취소
+                <span className="block text-sm font-bold">➕ 새 훈련 만들기</span>
+                <span className="block text-[11px] text-brand-50 mt-0.5">학교 정보를 입력하고 진행자 비밀번호를 정해요</span>
               </button>
               <button
-                type="submit"
-                className="flex-1 rounded-full bg-brand-600 text-white py-2.5 text-sm font-bold hover:bg-brand-700"
+                type="button"
+                onClick={() => setGateStep('open')}
+                className="w-full rounded-2xl border-2 border-brand-200 text-brand-700 py-3 px-4 text-left hover:bg-brand-50"
               >
-                확인
+                <span className="block text-sm font-bold">🔑 내가 만든 훈련 들어가기</span>
+                <span className="block text-[11px] text-slate-500 mt-0.5">참가 코드와 진행자 비밀번호로 들어가요</span>
+              </button>
+              <button type="button" onClick={closeGate} className="text-xs text-slate-400 underline">
+                닫기
               </button>
             </div>
-          </form>
+          )}
+
+          {gateStep === 'open' && (
+            <form onSubmit={handleOpenSubmit} className="bg-white rounded-3xl shadow-xl max-w-xs w-full p-6 text-center space-y-3">
+              <div className="text-3xl">🔑</div>
+              <h3 className="text-base font-bold text-slate-800">내가 만든 훈련 들어가기</h3>
+              <p className="text-xs text-slate-400">훈련을 만들 때 받은 참가 코드와 직접 정한 진행자 비밀번호를 입력해 주세요.</p>
+              <input
+                value={openCode}
+                onChange={(e) => {
+                  setOpenCode(e.target.value.toUpperCase())
+                  setGateError(null)
+                }}
+                autoFocus
+                maxLength={8}
+                autoComplete="off"
+                placeholder="참가 코드"
+                className="w-full text-center rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 tracking-widest font-bold"
+              />
+              <input
+                type="password"
+                value={openPin}
+                onChange={(e) => {
+                  setOpenPin(e.target.value)
+                  setGateError(null)
+                }}
+                placeholder="진행자 비밀번호"
+                className="w-full text-center rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+              />
+              {gateError && <p className="text-xs text-rose-600">{gateError}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGateError(null)
+                    setGateStep('choose')
+                  }}
+                  className="flex-1 rounded-full border border-slate-200 text-slate-500 py-2.5 text-sm font-semibold hover:bg-slate-50"
+                >
+                  뒤로
+                </button>
+                <button
+                  type="submit"
+                  disabled={opening || openCode.trim().length < 4 || !openPin}
+                  className="flex-1 rounded-full bg-brand-600 text-white py-2.5 text-sm font-bold hover:bg-brand-700 disabled:opacity-40"
+                >
+                  {opening ? '확인 중...' : '들어가기'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
     </div>

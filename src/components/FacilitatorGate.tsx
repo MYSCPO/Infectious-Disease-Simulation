@@ -13,8 +13,23 @@ export default function FacilitatorGate({ children }: { children: ReactNode }) {
 
   if (loading) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
 
-  const pinHash = session?.facilitatorPinHash
-  if (!session || !pinHash || unlockedNow || isFacilitatorUnlocked(code, pinHash)) return <>{children}</>
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-paper-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-sm border border-brand-100 max-w-xs w-full p-6 text-center space-y-3">
+          <div className="text-3xl">🔍</div>
+          <h1 className="text-base font-bold text-slate-800">해당 훈련을 찾을 수 없어요</h1>
+          <p className="text-xs text-slate-500">참가 코드 {code}로 만들어진 훈련이 없어요. 코드를 다시 확인해 주세요.</p>
+          <Link to="/" className="block rounded-full bg-brand-600 text-white py-2.5 text-sm font-bold hover:bg-brand-700">
+            메인 화면으로
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const pinHash = session.facilitatorPinHash
+  if (!pinHash || unlockedNow || isFacilitatorUnlocked(code, pinHash)) return <>{children}</>
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
