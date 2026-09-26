@@ -55,7 +55,7 @@ export default function DiseaseManualModal({
               <p className="text-sm font-bold text-amber-600 leading-relaxed">{disease.incubationPeriod}</p>
             </div>
             <div className="bg-paper-50 rounded-2xl p-3">
-              <h4 className="text-xs font-bold text-brand-700 mb-1">🦠 감염 가능 기간</h4>
+              <h4 className="text-xs font-bold text-brand-700 mb-1">🦠 전염 기간</h4>
               <p className="text-sm text-slate-700 leading-relaxed">{disease.infectiousPeriod}</p>
             </div>
           </div>

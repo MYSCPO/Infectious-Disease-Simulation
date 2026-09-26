@@ -73,7 +73,7 @@ const GuidebookDocument = forwardRef<HTMLDivElement, Props>(({ session, groups, 
                     <td className="border border-slate-300 py-2 px-3">{disease.symptoms}</td>
                   </tr>
                   <tr>
-                    <td className="border border-slate-300 py-2 px-3 font-medium">감염 가능 기간</td>
+                    <td className="border border-slate-300 py-2 px-3 font-medium">전염 기간</td>
                     <td className="border border-slate-300 py-2 px-3">{disease.infectiousPeriod}</td>
                   </tr>
                   <tr>

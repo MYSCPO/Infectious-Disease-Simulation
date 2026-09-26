@@ -74,7 +74,7 @@ export const DISEASES: DiseaseInfo[] = [
     emoji: '👁️',
     grade: '비법정감염병',
     symptoms: '충혈, 눈곱, 이물감, 눈물(한쪽 눈에서 양쪽으로 번짐)',
-    infectiousPeriod: '학기 초·여름철 다발, 감염력이 강함',
+    infectiousPeriod: '증상 시작 후 10~14일까지 전염력 지속',
     exclusionPeriod:
       "의사 소견 시 등교중지(출석인정) — 법정격리 의무는 없으나, 전염력이 강해 의사의 '등교중지(격리)' 소견서/진단서 제출 시 등교중지 및 출석인정 처리(증상 완화 시까지 보통 7~14일)",
     incubationPeriod: '5-7일',
@@ -82,7 +82,7 @@ export const DISEASES: DiseaseInfo[] = [
     temporaryIsolation: false,
     maskRequired: false,
     badges: ['#눈병주의', '#전염력_강함', '#의사소견시_등교중지'],
-    treatment: '특별한 치료 없이 대부분 자연 호전되며, 증상이 심하면 안과 진료를 통해 대증치료를 받을 수 있습니다.',
+    treatment: '원인 바이러스(아데노바이러스)의 특효 치료제는 없으나, 이차감염 및 합병증 예방을 위해 안과 진료가 필수적입니다.',
     prevention: [
       '개인 수건 사용: 개인 수건 사용, 눈 만지지 않기 교육 필수',
       '손 씻기: 눈을 만지기 전후 손 씻기',

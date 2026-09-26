@@ -38,7 +38,7 @@ export default function DiseaseDetailPage() {
             <p className="text-base font-bold text-amber-600 leading-relaxed">{disease.incubationPeriod}</p>
           </div>
           <div className="bg-white rounded-3xl border border-brand-100 shadow-sm p-5">
-            <h2 className="text-sm font-bold text-brand-700 mb-1">🦠 감염 가능 기간</h2>
+            <h2 className="text-sm font-bold text-brand-700 mb-1">🦠 전염 기간</h2>
             <p className="text-sm text-slate-700 leading-relaxed">{disease.infectiousPeriod}</p>
           </div>
         </section>
