@@ -94,7 +94,7 @@ export const DISEASES: DiseaseInfo[] = [
     id: 'handFootMouth',
     name: '수족구병',
     emoji: '✋',
-    grade: '표본감시 대상',
+    grade: '4급',
     symptoms: '발열, 손·발바닥과 구강 내 수포 및 궤양',
     infectiousPeriod: '발병 후 7일간이 가장 전염력 강함, 피부 병변(수포)에 가피가 생성될 때까지',
     exclusionPeriod: '수포 발생 후 6일간 또는 가피가 형성될 때까지',
