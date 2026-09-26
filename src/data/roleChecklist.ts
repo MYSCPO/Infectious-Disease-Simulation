@@ -8,7 +8,7 @@ export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
     surveillance: {
       situation: '평상시',
       items: [
-        '발생감시팀 구성 확인(총괄: 생활지도 담당 부장급 교사 · 구성: 학년부장, 담임교사, 교과담당교사, 보건(담당)교사)',
+        '발생감시팀 구성 확인: 생활지도 담당 부장급 교사(총괄), 학년부장, 담임교사, 교과담당교사, 보건(담당)교사',
         '평상시 각반에서 발진·미열 등 의심 증상 수동감시',
         '일시적 관찰실 지정(학생회실 또는 보건실 내 상담실)',
       ],
@@ -16,7 +16,7 @@ export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
     health: {
       situation: '평상시',
       items: [
-        '예방관리팀 구성 확인(총괄: 보건(담당)교사 · 구성: 담임교사)',
+        '예방관리팀 구성 확인: 보건(담당)교사(총괄), 담임교사',
         '학교 감염병 예방·관리 계획 수립 및 학생감염병관리조직 구성',
         '학기 초 감염병 관리·예방법 교직원 교육, 교직원 모의훈련 실시',
         '신입생 예방접종 내역 확인·관리(안내장 배부)',
@@ -27,7 +27,7 @@ export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
     academic: {
       situation: '평상시',
       items: [
-        '학사관리팀 구성 확인(총괄: 교무부장 · 구성: 교육과정부장, 담임교사)',
+        '학사관리팀 구성 확인: 교무부장(총괄), 교육과정부장, 담임교사',
         '감염병 발생 시 수업 결손 대비 방안 사전 마련',
         '감염병으로 인한 등교중지 학생의 출결 처리 기준 안내',
       ],
@@ -35,7 +35,7 @@ export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
     admin: {
       situation: '평상시',
       items: [
-        '행정지원팀 구성 확인(총괄: 행정실장 · 구성: 행정실 직원)',
+        '행정지원팀 구성 확인: 행정실장(총괄), 행정실 직원',
         '예산 및 행정 지원, 방역물품 구매 관련 행정처리',
         '정기 방역활동 협조 및 위생시설 관리',
       ],
@@ -177,7 +177,7 @@ const DISEASE_CHECKLIST_OVERRIDES: Partial<Record<string, Partial<Record<StageId
   handFootMouth: {
     prevention: {
       surveillance: [
-        '발생감시팀 구성 확인(총괄: 생활지도 담당 부장급 교사 · 구성: 학년부장, 담임교사, 교과담당교사, 보건(담당)교사)',
+        '발생감시팀 구성 확인: 생활지도 담당 부장급 교사(총괄), 학년부장, 담임교사, 교과담당교사, 보건(담당)교사',
         '평상시 각반에서 손·발·입안 수포성 발진 여부 등 의심 증상 수동감시',
         '일시적 관찰실 지정(학생회실 또는 보건실 내 상담실)',
       ],
