@@ -1,4 +1,4 @@
-import type { RoleChecklist, StageId } from '../types'
+import type { RoleChecklist, RoleId, StageId } from '../types'
 
 // 출처: 「2025년도 학생 감염병 대응 모의훈련 워크북」의 단계별(0~4단계) 시나리오·체크포인트·주요조치사항.
 // 팀 단위로 재구성하면서, 원문에서 특정 교사(담임교사·생활담당부장급 교사 등)가 실제로 수행하는 항목은
@@ -160,4 +160,50 @@ export const ROLE_CHECKLISTS: Record<StageId, RoleChecklist> = {
       items: ['학생감염병관리조직의 유행 대응 활동을 중단하고 평소 관리체계(예방단계)로 복귀를 명령'],
     },
   },
+}
+
+// 감염병별로 증상·조치 기준이 크게 달라 공통 체크리스트로는 어색한 경우, 해당 감염병·단계·역할만
+// 문구를 덮어쓴다. 여기 없는 감염병·단계·역할은 위 공통 ROLE_CHECKLISTS를 그대로 사용한다.
+const DISEASE_CHECKLIST_OVERRIDES: Partial<Record<string, Partial<Record<StageId, Partial<Record<RoleId, string[]>>>>>> = {
+  handFootMouth: {
+    prevention: {
+      surveillance: [
+        '발생감시팀 구성 확인(총괄: 생활안전부장 · 담임교사·학년부장 등)',
+        '평상시 각반에서 손·발·입안 수포성 발진 여부 등 의심 증상 수동감시',
+        '일시적 관찰실 지정(학생회실 또는 보건실 내 상담실)',
+      ],
+    },
+    response1: {
+      surveillance: [
+        '담임교사는 손·발·입안 수포성 발진 확인 시 즉시 보건교사에게 유선으로 학생 상태를 전달',
+        '학부모에게 연락해 즉시 귀가 및 병원 진료를 권고하고, 학생을 일시적 관찰실로 이동·격리',
+        '해당 학급 학생 전체를 대상으로 능동감시 전환: 매일 아침 발진·미열 유무 체크 및 관찰일지 작성',
+      ],
+      health: [
+        '체온측정 및 손·발·입안 수포성 발진 관찰로 수족구병 의심 여부 확인',
+        "의사의 '전염력이 없다'는 소견서(진단서)가 있을 때까지 등교(등원) 중지 기준 안내(보통 발진 후 7~10일간)",
+        '담임교사에게 학급 능동감시(매일 발진·미열 체크·관찰일지 작성) 실시를 요청',
+      ],
+      academic: [
+        '담임교사를 통해 학부모에게 등교중지 기간 출석인정 필요 서류(진단서 등) 안내',
+        '(의심)환자 귀가·격리로 발생한 수업 공백(교사 결원)에 대한 조치',
+      ],
+      admin: [
+        '일시적 관찰실 및 해당 학급 교실 환기·소독 실시(장난감·집기 소독 포함)',
+        '방역물품 구매 관련 행정처리',
+      ],
+      principal: ['보건교사로부터 상황을 보고받고 학급 능동감시 전환 및 다음 단계 전환에 대비한 보고체계 유지'],
+    },
+  },
+}
+
+export function getChecklistForStage(stage: StageId, diseaseId?: string): RoleChecklist {
+  const base = ROLE_CHECKLISTS[stage]
+  const override = diseaseId ? DISEASE_CHECKLIST_OVERRIDES[diseaseId]?.[stage] : undefined
+  if (!override) return base
+  const merged = { ...base }
+  for (const role of Object.keys(override) as RoleId[]) {
+    merged[role] = { ...base[role], items: override[role]! }
+  }
+  return merged
 }

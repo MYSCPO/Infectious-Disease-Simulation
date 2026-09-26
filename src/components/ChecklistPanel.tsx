@@ -1,21 +1,23 @@
 import { useState } from 'react'
 import type { RoleId, StageId } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
-import { ROLE_CHECKLISTS } from '../data/roleChecklist'
+import { getChecklistForStage } from '../data/roleChecklist'
 import { getStage } from '../data/stages'
 
 export default function ChecklistPanel({
   stage,
   myRole,
   checkable = false,
+  diseaseId,
 }: {
   stage: StageId
   myRole: RoleId | null
   checkable?: boolean
+  diseaseId?: string
 }) {
   const [open, setOpen] = useState(true)
   const [checked, setChecked] = useState<Set<string>>(new Set())
-  const checklist = ROLE_CHECKLISTS[stage]
+  const checklist = getChecklistForStage(stage, diseaseId)
   const stageDef = getStage(stage)
 
   function toggleItem(key: string) {

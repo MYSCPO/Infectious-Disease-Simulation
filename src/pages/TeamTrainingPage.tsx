@@ -231,7 +231,13 @@ export default function TeamTrainingPage() {
                 조치를 하나씩 확인하며 체크해 보세요. 진행자가 보내는 돌발 퀴즈로 다 같이 재미있게 지식을 다져요!
               </p>
             </div>
-            <ChecklistPanel key={session.currentStage} stage={session.currentStage} myRole={myRole} checkable />
+            <ChecklistPanel
+              key={session.currentStage}
+              stage={session.currentStage}
+              myRole={myRole}
+              checkable
+              diseaseId={disease.id}
+            />
           </div>
         ) : isRelayStage ? (
           <div className="space-y-4">
@@ -288,7 +294,7 @@ export default function TeamTrainingPage() {
             </div>
 
             <div>
-              <ChecklistPanel stage={session.currentStage} myRole={myRole} />
+              <ChecklistPanel stage={session.currentStage} myRole={myRole} diseaseId={disease.id} />
             </div>
           </div>
         )}
