@@ -15,6 +15,7 @@ import {
   endWildcardQuiz,
   isAwaitingTrainingStart,
   setActiveWildcard,
+  startManualReading,
   startTraining,
   setRevealed,
   startWildcardQuiz,
@@ -26,6 +27,7 @@ import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
 import { loadParticipantIdentity } from '../lib/participant'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
+import { formatMmSs, MANUAL_READING_SEC, useReadingRemaining } from '../components/ReadingCountdown'
 import MascotAvatar from '../components/MascotAvatar'
 import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
@@ -44,6 +46,7 @@ export default function FacilitatorPresentPage() {
   const submissions = useStageSubmissions(code, session?.currentStage)
   const [busy, setBusy] = useState(false)
   const [hideReentryNote, setHideReentryNote] = useState(false)
+  const readingRemaining = useReadingRemaining(session?.readingStartedAt)
   const [now, setNow] = useState(Date.now())
   const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
   const prevFirstBloodRef = useRef<string | null>(null)
@@ -131,6 +134,15 @@ export default function FacilitatorPresentPage() {
   }
 
   const awaitingStart = isAwaitingTrainingStart(session)
+
+  async function handleStartReading() {
+    setBusy(true)
+    try {
+      await startManualReading(code)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function handleStartTraining() {
     setBusy(true)
@@ -302,20 +314,48 @@ export default function FacilitatorPresentPage() {
 
         {awaitingStart ? (
           <section className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-5 text-center space-y-3">
-            <p className="text-base font-bold text-brand-800">📖 훈련 시작 전 · 조별 감염병 매뉴얼 읽는 시간</p>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              지금 참가자 화면에는 각 조에 배정된 감염병 매뉴얼 카드가 떠 있어요. 1분 정도 읽을 시간을 준 뒤
-              <br className="hidden sm:block" />
-              아래 버튼을 누르면 예방단계 타이머가 시작되고, {AUTO_QUIZ_DELAY_SEC}초 뒤 ⚡ 스피드 퀴즈가 전 조에 동시에 나가요.
-            </p>
-            <button
-              type="button"
-              onClick={handleStartTraining}
-              disabled={busy}
-              className="w-full max-w-md rounded-full bg-brand-600 text-white py-3.5 text-base font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
-            >
-              ▶ 훈련 시작
-            </button>
+            <p className="text-base font-bold text-brand-800">📖 훈련 시작 전 · 우리 조의 감염병 매뉴얼 읽기</p>
+            {readingRemaining == null ? (
+              <>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  참가자가 모두 입장하면 아래 버튼을 눌러 주세요. 참가자 화면에 조별 감염병 매뉴얼 카드와
+                  <br className="hidden sm:block" />
+                  {MANUAL_READING_SEC / 60}분 타이머가 함께 떠요.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStartReading}
+                  disabled={busy}
+                  className="w-full max-w-md rounded-full bg-brand-600 text-white py-3.5 text-base font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
+                >
+                  📖 매뉴얼 읽기 시작 ({MANUAL_READING_SEC / 60}분)
+                </button>
+                <button type="button" onClick={handleStartTraining} disabled={busy} className="block mx-auto text-xs text-slate-500 underline">
+                  읽기 없이 바로 훈련 시작
+                </button>
+              </>
+            ) : (
+              <>
+                <p className={`text-4xl font-black tabular-nums ${readingRemaining > 0 ? 'text-brand-700' : 'text-rose-600'}`}>
+                  ⏱ {formatMmSs(readingRemaining)}
+                </p>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {readingRemaining > 0
+                    ? '참가자들이 우리 조의 감염병 매뉴얼을 읽고 있어요.'
+                    : '읽기 시간이 끝났어요. 훈련을 시작해 주세요!'}
+                  <br className="hidden sm:block" />
+                  훈련을 시작하면 예방단계 타이머가 돌고, {AUTO_QUIZ_DELAY_SEC}초 뒤 ⚡ 스피드 퀴즈가 전 조에 동시에 나가요.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStartTraining}
+                  disabled={busy}
+                  className={`w-full max-w-md rounded-full text-white py-3.5 text-base font-bold disabled:opacity-40 shadow-sm ${readingRemaining > 0 ? 'bg-slate-500 hover:bg-slate-600' : 'bg-brand-600 hover:bg-brand-700 animate-pulse'}`}
+                >
+                  ▶ 훈련 시작
+                </button>
+              </>
+            )}
           </section>
         ) : (
         <div className="flex flex-wrap gap-3">

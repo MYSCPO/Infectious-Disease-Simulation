@@ -24,6 +24,7 @@ import FirstBloodToast from '../components/FirstBloodToast'
 import ScoreToast from '../components/ScoreToast'
 import RelayPanel from '../components/RelayPanel'
 import MascotAvatar from '../components/MascotAvatar'
+import { formatMmSs, useReadingRemaining } from '../components/ReadingCountdown'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { STAGES } from '../data/stages'
 
@@ -55,14 +56,27 @@ export default function TeamTrainingPage() {
   const prevRelayRef = useRef<{ turnCount: number; finished: boolean; quizAnswered: boolean } | null>(null)
   const manualAutoOpenedRef = useRef(false)
   const awaitingStart = session ? isAwaitingTrainingStart(session) : false
+  const readingStartedAt = awaitingStart ? session?.readingStartedAt : null
+  const readingRemaining = useReadingRemaining(readingStartedAt)
 
-  // 훈련 시작 전에는 우리 조 감염병 매뉴얼 카드를 먼저 읽도록 한 번 자동으로 띄운다.
+  // 훈련 시작 전에는 우리 조 감염병 매뉴얼 카드를 띄우고, 진행자가 읽기 타이머를 시작하면 닫혀 있어도 다시 띄운다.
   useEffect(() => {
     if (awaitingStart && group && !manualAutoOpenedRef.current) {
       manualAutoOpenedRef.current = true
       setShowManual(true)
     }
   }, [awaitingStart, !!group])
+
+  useEffect(() => {
+    if (readingStartedAt) setShowManual(true)
+  }, [readingStartedAt])
+
+  // 훈련이 시작되면 곧 돌발 퀴즈가 뜨므로, 시작 전에 자동으로 띄웠던 매뉴얼 카드는 닫는다.
+  const prevAwaitingRef = useRef(awaitingStart)
+  useEffect(() => {
+    if (prevAwaitingRef.current && !awaitingStart) setShowManual(false)
+    prevAwaitingRef.current = awaitingStart
+  }, [awaitingStart])
 
   // 진행자 탭이 잠시 없어져 있어도(예: 참가자 화면을 보러 이동) 자동 발송이 끊기지 않도록,
   // 참가자 화면도 동일한 자동 발송 타이머를 함께 들고 있는다.
@@ -221,10 +235,16 @@ export default function TeamTrainingPage() {
 
         {awaitingStart && (
           <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
-            <p className="text-sm font-bold text-amber-800">⏳ 곧 훈련이 시작돼요</p>
+            <p className="text-sm font-bold text-amber-800 flex items-center gap-2 flex-wrap">
+              📖 훈련 시작 전 우리 조의 감염병 매뉴얼을 읽어보세요.
+              {readingRemaining != null && (
+                <span className="tabular-nums bg-white border border-amber-300 rounded-full px-2 py-0.5">
+                  ⏱ {formatMmSs(readingRemaining)}
+                </span>
+              )}
+            </p>
             <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-              진행자가 훈련을 시작하기 전에 우리 조 감염병({disease.name}) 매뉴얼을 먼저 읽어 두세요. 훈련이 시작되면 잠시 뒤
-              돌발 퀴즈가 나와요!
+              우리 조 감염병은 <b>{disease.name}</b>이에요. 진행자가 훈련을 시작하면 잠시 뒤 돌발 퀴즈가 나와요!
             </p>
           </div>
         )}
@@ -321,7 +341,24 @@ export default function TeamTrainingPage() {
       </div>
 
       {showManual && (
-        <DiseaseManualModal disease={disease} greetRole={myRole} onClose={() => setShowManual(false)} />
+        <DiseaseManualModal
+          disease={disease}
+          greetRole={myRole}
+          onClose={() => setShowManual(false)}
+          notice={
+            awaitingStart ? (
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 px-3 py-2 text-center">
+                <p className="text-sm font-bold text-amber-800">📖 훈련 시작 전 우리 조의 감염병 매뉴얼을 읽어보세요.</p>
+                {readingRemaining != null && (
+                  <p className={`text-2xl font-black tabular-nums mt-1 ${readingRemaining > 0 ? 'text-amber-700' : 'text-rose-600'}`}>
+                    ⏱ {formatMmSs(readingRemaining)}
+                  </p>
+                )}
+                {readingRemaining === 0 && <p className="text-xs text-rose-600">읽기 시간이 끝났어요. 곧 훈련이 시작돼요!</p>}
+              </div>
+            ) : undefined
+          }
+        />
       )}
 
       {activeWildcard && dismissedWildcard !== activeWildcard.id && (

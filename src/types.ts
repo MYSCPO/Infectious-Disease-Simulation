@@ -163,6 +163,7 @@ export interface SessionDoc {
   activeQuiz: ActiveQuiz | null // 진행자가 발송한 돌발 퀴즈(전 조 동시 진행)
   autoQuizSentAt: number | null // 이번 단계(stageStartedAt)에 자동 발송을 이미 했는지 표시(중복 발송 방지)
   attendeeCount: number
+  readingStartedAt?: number | null // 훈련 시작 전 매뉴얼 읽기 1분 타이머 기준 시각(진행자·참가자 화면 공통)
   trainingStartedAt?: number | null // 진행자가 "훈련 시작"을 누른 시각. 그 전까지 예방단계 타이머·자동 퀴즈 대기
   facilitatorPinHash?: string | null // 없으면(테스트 방·기존 방) 진행자 화면 비밀번호 확인을 생략
   createdAt: number

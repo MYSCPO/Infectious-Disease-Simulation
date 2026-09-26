@@ -7,10 +7,12 @@ export default function DiseaseManualModal({
   disease,
   greetRole,
   onClose,
+  notice,
 }: {
   disease: DiseaseInfo
   greetRole: RoleId | null
   onClose: () => void
+  notice?: React.ReactNode
 }) {
   const mascot = ROLE_MASCOTS[greetRole ?? 'health']
 
@@ -30,6 +32,7 @@ export default function DiseaseManualModal({
         </div>
 
         <div className="p-5 space-y-3">
+          {notice}
           <div className="text-center">
             <span className="text-4xl">{disease.emoji}</span>
             <h3 className="text-lg font-black text-slate-800 mt-1">{disease.name}</h3>

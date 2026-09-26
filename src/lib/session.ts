@@ -135,6 +135,10 @@ export function isAwaitingTrainingStart(session: SessionDoc): boolean {
   return session.currentStage === 'prevention' && !session.trainingStartedAt
 }
 
+export async function startManualReading(code: string) {
+  await updateSession(code, { readingStartedAt: Date.now() })
+}
+
 export async function startTraining(code: string) {
   const now = Date.now()
   await updateSession(code, { trainingStartedAt: now, stageStartedAt: now, autoQuizSentAt: null, activeQuiz: null })
