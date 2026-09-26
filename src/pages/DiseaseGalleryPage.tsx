@@ -8,7 +8,7 @@ export default function DiseaseGalleryPage() {
         <p className="text-brand-50 text-sm font-semibold mb-1">📚 모의훈련 대상 감염병</p>
         <h1 className="text-2xl font-black">모의훈련에서 다루는 감염병 7종</h1>
         <p className="mt-2 text-brand-50 text-sm max-w-lg mx-auto leading-relaxed">
-          카드를 눌러 증상·잠복기·감염기·치료와 예방을 확인하고, 바로 그 감염병으로 훈련을 시작할 수 있어요.
+          카드를 누르면 훈련 중 보는 감염병 매뉴얼과 같은 내용(증상·잠복기·전염 기간·등교중지 지침·예방수칙·치료)을 확인할 수 있어요.
         </p>
       </header>
 

@@ -1,6 +1,7 @@
 import type { DiseaseInfo, RoleId } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
 import MascotAvatar from './MascotAvatar'
+import DiseaseManualContent, { gradeLabel } from './DiseaseManualContent'
 
 export default function DiseaseManualModal({
   disease,
@@ -34,7 +35,7 @@ export default function DiseaseManualModal({
             <h3 className="text-lg font-black text-slate-800 mt-1">{disease.name}</h3>
             <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
               <span className="text-xs font-semibold bg-paper-100 text-slate-600 rounded-full px-3 py-1">
-                {disease.grade.endsWith('급') ? `법정감염병 ${disease.grade}` : disease.grade}
+                {gradeLabel(disease)}
               </span>
               {disease.badges.map((b) => (
                 <span key={b} className="text-xs font-semibold bg-brand-50 text-brand-700 rounded-full px-3 py-1">
@@ -44,40 +45,7 @@ export default function DiseaseManualModal({
             </div>
           </div>
 
-          <div className="bg-paper-50 rounded-2xl p-3">
-            <h4 className="text-xs font-bold text-brand-700 mb-1">🤒 주요 증상</h4>
-            <p className="text-sm text-slate-700 leading-relaxed">{disease.symptoms}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-paper-50 rounded-2xl p-3">
-              <h4 className="text-xs font-bold text-brand-700 mb-1">⏳ 잠복기</h4>
-              <p className="text-sm font-bold text-amber-600 leading-relaxed">{disease.incubationPeriod}</p>
-            </div>
-            <div className="bg-paper-50 rounded-2xl p-3">
-              <h4 className="text-xs font-bold text-brand-700 mb-1">🦠 전염 기간</h4>
-              <p className="text-sm text-slate-700 leading-relaxed">{disease.infectiousPeriod}</p>
-            </div>
-          </div>
-
-          <div className="bg-paper-50 rounded-2xl p-3">
-            <h4 className="text-xs font-bold text-brand-700 mb-1">🏫 등교중지(격리) 기본 지침</h4>
-            <p className="text-sm font-bold text-emerald-600 leading-relaxed">{disease.exclusionPeriod}</p>
-          </div>
-
-          <div className="bg-paper-50 rounded-2xl p-3">
-            <h4 className="text-xs font-bold text-brand-700 mb-1">🛡️ 예방수칙</h4>
-            <ul className="text-sm text-slate-700 space-y-1 list-disc list-inside">
-              {disease.prevention.map((p, i) => (
-                <li key={i}>{p}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="bg-paper-50 rounded-2xl p-3">
-            <h4 className="text-xs font-bold text-brand-700 mb-1">💊 치료</h4>
-            <p className="text-sm text-slate-700 leading-relaxed">{disease.treatment}</p>
-          </div>
+          <DiseaseManualContent disease={disease} />
 
           <button
             type="button"
