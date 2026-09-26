@@ -4,6 +4,7 @@ import type { SchoolLevel } from '../types'
 import { DISEASES, getDiseaseById } from '../data/diseases'
 import { createSession, createTestSession, updateSession } from '../lib/session'
 import { saveParticipantIdentity } from '../lib/participant'
+import { hashFacilitatorPin, markFacilitatorUnlocked } from '../lib/facilitatorAuth'
 import OrgChartEditor from '../components/OrgChartEditor'
 
 const SCHOOL_LEVELS: SchoolLevel[] = ['초등학교', '중학교', '고등학교']
@@ -21,6 +22,9 @@ export default function FacilitatorSetupPage() {
   const [error, setError] = useState<string | null>(null)
   const [testLoading, setTestLoading] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
+  const [pin, setPin] = useState('')
+  const [pinConfirm, setPinConfirm] = useState('')
+  const [existingCode, setExistingCode] = useState('')
 
   async function handleTestMode() {
     setTestLoading(true)
@@ -42,10 +46,19 @@ export default function FacilitatorSetupPage() {
       setError('학교명을 입력해 주세요.')
       return
     }
+    if (pin.length < 4) {
+      setError('진행자 비밀번호를 4자 이상 입력해 주세요.')
+      return
+    }
+    if (pin !== pinConfirm) {
+      setError('진행자 비밀번호 확인이 일치하지 않습니다.')
+      return
+    }
     setError(null)
     setSubmitting(true)
     try {
-      const code = await createSession({ schoolName: schoolName.trim(), schoolLevel, diseaseId })
+      const code = await createSession({ schoolName: schoolName.trim(), schoolLevel, diseaseId, facilitatorPin: pin })
+      markFacilitatorUnlocked(code, await hashFacilitatorPin(code, pin))
       await updateSession(code, { orgChart, gaps })
       navigate(`/facilitator/${code}/groups`)
     } catch (e) {
@@ -65,6 +78,37 @@ export default function FacilitatorSetupPage() {
             학교급·조직도·대상 감염병과 우리 학교 대응 공백 확인 항목을 입력하면 참가 코드가 발급됩니다.
           </p>
         </div>
+
+        <section className="bg-white rounded-2xl border border-brand-200 p-4">
+          <p className="text-sm font-bold text-slate-700 mb-1">📂 이미 만든 훈련 이어서 관리하기</p>
+          <p className="text-xs text-slate-400 mb-2">
+            미리 만들어 둔 훈련의 참가 코드를 입력하면, 그 훈련의 진행자 비밀번호를 확인한 뒤 조 편성 화면으로 이동해요.
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              const c = existingCode.trim().toUpperCase()
+              if (c.length >= 4) navigate(`/facilitator/${c}/groups`)
+            }}
+            className="flex gap-2"
+          >
+            <input
+              value={existingCode}
+              onChange={(e) => setExistingCode(e.target.value.toUpperCase())}
+              placeholder="참가 코드"
+              maxLength={8}
+              autoComplete="off"
+              className="flex-1 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm tracking-widest font-bold focus:outline-none focus:ring-2 focus:ring-brand-400"
+            />
+            <button
+              type="submit"
+              disabled={existingCode.trim().length < 4}
+              className="shrink-0 rounded-full bg-brand-600 text-white px-4 py-2 text-xs font-bold hover:bg-brand-700 disabled:opacity-40"
+            >
+              관리하기
+            </button>
+          </form>
+        </section>
 
         <section className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
           <p className="text-xs font-bold text-slate-500 mb-2">
@@ -170,6 +214,30 @@ export default function FacilitatorSetupPage() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
             />
           </label>
+        </section>
+
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+          <h2 className="font-semibold text-slate-800">🔐 이 훈련의 진행자 비밀번호</h2>
+          <p className="text-xs text-slate-400">
+            조 편성·훈련 진행·결과 화면은 이 비밀번호를 아는 진행자만 열 수 있어요. 다른 기기에서 다시 관리할 때도
+            필요하니 꼭 기억해 두세요(비밀번호를 잊으면 찾을 수 없어요).
+          </p>
+          <input
+            type="password"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            placeholder="비밀번호 (4자 이상)"
+            autoComplete="new-password"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+          />
+          <input
+            type="password"
+            value={pinConfirm}
+            onChange={(e) => setPinConfirm(e.target.value)}
+            placeholder="비밀번호 확인"
+            autoComplete="new-password"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+          />
         </section>
 
         {error && <p className="text-sm text-rose-600">{error}</p>}

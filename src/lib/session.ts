@@ -12,6 +12,7 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { db, ensureSignedIn } from '../firebase'
+import { hashFacilitatorPin } from './facilitatorAuth'
 import type {
   GroupDoc,
   QuizSource,
@@ -83,6 +84,7 @@ export interface CreateSessionInput {
   schoolName: string
   schoolLevel: SchoolLevel
   diseaseId: string
+  facilitatorPin?: string // 테스트 방은 비밀번호 없이 생성
 }
 
 export async function createSession(input: CreateSessionInput): Promise<string> {
@@ -112,6 +114,7 @@ export async function createSession(input: CreateSessionInput): Promise<string> 
     activeQuiz: null,
     autoQuizSentAt: null,
     attendeeCount: 0,
+    facilitatorPinHash: input.facilitatorPin ? await hashFacilitatorPin(code, input.facilitatorPin) : null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   }
