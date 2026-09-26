@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import BackLink from '../components/BackLink'
 import { getDiseaseById } from '../data/diseases'
 import DiseaseManualContent, { gradeLabel } from '../components/DiseaseManualContent'
 
@@ -22,9 +23,7 @@ export default function DiseaseDetailPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 space-y-4">
-        <Link to="/diseases" className="text-xs text-brand-700 underline">
-          ← 감염병 갤러리로 돌아가기
-        </Link>
+        <BackLink to="/diseases" label="← 감염병 갤러리로 돌아가기" />
 
         <DiseaseManualContent
           disease={disease}

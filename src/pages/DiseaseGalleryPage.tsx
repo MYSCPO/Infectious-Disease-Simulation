@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { DISEASES } from '../data/diseases'
+import BackLink from '../components/BackLink'
 
 export default function DiseaseGalleryPage() {
   return (
@@ -12,7 +13,8 @@ export default function DiseaseGalleryPage() {
         </p>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4">
+      <main className="max-w-5xl mx-auto px-4 space-y-4">
+        <BackLink />
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {DISEASES.map((d) => (
             <Link

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import BackLink from '../components/BackLink'
 
 export default function AttendanceGuidePage() {
   return (
@@ -13,9 +13,7 @@ export default function AttendanceGuidePage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 space-y-5">
-        <Link to="/" className="text-xs text-brand-700 underline inline-block">
-          ← 메인으로 돌아가기
-        </Link>
+        <BackLink />
 
         <section className="bg-white rounded-2xl border border-brand-100 shadow-sm p-5 space-y-3">
           <h2 className="font-bold text-slate-800">기본 원칙 (출석 인정 결석 대상)</h2>

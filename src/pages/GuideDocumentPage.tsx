@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import BackLink from '../components/BackLink'
 
 const PDF_PATH = '/guide/school-infectious-disease-guide.pdf'
 
@@ -15,9 +15,7 @@ export default function GuideDocumentPage() {
 
       <main className="max-w-4xl mx-auto px-4 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <Link to="/" className="text-xs text-brand-700 underline">
-            ← 메인으로 돌아가기
-          </Link>
+          <BackLink />
           <a
             href={PDF_PATH}
             target="_blank"
