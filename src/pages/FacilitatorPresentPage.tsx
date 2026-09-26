@@ -41,6 +41,7 @@ export default function FacilitatorPresentPage() {
   const groups = useGroups(code)
   const submissions = useStageSubmissions(code, session?.currentStage)
   const [busy, setBusy] = useState(false)
+  const [hideReentryNote, setHideReentryNote] = useState(false)
   const [now, setNow] = useState(Date.now())
   const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
   const prevFirstBloodRef = useRef<string | null>(null)
@@ -230,6 +231,18 @@ export default function FacilitatorPresentPage() {
             </Link>
           </div>
         </div>
+
+        {session.facilitatorPinHash && !hideReentryNote && (
+          <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed px-3 py-2">
+            <p className="flex-1">
+              🔑 나중에 이 훈련에 다시 들어올 때: 첫 화면 <b>⚙️ 진행자 설정</b> → <b>내가 만든 훈련 들어가기</b>에서 참가
+              코드 <b>{code}</b>와 진행자 비밀번호를 입력하세요.
+            </p>
+            <button type="button" onClick={() => setHideReentryNote(true)} className="shrink-0 text-amber-600 underline">
+              닫기
+            </button>
+          </div>
+        )}
 
         <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
           <p className="text-xs font-bold text-slate-500 mb-2">🧪 테스트 모드 (혼자 전체 흐름 빠르게 점검용 · 실제 연수에서는 사용하지 마세요)</p>
