@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ROLE_LABELS, ROLE_ORDER } from '../types'
+import { ROLE_LABELS, ROLE_ORDER, DEFAULT_TEAM_SIZE, requiredRoleCount } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
-import { createGroup, updateGroupDisease } from '../lib/session'
+import { createGroup, updateGroupDisease, updateGroupTeamSize } from '../lib/session'
 import { DISEASES } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
 
@@ -122,6 +122,27 @@ export default function GroupAssignmentPage() {
                     ))}
                   </select>
                 </div>
+                <label className="flex items-center justify-between gap-2 mb-2 rounded-md bg-paper-50 px-2 py-1.5 text-xs">
+                  <span className="text-slate-500">
+                    조 인원 <span className="text-slate-400">(역할별 최소 1명 = 5명 기본)</span>
+                  </span>
+                  <select
+                    value={g.teamSize ?? DEFAULT_TEAM_SIZE}
+                    onChange={(e) => updateGroupTeamSize(code, g.id, Number(e.target.value))}
+                    className="rounded border border-slate-300 px-1.5 py-1 text-xs font-medium text-slate-700"
+                  >
+                    <option value={5}>5명 이상 (기본)</option>
+                    <option value={4}>4명</option>
+                    <option value={3}>3명</option>
+                    <option value={2}>2명</option>
+                  </select>
+                </label>
+                {(g.teamSize ?? DEFAULT_TEAM_SIZE) < 5 && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 rounded-md px-2 py-1 mb-2">
+                    역할 {requiredRoleCount(g)}개가 채워지면 입장할 수 있어요. 비어 있는 역할의 릴레이 차례는 조원 누구나 대신
+                    진행해요.
+                  </p>
+                )}
                 <div className="space-y-1.5">
                   {ROLE_ORDER.map((role) => {
                     const members = g.members[role] ?? []

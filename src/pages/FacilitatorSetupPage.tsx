@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { SchoolLevel } from '../types'
 import { DISEASES, getDiseaseById } from '../data/diseases'
 import { createSession, createTestSession, updateSession } from '../lib/session'
-import { saveParticipantIdentity } from '../lib/participant'
 import { hashFacilitatorPin, markFacilitatorUnlocked } from '../lib/facilitatorAuth'
 import OrgChartEditor from '../components/OrgChartEditor'
 
@@ -29,8 +28,7 @@ export default function FacilitatorSetupPage() {
     setTestLoading(true)
     setTestError(null)
     try {
-      const { code: testCode, groupId, role } = await createTestSession()
-      saveParticipantIdentity({ sessionCode: testCode, groupId, role, name: '테스트 참가자(나)' })
+      const { code: testCode } = await createTestSession()
       navigate(`/facilitator/${testCode}/present`)
     } catch (e) {
       console.error(e)

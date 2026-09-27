@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { RoleId } from '../types'
-import { ROLE_CAPACITY, ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
+import { requiredRoleCount, ROLE_CAPACITY, ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
 import { getDiseaseById } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
@@ -23,7 +23,7 @@ export default function JoinPage() {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [claiming, setClaiming] = useState(false)
-  const [showOrgChart, setShowOrgChart] = useState(false)
+  const [showOrgChart, setShowOrgChart] = useState(true)
   const [slowLoad, setSlowLoad] = useState(false)
 
   const { session, loading } = useSession(confirmedCode || undefined)
@@ -59,7 +59,8 @@ export default function JoinPage() {
 
   const selectedGroup = groups.find((g) => g.id === groupId)
   const filledRoles = selectedGroup ? ROLE_ORDER.filter((r) => (selectedGroup.members[r]?.length ?? 0) > 0) : []
-  const allFilled = !!selectedGroup && filledRoles.length === ROLE_ORDER.length
+  const requiredCount = selectedGroup ? requiredRoleCount(selectedGroup) : ROLE_ORDER.length
+  const allFilled = !!selectedGroup && filledRoles.length >= requiredCount
 
   function handleCheckCode() {
     if (code.trim().length < 4) {
@@ -358,8 +359,13 @@ export default function JoinPage() {
                 <p className="text-sm font-bold text-slate-700">
                   {allFilled
                     ? `🎉 ${selectedGroup.name} 역할 편성이 모두 완료되었습니다!`
-                    : `전체 역할이 골고루 편성되는 중입니다. (${filledRoles.length}/${ROLE_ORDER.length}개 역할 완료)`}
+                    : `전체 역할이 골고루 편성되는 중입니다. (${filledRoles.length}/${requiredCount}개 역할 완료)`}
                 </p>
+                {requiredCount < ROLE_ORDER.length && (
+                  <p className="text-xs text-amber-700">
+                    이 조는 {requiredCount}명으로 진행해요. 비어 있는 역할의 릴레이 차례는 조원 누구나 대신 진행할 수 있어요.
+                  </p>
+                )}
                 <button
                   type="button"
                   onClick={handleStart}

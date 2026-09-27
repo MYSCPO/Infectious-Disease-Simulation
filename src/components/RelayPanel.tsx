@@ -39,7 +39,10 @@ export default function RelayPanel({
   const sttSupported = isSpeechRecognitionSupported()
   const currentRole = relay && relay.turnIndex < ROLE_ORDER.length ? ROLE_ORDER[relay.turnIndex] : null
   const isMyTurn = !!currentRole && myRole === currentRole
-  const canAct = isMyTurn || (isTestSession && testOverride)
+  const roleIsEmpty = (r: RoleId) => (group.members[r]?.length ?? 0) === 0
+  // 소규모 조에서 담당자가 없는 역할은 조원 누구나 대신 읽는다.
+  const coveringEmptyRole = !!currentRole && !!myRole && roleIsEmpty(currentRole)
+  const canAct = isMyTurn || coveringEmptyRole || (isTestSession && testOverride)
 
   // 차례가 바뀌거나 화면을 벗어나면 혹시 남아있는 인식을 정리한다(진행 자체는 항상 완료
   // 버튼으로만 이루어지므로, 여기서는 자원 정리 목적일 뿐 결과를 기다리지 않는다).
@@ -140,7 +143,12 @@ export default function RelayPanel({
               <MascotAvatar role={currentRole} size="lg" motion="idle" />
             </div>
             <p className="text-xs font-bold text-brand-600">
-              🎤 {isMyTurn ? '지금 당신 차례예요!' : `🧪 테스트로 ${ROLE_LABELS[currentRole]} 차례를 진행해요`} 아래
+              🎤 {isMyTurn
+                ? '지금 당신 차례예요!'
+                : coveringEmptyRole
+                  ? `${ROLE_LABELS[currentRole]} 담당자가 없어 조원 누구나 대신 진행할 수 있어요!`
+                  : `🧪 테스트로 ${ROLE_LABELS[currentRole]} 차례를 진행해요`}{' '}
+              아래
               조치사항을 순서대로 소리 내어 읽어주세요
             </p>
             <ul className="text-left text-sm font-semibold text-slate-800 leading-relaxed space-y-1.5 bg-paper-50 rounded-xl p-3">
@@ -215,7 +223,8 @@ export default function RelayPanel({
 
   const quiz = getRelayFinalQuiz(group.diseaseId)
   const finalQuiz = relay.finalQuiz
-  const canAnswerQuiz = myRole === 'principal' || (isTestSession && testOverride)
+  const canAnswerQuiz =
+    myRole === 'principal' || (!!myRole && roleIsEmpty('principal')) || (isTestSession && testOverride)
 
   return (
     <div className="space-y-4">

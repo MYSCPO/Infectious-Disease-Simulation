@@ -288,12 +288,27 @@ export default function FacilitatorPresentPage() {
             >
               ⚡ 현재 단계 전체 자동 제출
             </button>
-            {myIdentityHere && (
+            {myIdentityHere ? (
+              <>
+                <Link
+                  to={`/team/${code}/${myIdentityHere.groupId}`}
+                  className="rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
+                >
+                  👤 내 참가자 화면 보기
+                </Link>
+                <Link
+                  to={`/join/${code}`}
+                  className="rounded-full bg-white border border-brand-300 text-brand-700 text-xs font-bold px-3 py-2 hover:bg-brand-50"
+                >
+                  🚪 참가자 입장 화면부터 보기
+                </Link>
+              </>
+            ) : (
               <Link
-                to={`/team/${code}/${myIdentityHere.groupId}`}
+                to={`/join/${code}`}
                 className="rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
               >
-                👤 내 참가자 화면 보기
+                🚪 참가자 입장 화면부터 보기
               </Link>
             )}
           </div>

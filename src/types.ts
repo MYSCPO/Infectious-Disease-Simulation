@@ -216,7 +216,15 @@ export interface GroupDoc {
   quizAnswer: GroupQuizAnswer | null // 스피드 퀴즈: 조 대표 답
   coopProgress: GroupCoopProgress | null // 협동 미션: 조원별 개별 응답 현황
   relay: GroupRelayState | null // 대응3단계 릴레이 낭독 + 최종 의사결정 퀴즈 진행 상태
+  teamSize?: number // 진행자가 정한 조 인원(없으면 기본 5명 = 역할별 최소 1명). 소규모 학교는 줄일 수 있다.
   createdAt: number
+}
+
+export const DEFAULT_TEAM_SIZE = 5
+
+// 조원들이 훈련에 입장하려면 채워져야 하는 역할 수. 조 인원이 5명보다 적으면 그만큼만 채우면 된다.
+export function requiredRoleCount(group: Pick<GroupDoc, 'teamSize'>): number {
+  return Math.min(group.teamSize ?? DEFAULT_TEAM_SIZE, 5)
 }
 
 export interface SubmissionAnswer {

@@ -384,6 +384,11 @@ export async function createGroup(code: string, name: string, diseaseId: string)
   return ref.id
 }
 
+export async function updateGroupTeamSize(code: string, groupId: string, teamSize: number) {
+  await ensureSignedIn()
+  await updateDoc(groupRef(code, groupId), { teamSize })
+}
+
 export async function updateGroupDisease(code: string, groupId: string, diseaseId: string) {
   await ensureSignedIn()
   await updateDoc(groupRef(code, groupId), { diseaseId })
@@ -483,7 +488,7 @@ export async function submitGroupAnswer(
 // 개발/점검용: 메인화면 "1인 모의훈련 테스트 모드"에서 진행자 세팅부터 조 편성까지 한 번에
 // 자동으로 만들어 혼자서도 바로 전체 흐름을 체험할 수 있게 한다. 1조의 발생감시팀 한 자리만
 // 실제 테스터 본인 몫으로 남겨 직접 답을 고르고 제출해볼 수 있고, 나머지는 모두 테스트봇이 채운다.
-export async function createTestSession(): Promise<{ code: string; groupId: string; role: RoleId }> {
+export async function createTestSession(): Promise<{ code: string }> {
   const code = await createSession({
     schoolName: '테스트 학교(1인 체험)',
     schoolLevel: '고등학교',
@@ -497,16 +502,12 @@ export async function createTestSession(): Promise<{ code: string; groupId: stri
     groupIds.push(gid)
   }
 
-  const myGroupId = groupIds[0]
-  const myRole: RoleId = 'surveillance'
-  await claimRole(code, myGroupId, myRole, '테스트 참가자(나)')
-
+  // "나"는 참가자 입장 화면에서 직접 이름·조·역할을 골라 들어온다(실제 참가자 흐름 그대로 체험).
   for (const gid of groupIds) {
     for (const role of ROLE_ORDER) {
-      if (gid === myGroupId && role === myRole) continue
       await claimRole(code, gid, role, `테스트봇(${ROLE_LABELS[role]})`)
     }
   }
 
-  return { code, groupId: myGroupId, role: myRole }
+  return { code }
 }
