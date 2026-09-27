@@ -1,15 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { RoleId } from '../types'
-import { ROLE_LABELS } from '../types'
-import { ROLE_MASCOTS } from '../data/mascots'
-import MascotAvatar from '../components/MascotAvatar'
+import RoleShowcase from '../components/RoleShowcase'
 import ReferenceGrid from '../components/ReferenceGrid'
 import SiteFooter from '../components/SiteFooter'
 import { getSessionOnce } from '../lib/session'
 import { hashFacilitatorPin, markFacilitatorUnlocked } from '../lib/facilitatorAuth'
-
-const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
 // 모든 학교가 함께 쓰는 공개 비밀번호라 화면에 그대로 안내한다. 학교별 훈련 보호는 훈련마다 정하는 진행자 비밀번호가 맡는다.
 const FACILITATOR_PASSWORD = 'admin1234'
@@ -131,44 +126,7 @@ export default function MainPage() {
             <p className="text-xs text-teal-200/80 font-medium mb-3">
               우리 학교를 지키는 5가지 핵심 대응 역할
             </p>
-            {/* 폰에서는 카드가 여러 줄로 쌓여 참가 코드 입력 칸이 밀려나므로 얼굴·이름만 한 줄로 보여준다 */}
-            <div className="grid grid-cols-5 gap-1 sm:hidden">
-              {TEAM_ROLES.map((r) => (
-                <div key={r} className="flex flex-col items-center gap-1">
-                  <div className="bg-white/15 rounded-full p-0.5 border border-white/20">
-                    <MascotAvatar role={r} size="sm" motion="idle" />
-                  </div>
-                  <span className="text-[10px] font-bold text-white leading-tight">{ROLE_MASCOTS[r].name}</span>
-                  <span className="text-[9px] text-teal-200/90 leading-tight whitespace-nowrap -mt-0.5">
-                    {ROLE_LABELS[r].split('(')[0]}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-4xl mx-auto">
-              {TEAM_ROLES.map((r) => {
-                const mascot = ROLE_MASCOTS[r]
-                const roleLabel = ROLE_LABELS[r]
-                return (
-                  <div
-                    key={r}
-                    className="group bg-white/10 hover:bg-white/15 border border-white/15 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 flex items-center gap-2.5 text-left transition-all duration-200 shadow-sm hover:-translate-y-0.5"
-                  >
-                    <div className="shrink-0 bg-white/15 rounded-full p-0.5 border border-white/20">
-                      <MascotAvatar role={r} size="sm" motion="idle" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="block text-xs sm:text-sm font-bold text-white leading-tight truncate">
-                        {mascot.name}
-                      </span>
-                      <span className="block text-[11px] text-teal-200/90 leading-tight truncate">
-                        {roleLabel.split('(')[0]}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <RoleShowcase />
           </div>
         </div>
       </header>

@@ -15,27 +15,28 @@ export const ROLE_LABELS: Record<RoleId, string> = {
   principal: '관리자(교장·교감)',
 }
 
-// 참가자가 역할을 고를 때 "무슨 일을 하는지 / 보통 누가 맡는지" 감을 잡도록 안내하는 설명
+// 참가자가 역할을 고를 때 "무슨 일을 하는지 / 누가 맡는지" 감을 잡도록 안내하는 설명.
+// example(구성)은 매뉴얼의 학생감염병관리조직 팀별 구성원 기준이며, 학교마다 조금씩 다를 수 있다.
 export const ROLE_DESCRIPTIONS: Record<RoleId, { summary: string; example: string }> = {
   surveillance: {
     summary: '학생의 이상 증상을 가장 먼저 발견해 보건교사에게 알리고, 확산 시 능동감시(추가 환자 파악)를 담당해요.',
-    example: '예: 생활안전부장, 담임교사, 학년부장 등',
+    example: '구성: 생활지도 담당 부장급 교사(총괄), 학년부장, 담임교사, 교과담당교사, 보건(담당)교사',
   },
   health: {
     summary: '감염병 여부를 확인하고 격리·진료를 안내하며, 보건소·교육청 신고와 예방교육을 담당해요.',
-    example: '예: 보건교사',
+    example: '구성: 보건(담당)교사(총괄), 담임교사',
   },
   academic: {
     summary: '수업 결손 대책을 마련하고 등교중지 학생의 출결 처리, 학사 일정 조정을 담당해요.',
-    example: '예: 교무부장',
+    example: '구성: 교무부장(총괄), 교육과정부장, 담임교사',
   },
   admin: {
     summary: '방역물품 구매, 시설 소독, 예산 등 행정 지원을 담당해요.',
-    example: '예: 행정실장',
+    example: '구성: 행정실장(총괄), 행정실 직원',
   },
   principal: {
     summary: '보고를 받아 등교중지·휴업 등 최종 의사결정을 내리고 대외 보고를 담당해요.',
-    example: '예: 교장 또는 교감',
+    example: '구성: 교장, 교감',
   },
 }
 

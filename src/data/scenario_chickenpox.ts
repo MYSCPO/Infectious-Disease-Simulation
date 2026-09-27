@@ -7,7 +7,7 @@ export const SCENARIO_CHICKENPOX: ScenarioStage[] = [
     stage: 'prevention',
     title: '평상시 준비',
     narrative:
-      '새 학기가 시작되었다. 아직 감염병 유행 징후는 없지만, 학교는 평상시 감시체계와 예방 활동을 점검해야 한다.',
+      '봄 학기가 시작되며, 학교는 수두가 봄철(4~6월)에 집중 유행하고 잠복기가 10~21일로 길어 증상이 나타나기 전에도 전파될 수 있다는 점을 고려해, 예방접종력이 없는 학생을 미리 파악하고 수포성 발진 학생을 즉시 격리할 일시적 관찰실을 점검하고 있다.',
     questions: [
       {
         role: 'surveillance',
