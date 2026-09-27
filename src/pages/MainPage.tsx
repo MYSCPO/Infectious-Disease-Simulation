@@ -127,11 +127,22 @@ export default function MainPage() {
           </p>
 
           {/* 역할별 캐릭터 미니 프로필 카드/칩 영역 */}
-          <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="mt-5 pt-4 sm:mt-8 sm:pt-6 border-t border-white/10">
             <p className="text-xs text-teal-200/80 font-medium mb-3">
               우리 학교를 지키는 5가지 핵심 대응 역할
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 max-w-4xl mx-auto">
+            {/* 폰에서는 카드가 여러 줄로 쌓여 참가 코드 입력 칸이 밀려나므로 얼굴·이름만 한 줄로 보여준다 */}
+            <div className="grid grid-cols-5 gap-1 sm:hidden">
+              {TEAM_ROLES.map((r) => (
+                <div key={r} className="flex flex-col items-center gap-1">
+                  <div className="bg-white/15 rounded-full p-0.5 border border-white/20">
+                    <MascotAvatar role={r} size="sm" motion="idle" />
+                  </div>
+                  <span className="text-[10px] font-bold text-white leading-tight">{ROLE_MASCOTS[r].name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-4xl mx-auto">
               {TEAM_ROLES.map((r) => {
                 const mascot = ROLE_MASCOTS[r]
                 const roleLabel = ROLE_LABELS[r]
