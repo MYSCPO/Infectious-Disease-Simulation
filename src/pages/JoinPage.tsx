@@ -116,26 +116,39 @@ export default function JoinPage() {
   }
 
   const codeEntryForm = (
-    <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-      <label className="block">
-        <span className="text-sm font-medium text-slate-700">참가 코드</span>
+    <section className="bg-white rounded-3xl border border-brand-100 shadow-[0_15px_35px_rgba(13,148,136,0.12),0_5px_15px_rgba(15,23,42,0.06)] p-6 sm:p-7 space-y-4">
+      <div className="text-center">
+        <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-2xl mx-auto mb-2 shadow-inner">
+          🔑
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">참가 코드 확인</h2>
+        <p className="text-xs text-slate-500 mt-1">진행자에게 부여받은 4~8자리 코드를 입력해 주세요.</p>
+      </div>
+      <div>
         <input
           value={code}
           onChange={(e) => {
             setCode(e.target.value.toUpperCase())
             setError(null)
           }}
-          placeholder="예: AB3CD"
-          className="mt-1 w-full text-center tracking-widest text-lg rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          placeholder="참가 코드 (예: AB3CD)"
+          maxLength={8}
+          autoComplete="off"
+          autoCapitalize="characters"
+          className="w-full text-center tracking-[0.3em] text-xl sm:text-2xl font-black text-slate-900 placeholder:text-slate-300 placeholder:tracking-normal placeholder:font-normal placeholder:text-sm rounded-2xl border-2 border-slate-200 bg-slate-50/70 focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 py-3.5 px-4 outline-none transition-all"
         />
-      </label>
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      </div>
+      {error && (
+        <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs sm:text-sm font-semibold text-rose-600 text-center">
+          ⚠️ {error}
+        </div>
+      )}
       <button
         type="button"
         onClick={handleCheckCode}
-        className="w-full rounded-full bg-brand-600 text-white py-2.5 text-sm font-semibold hover:bg-brand-700"
+        className="w-full rounded-2xl bg-gradient-to-r from-teal-600 via-teal-700 to-teal-800 hover:from-teal-500 hover:via-teal-600 hover:to-teal-700 active:scale-[0.99] text-white py-3.5 text-base font-bold shadow-md shadow-teal-700/25 hover:shadow-lg transition-all duration-200"
       >
-        확인
+        확인하고 입장하기 →
       </button>
     </section>
   )

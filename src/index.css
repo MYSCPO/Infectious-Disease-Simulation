@@ -12,11 +12,12 @@ html, body, #root {
 
 body {
   @apply bg-paper-50 text-slate-900 font-sans;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 문단 끝에 한 단어만 어색하게 남는 걸 브라우저가 자동으로 줄여준다(지원 브라우저 한정,
-   미지원이면 기존처럼 자연스럽게 줄바꿈될 뿐이라 안전하다) */
-p {
+/* 문단 끝에 한 단어만 어색하게 남는 걸 브라우저가 자동으로 줄여준다 */
+p, h1, h2, h3, h4 {
   text-wrap: pretty;
 }
 
