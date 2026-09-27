@@ -139,6 +139,9 @@ export default function MainPage() {
                     <MascotAvatar role={r} size="sm" motion="idle" />
                   </div>
                   <span className="text-[10px] font-bold text-white leading-tight">{ROLE_MASCOTS[r].name}</span>
+                  <span className="text-[9px] text-teal-200/90 leading-tight whitespace-nowrap -mt-0.5">
+                    {ROLE_LABELS[r].split('(')[0]}
+                  </span>
                 </div>
               ))}
             </div>
