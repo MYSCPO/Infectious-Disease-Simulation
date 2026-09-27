@@ -147,7 +147,7 @@ export interface ActiveQuiz {
   durationSec: number
   quizType: QuizType
   source: QuizSource
-  firstBloodGroupId: string | null // speed 모드에서 전체 조 중 가장 먼저 정답을 맞힌 조(트랜잭션으로 1회만 선점)
+  firstBloodGroupId: string | null // (더 이상 쓰지 않음) 예전 조 간 속도 경쟁 방식의 흔적. 새 퀴즈는 항상 null
 }
 
 export interface SessionDoc {
@@ -174,6 +174,14 @@ export interface SessionDoc {
 export interface GroupQuizAnswer {
   quizStartedAt: number // 어느 돌발 퀴즈에 대한 응답인지 식별
   correct: boolean
+}
+
+// 스피드 퀴즈: 조원 각자 한 번씩 답하고, 조 안에서 가장 먼저 맞힌 사람이 그 퀴즈의 스피드왕(개인상).
+// 조원 중 누구든 처음 맞히는 순간 조에 +50pt(퀴즈당 1회).
+export interface GroupSpeedProgress {
+  quizStartedAt: number
+  answers: Record<string, boolean> // 참가자 이름 -> 정답 여부(한 번만 제출)
+  winnerName: string | null
 }
 
 export interface GroupCoopProgress {
@@ -212,8 +220,10 @@ export interface GroupDoc {
   diseaseId: string // 이 조가 훈련할 감염병 (조마다 다르게 배정 가능)
   members: Partial<Record<RoleId, string[]>> // roleId -> 참가자 이름 목록(역할당 여러 명 가능)
   score: number // 돌발 퀴즈·릴레이 누적 점수
-  badge: boolean // 보너스를 한 번이라도 받았는지(달성 표시용)
-  quizAnswer: GroupQuizAnswer | null // 스피드 퀴즈: 조 대표 답
+  badge: boolean // 협동 미션을 한 번이라도 전원 정답으로 달성했는지(👑 달성 배지)
+  quizAnswer?: GroupQuizAnswer | null // (예전 방식) 스피드 퀴즈 조 대표 답
+  speedProgress?: GroupSpeedProgress | null // 스피드 퀴즈: 조원별 응답·이번 퀴즈 스피드왕
+  speedWins?: Record<string, number> // 참가자 이름 -> 스피드왕 횟수(결과 화면 개인상)
   coopProgress: GroupCoopProgress | null // 협동 미션: 조원별 개별 응답 현황
   relay: GroupRelayState | null // 대응3단계 릴레이 낭독 + 최종 의사결정 퀴즈 진행 상태
   teamSize?: number // 진행자가 정한 조 인원(없으면 기본 5명 = 역할별 최소 1명). 소규모 학교는 줄일 수 있다.

@@ -33,7 +33,6 @@ import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
-import FirstBloodToast from '../components/FirstBloodToast'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
 const RELAY_STAGE = 'response3'
@@ -48,8 +47,6 @@ export default function FacilitatorPresentPage() {
   const [hideReentryNote, setHideReentryNote] = useState(false)
   const readingRemaining = useReadingRemaining(session?.readingStartedAt)
   const [now, setNow] = useState(Date.now())
-  const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
-  const prevFirstBloodRef = useRef<string | null>(null)
   const savedIdentity = loadParticipantIdentity()
   const myIdentityHere = savedIdentity && savedIdentity.sessionCode === code ? savedIdentity : null
 
@@ -57,14 +54,6 @@ export default function FacilitatorPresentPage() {
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [])
-
-  useEffect(() => {
-    const current = session?.activeQuiz?.firstBloodGroupId ?? null
-    if (current && current !== prevFirstBloodRef.current) {
-      setFirstBloodToastGroupId(current)
-    }
-    prevFirstBloodRef.current = current
-  }, [session?.activeQuiz?.firstBloodGroupId])
 
   // 진행자가 매번 수동으로 챙기지 않아도, 단계 진입 후 일정 시간이 지나면 그 단계에 맞는
   // 돌발 퀴즈가 자동으로 나가도록 한다. 참가자 화면(TeamTrainingPage)도 동일한 훅을 쓰고
@@ -588,12 +577,6 @@ export default function FacilitatorPresentPage() {
         })}
       </div>
 
-      {firstBloodToastGroupId && (
-        <FirstBloodToast
-          groupName={groups.find((g) => g.id === firstBloodToastGroupId)?.name ?? '어느 조'}
-          onClose={() => setFirstBloodToastGroupId(null)}
-        />
-      )}
     </div>
   )
 }

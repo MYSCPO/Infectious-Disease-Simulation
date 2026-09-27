@@ -196,41 +196,40 @@ export async function endWildcardQuiz(code: string) {
   await updateSession(code, { activeQuiz: null })
 }
 
-// 스피드 퀴즈: 조 대표 답을 기록하고, 정답이면 세션 문서 트랜잭션으로 이 퀴즈의
-// firstBloodGroupId가 비어있을 때만 이 조로 선점(전체 조 중 가장 먼저 맞힌 조만 보너스).
+// 스피드 퀴즈: 조원 각자 한 번씩 답한다. 조 문서 트랜잭션으로 이 퀴즈에서 아직 스피드왕이 없을 때
+// 처음 맞힌 사람을 스피드왕(개인상)으로 정하고 조에 +50pt를 준다. 조마다 감염병·난이도가 달라
+// 다른 조와 속도를 겨루지 않고, 같은 문제를 푼 조원끼리만 겨룬다.
 export async function submitSpeedQuizAnswer(
   code: string,
   groupId: string,
   quizStartedAt: number,
+  memberName: string,
   correct: boolean,
-): Promise<boolean> {
+) {
   await ensureSignedIn()
-  await updateDoc(groupRef(code, groupId), { quizAnswer: { quizStartedAt, correct } })
+  const gRef = groupRef(code, groupId)
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(gRef)
+    const group = snap.data() as GroupDoc | undefined
+    if (!group) return
 
-  if (!correct) return false
+    const prev = group.speedProgress?.quizStartedAt === quizStartedAt ? group.speedProgress : null
+    if (prev && memberName in prev.answers) return
 
-  const sRef = sessionRef(code)
-  const wonFirstBlood = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(sRef)
-    const session = snap.data() as SessionDoc | undefined
-    const activeQuiz = session?.activeQuiz
-    if (!activeQuiz || activeQuiz.startedAt !== quizStartedAt) return false
-    if (activeQuiz.firstBloodGroupId != null) return false
-    tx.update(sRef, { 'activeQuiz.firstBloodGroupId': groupId, updatedAt: serverTimestamp() })
-    return true
-  })
+    const answers = { ...(prev?.answers ?? {}), [memberName]: correct }
+    const becomesWinner = correct && !prev?.winnerName
+    const winnerName = becomesWinner ? memberName : (prev?.winnerName ?? null)
 
-  if (wonFirstBlood) {
-    const gRef = groupRef(code, groupId)
-    await runTransaction(db, async (tx) => {
-      const snap = await tx.get(gRef)
-      const group = snap.data() as GroupDoc | undefined
-      const currentScore = group?.score ?? 0
-      tx.update(gRef, { score: currentScore + 50, badge: true })
+    tx.update(gRef, {
+      speedProgress: { quizStartedAt, answers, winnerName },
+      ...(becomesWinner
+        ? {
+            score: (group.score ?? 0) + 50,
+            speedWins: { ...(group.speedWins ?? {}), [memberName]: (group.speedWins?.[memberName] ?? 0) + 1 },
+          }
+        : {}),
     })
-  }
-
-  return wonFirstBlood
+  })
 }
 
 // 협동 미션: 조 문서 트랜잭션으로 조원별 응답을 기록하고, 조에 등록된 전체 인원(중복 제거)이
@@ -321,7 +320,7 @@ export async function submitRelayTurn(
         finishedAt,
         timeBonusAwarded: relay.timeBonusAwarded || withinTime,
       },
-      ...(scoreDelta > 0 ? { score: (group.score ?? 0) + scoreDelta, badge: true } : {}),
+      ...(scoreDelta > 0 ? { score: (group.score ?? 0) + scoreDelta } : {}),
     })
     return 'ok'
   })
@@ -348,7 +347,7 @@ export async function submitRelayFinalQuiz(
         ...relay,
         finalQuiz: { answered: true, optionId, correct, awarded: correct },
       },
-      ...(correct ? { score: (group.score ?? 0) + 100, badge: true } : {}),
+      ...(correct ? { score: (group.score ?? 0) + 100 } : {}),
     })
     return 'ok'
   })
@@ -375,7 +374,8 @@ export async function createGroup(code: string, name: string, diseaseId: string)
     members: {},
     score: 0,
     badge: false,
-    quizAnswer: null,
+    speedProgress: null,
+    speedWins: {},
     coopProgress: null,
     relay: null,
     createdAt: Date.now(),

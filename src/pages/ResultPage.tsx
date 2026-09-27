@@ -23,6 +23,10 @@ export default function ResultPage() {
     return acc
   }, {})
   const badgedGroups = groups.filter((g) => g.badge)
+  const speedKings = groups
+    .flatMap((g) => Object.entries(g.speedWins ?? {}).map(([name, count]) => ({ name, count, groupName: g.name })))
+    .filter((k) => k.count > 0)
+    .sort((a, b) => b.count - a.count)
 
   return (
     <div className="min-h-screen bg-paper-50 flex flex-col">
@@ -58,7 +62,7 @@ export default function ResultPage() {
 
         {badgedGroups.length > 0 && (
           <section className="bg-white rounded-2xl border border-amber-200 p-5 space-y-2">
-            <h2 className="font-semibold text-slate-800 mb-1">👑 돌발 퀴즈 달성 배지</h2>
+            <h2 className="font-semibold text-slate-800 mb-1">👑 협동 미션 달성 배지</h2>
             <div className="flex flex-wrap gap-2">
               {badgedGroups.map((g) => (
                 <span key={g.id} className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold rounded-full px-3 py-1.5">
@@ -66,7 +70,24 @@ export default function ResultPage() {
                 </span>
               ))}
             </div>
-            <p className="text-xs text-slate-400">돌발 퀴즈에서 보너스 점수를 획득한 조에게 주는 달성 기념 배지예요.</p>
+            <p className="text-xs text-slate-400">협동 미션에서 조원 전원이 정답을 맞힌 조에게 주는 달성 기념 배지예요.</p>
+          </section>
+        )}
+
+        {speedKings.length > 0 && (
+          <section className="bg-white rounded-2xl border border-amber-200 p-5 space-y-2">
+            <h2 className="font-semibold text-slate-800 mb-1">⚡ 스피드 퀴즈 개인상</h2>
+            <ul className="space-y-1.5">
+              {speedKings.map((k) => (
+                <li key={`${k.groupName}-${k.name}`} className="flex items-center justify-between text-sm">
+                  <span className="font-semibold text-slate-700">
+                    {k.name} <span className="text-xs font-normal text-slate-400">· {k.groupName}</span>
+                  </span>
+                  <span className="text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-2.5 py-1">스피드왕 {k.count}회</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-slate-400">스피드 퀴즈에서 조원 중 가장 먼저 정답을 맞힌 선생님께 드리는 개인상이에요.</p>
           </section>
         )}
 

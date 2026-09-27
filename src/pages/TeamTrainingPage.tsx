@@ -20,7 +20,6 @@ import WildcardModal from '../components/WildcardModal'
 import WildcardQuizModal from '../components/WildcardQuizModal'
 import DiseaseManualModal from '../components/DiseaseManualModal'
 import LeaderboardPopup from '../components/LeaderboardPopup'
-import FirstBloodToast from '../components/FirstBloodToast'
 import ScoreToast from '../components/ScoreToast'
 import RelayPanel from '../components/RelayPanel'
 import MascotAvatar from '../components/MascotAvatar'
@@ -49,10 +48,9 @@ export default function TeamTrainingPage() {
   const [showManual, setShowManual] = useState(false)
   const [showLeaderboardPopup, setShowLeaderboardPopup] = useState(false)
   const [quizDismissedAt, setQuizDismissedAt] = useState<number | null>(null)
-  const [firstBloodToastGroupId, setFirstBloodToastGroupId] = useState<string | null>(null)
   const [scoreToast, setScoreToast] = useState<{ message: string; color: 'amber' | 'emerald' | 'violet' } | null>(null)
   const prevStageRef = useRef<string | null>(null)
-  const prevFirstBloodRef = useRef<string | null>(null)
+  const prevSpeedWinnerRef = useRef<string | null | undefined>(undefined)
   const prevRelayRef = useRef<{ turnCount: number; finished: boolean; quizAnswered: boolean } | null>(null)
   const manualAutoOpenedRef = useRef(false)
   const awaitingStart = session ? isAwaitingTrainingStart(session) : false
@@ -94,13 +92,16 @@ export default function TeamTrainingPage() {
     prevStageRef.current = session.currentStage
   }, [session?.currentStage])
 
+  // 우리 조 스피드왕이 정해지는 순간 조원 모두에게 알린다.
+  const speedWinnerKey = group?.speedProgress?.winnerName
+    ? `${group.speedProgress.quizStartedAt}:${group.speedProgress.winnerName}`
+    : null
   useEffect(() => {
-    const current = session?.activeQuiz?.firstBloodGroupId ?? null
-    if (current && current !== prevFirstBloodRef.current) {
-      setFirstBloodToastGroupId(current)
+    if (prevSpeedWinnerRef.current !== undefined && speedWinnerKey && speedWinnerKey !== prevSpeedWinnerRef.current && group?.speedProgress?.winnerName) {
+      setScoreToast({ message: `⚡ ${group.speedProgress.winnerName} 선생님이 우리 조 스피드왕! (+50pt)`, color: 'amber' })
     }
-    prevFirstBloodRef.current = current
-  }, [session?.activeQuiz?.firstBloodGroupId])
+    if (group) prevSpeedWinnerRef.current = speedWinnerKey
+  }, [speedWinnerKey, !!group])
 
   useEffect(() => {
     const relay = group?.relay
@@ -150,10 +151,6 @@ export default function TeamTrainingPage() {
         ? getCommonWildcardQuiz(session.activeQuiz.startedAt)
         : getWildcardQuiz(group.diseaseId, session.activeQuiz.startedAt)
       : null
-  const quizAnsweredForActive =
-    group?.quizAnswer && session.activeQuiz && group.quizAnswer.quizStartedAt === session.activeQuiz.startedAt
-      ? group.quizAnswer
-      : null
   const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
   const isRelayStage = session.currentStage === RELAY_STAGE
   const memberNames = group ? [...new Set(Object.values(group.members).flatMap((names) => names ?? []))] : []
@@ -198,7 +195,7 @@ export default function TeamTrainingPage() {
                   {getDiseaseById(group.diseaseId).name}
                 </span>
               )}
-              {group?.badge && <span className="text-lg" title="돌발 퀴즈 달성 배지">👑</span>}
+              {group?.badge && <span className="text-lg" title="협동 미션 달성 배지">👑</span>}
               {group && (
                 <span className="text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
                   내 조 점수: {group.score ?? 0}pt
@@ -369,6 +366,7 @@ export default function TeamTrainingPage() {
         group &&
         quiz &&
         session.activeQuiz.quizType === 'speed' &&
+        identity &&
         quizDismissedAt !== session.activeQuiz.startedAt && (
           <WildcardQuizModal
             quiz={quiz}
@@ -378,14 +376,11 @@ export default function TeamTrainingPage() {
             durationSec={session.activeQuiz.durationSec}
             quizType="speed"
             isCommon={session.activeQuiz.source === 'common'}
-            alreadyAnswered={quizAnsweredForActive}
-            isFirstBlood={session.activeQuiz.firstBloodGroupId === group.id}
-            firstBloodGroupName={
-              session.activeQuiz.firstBloodGroupId
-                ? (groups.find((g) => g.id === session.activeQuiz!.firstBloodGroupId)?.name ?? null)
-                : null
+            myName={identity.name}
+            speedProgress={group.speedProgress ?? null}
+            onSubmit={(correct) =>
+              submitSpeedQuizAnswer(code, groupId, session.activeQuiz!.startedAt, identity.name, correct)
             }
-            onSubmit={(correct) => submitSpeedQuizAnswer(code, groupId, session.activeQuiz!.startedAt, correct)}
             onClose={() => setQuizDismissedAt(session.activeQuiz!.startedAt)}
           />
         )}
@@ -413,13 +408,6 @@ export default function TeamTrainingPage() {
             onClose={() => setQuizDismissedAt(session.activeQuiz!.startedAt)}
           />
         )}
-
-      {firstBloodToastGroupId && (
-        <FirstBloodToast
-          groupName={groups.find((g) => g.id === firstBloodToastGroupId)?.name ?? '어느 조'}
-          onClose={() => setFirstBloodToastGroupId(null)}
-        />
-      )}
 
       {scoreToast && (
         <ScoreToast message={scoreToast.message} color={scoreToast.color} onClose={() => setScoreToast(null)} />

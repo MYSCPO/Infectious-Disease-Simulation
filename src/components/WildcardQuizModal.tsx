@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { DiseaseInfo, GroupCoopProgress, GroupQuizAnswer, RoleId } from '../types'
+import type { DiseaseInfo, GroupCoopProgress, GroupSpeedProgress, RoleId } from '../types'
 import type { WildcardQuizQuestion } from '../data/wildcardQuiz'
 import DiseaseManualModal from './DiseaseManualModal'
 
@@ -7,9 +7,8 @@ const RESULT_AUTO_CLOSE_MS = 3000
 
 interface SpeedProps {
   quizType: 'speed'
-  alreadyAnswered: GroupQuizAnswer | null
-  isFirstBlood: boolean
-  firstBloodGroupName: string | null
+  myName: string
+  speedProgress: GroupSpeedProgress | null
   onSubmit: (correct: boolean) => void
   onClose: () => void
 }
@@ -57,8 +56,9 @@ export default function WildcardQuizModal({
   const correctText = quiz.options.find((o) => o.correct)?.text
 
   const isSpeed = mode.quizType === 'speed'
+  const speedNow = isSpeed && mode.speedProgress?.quizStartedAt === startedAt ? mode.speedProgress : null
   const myAnswered = isSpeed
-    ? mode.alreadyAnswered !== null
+    ? !!speedNow && mode.myName in speedNow.answers
     : mode.coopProgress?.quizStartedAt === startedAt && mode.myName in (mode.coopProgress?.answers ?? {})
 
   const coopAnswers = !isSpeed && mode.coopProgress?.quizStartedAt === startedAt ? mode.coopProgress.answers : {}
@@ -113,21 +113,22 @@ export default function WildcardQuizModal({
 
   let resultBody: React.ReactNode | null = null
 
-  if (isSpeed && myAnswered) {
-    const correct = mode.alreadyAnswered!.correct
+  if (isSpeed && myAnswered && speedNow) {
+    const correct = speedNow.answers[mode.myName]
+    const winner = speedNow.winnerName
     resultBody = correct ? (
-      mode.isFirstBlood ? (
+      winner === mode.myName ? (
         <div className="py-4">
           <div className="text-5xl mb-3">🏆</div>
-          <h3 className="text-xl font-black text-amber-600 mb-1">⚡ 스피드 보너스 +50pt</h3>
-          <p className="text-sm text-slate-500">우리 조가 전체에서 가장 먼저 맞혔어요!</p>
+          <h3 className="text-xl font-black text-amber-600 mb-1">⚡ 우리 조 스피드왕!</h3>
+          <p className="text-sm text-slate-500">조원 중 가장 먼저 맞혔어요. 우리 조 +50pt!</p>
         </div>
       ) : (
         <div className="py-4">
           <div className="text-5xl mb-3">✅</div>
           <h3 className="text-xl font-black text-emerald-600 mb-1">정답이에요!</h3>
           <p className="text-sm text-slate-500">
-            {mode.firstBloodGroupName ? `아쉽지만 ${mode.firstBloodGroupName}가 한발 더 빨랐어요.` : '아쉽지만 다른 조가 한발 더 빨랐어요.'}
+            {winner ? `${winner} 선생님이 한발 더 빨랐어요. (우리 조 +50pt)` : '우리 조 +50pt!'}
           </p>
         </div>
       )
@@ -136,6 +137,7 @@ export default function WildcardQuizModal({
         <div className="text-5xl mb-3">🙂</div>
         <h3 className="text-lg font-bold text-slate-700 mb-1">아쉬워요, 다음 기회에!</h3>
         <p className="text-sm text-slate-500">정답: {correctText}</p>
+        {winner && <p className="text-xs text-slate-400 mt-1">우리 조 스피드왕: {winner} 선생님 (+50pt)</p>}
       </div>
     )
   } else if (!isSpeed && coopEveryoneAnswered) {
@@ -240,7 +242,7 @@ export default function WildcardQuizModal({
               )}
               <p className="text-xs text-slate-400 mt-3">
                 {isSpeed
-                  ? '우리 조에서 누구든 먼저 답을 고르면 바로 제출돼요. 전체에서 가장 빠른 조가 보너스를 받아요.'
+                  ? '조원 각자 한 번만 답할 수 있어요. 우리 조에서 가장 먼저 맞힌 사람이 스피드왕이 되고, 조에 +50pt!'
                   : '조원 각자 답을 골라요. 틀려도 시간 안에 다시 도전할 수 있어요 — 전원이 정답을 맞혀야 보너스를 받아요.'}
               </p>
             </>
