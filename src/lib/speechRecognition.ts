@@ -70,6 +70,15 @@ export function startContinuousRecognition(): RecognitionController | null {
     // 완료 버튼으로만 진행하므로 별도 에러 처리 없이 무시한다.
   }
 
+  // 안드로이드 크롬 등은 잠시 조용하면 인식을 스스로 끝내 버린다. 그 뒤 stop()에서 onend를 기다리면
+  // 영원히 오지 않아 "처리 중"에 멈추므로, 이미 끝났으면 바로, 아니면 최대 1.5초만 기다린다.
+  let ended = false
+  let onEnded: (() => void) | null = null
+  recognition.onend = () => {
+    ended = true
+    onEnded?.()
+  }
+
   try {
     recognition.start()
   } catch {
@@ -80,15 +89,21 @@ export function startContinuousRecognition(): RecognitionController | null {
   return {
     stop: () =>
       new Promise((resolve) => {
-        if (stopped) {
+        if (stopped || ended) {
+          stopped = true
           resolve(transcript)
           return
         }
         stopped = true
-        recognition.onend = () => resolve(transcript)
+        const timer = window.setTimeout(() => resolve(transcript), 1500)
+        onEnded = () => {
+          window.clearTimeout(timer)
+          resolve(transcript)
+        }
         try {
           recognition.stop()
         } catch {
+          window.clearTimeout(timer)
           resolve(transcript)
         }
       }),

@@ -135,6 +135,7 @@ export default function GroupAssignmentPage() {
                     <option value={4}>4명</option>
                     <option value={3}>3명</option>
                     <option value={2}>2명</option>
+                    <option value={1}>1명</option>
                   </select>
                 </label>
                 {(g.teamSize ?? DEFAULT_TEAM_SIZE) < 5 && (
