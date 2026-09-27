@@ -11,7 +11,7 @@ export const DISEASES: DiseaseInfo[] = [
     grade: '4급',
     symptoms: '38도 이상 고열, 두통, 인후통, 근육통',
     infectiousPeriod: '증상 발생 1일 전부터 5일까지',
-    exclusionPeriod: '해열제 없이 정상 체온 회복 후 24시간 경과 시까지(해열제 투약 시 마지막 투약 후 48시간)',
+    exclusionPeriod: '해열제 없이 정상 체온 회복 후 24시간 경과 시까지',
     incubationPeriod: '1-4일',
     contactTracing: false,
     temporaryIsolation: true,

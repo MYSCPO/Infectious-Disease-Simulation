@@ -33,6 +33,7 @@ import ScenarioCard from '../components/ScenarioCard'
 import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
+import ChecklistProgressGrid from '../components/ChecklistProgressGrid'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
 const RELAY_STAGE = 'response3'
@@ -324,7 +325,7 @@ export default function FacilitatorPresentPage() {
                 <p className="text-sm text-slate-600 leading-relaxed">
                   참가자가 모두 입장하면 아래 버튼을 눌러 주세요. 참가자 화면에 조별 감염병 매뉴얼 카드와
                   <br className="hidden sm:block" />
-                  {MANUAL_READING_SEC / 60}분 타이머가 함께 떠요.
+                  {MANUAL_READING_SEC}초 타이머가 함께 떠요.
                 </p>
                 <button
                   type="button"
@@ -332,7 +333,7 @@ export default function FacilitatorPresentPage() {
                   disabled={busy}
                   className="w-full max-w-md rounded-full bg-brand-600 text-white py-3.5 text-base font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
                 >
-                  📖 매뉴얼 읽기 시작 ({MANUAL_READING_SEC / 60}분)
+                  📖 매뉴얼 읽기 시작 ({MANUAL_READING_SEC}초)
                 </button>
                 <button type="button" onClick={handleStartTraining} disabled={busy} className="block mx-auto text-xs text-slate-500 underline">
                   읽기 없이 바로 훈련 시작
@@ -542,12 +543,15 @@ export default function FacilitatorPresentPage() {
               {currentScenario && <ScenarioCard scenario={currentScenario} />}
 
               {isSimplifiedStage ? (
-                <div className="rounded-xl border border-brand-200 bg-brand-50/50 px-4 py-3">
-                  <p className="text-xs font-bold text-brand-700">📢 공통 브리핑 + 돌발 퀴즈 중심 단계입니다</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    이 단계는 역할별 문항 제출이 없어요. 참가자 화면에는 공통 브리핑과 체크리스트가 표시되고,
-                    위 돌발 퀴즈 버튼으로 진행 속도를 조절해 주세요.
-                  </p>
+                <div className="space-y-2">
+                  <div className="rounded-xl border border-brand-200 bg-brand-50/50 px-4 py-3">
+                    <p className="text-xs font-bold text-brand-700">📢 공통 브리핑 + 돌발 퀴즈 중심 단계입니다</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      이 단계는 역할별 문항 제출이 없어요. 참가자 화면에는 공통 브리핑과 체크리스트가 표시되고,
+                      아래에서 조원별로 내 역할 체크리스트를 다 읽고 체크했는지 확인할 수 있어요.
+                    </p>
+                  </div>
+                  <ChecklistProgressGrid groups={clusterGroups} stage={session.currentStage} />
                 </div>
               ) : isRelayStage ? (
                 <div className="space-y-2">

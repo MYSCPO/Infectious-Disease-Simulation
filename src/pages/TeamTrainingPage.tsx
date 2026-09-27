@@ -10,7 +10,7 @@ import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
 import { getCommonWildcardQuiz, getWildcardQuiz } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
-import { isAwaitingTrainingStart, releaseRole, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
+import { isAwaitingTrainingStart, releaseRole, updateChecklistProgress, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
@@ -269,11 +269,19 @@ export default function TeamTrainingPage() {
               </p>
             </div>
             <ChecklistPanel
-              key={session.currentStage}
+              key={`${session.currentStage}-${group ? 'ready' : 'loading'}`}
               stage={session.currentStage}
               myRole={myRole}
               checkable
               diseaseId={disease.id}
+              initialChecked={identity ? group?.checklistProgress?.[session.currentStage]?.[identity.name]?.checked : undefined}
+              onProgress={(checkedIndexes) => {
+                if (isMine && identity) {
+                  updateChecklistProgress(code, groupId, session.currentStage, identity.name, checkedIndexes).catch(
+                    (e) => console.error('체크리스트 진행 저장 실패', e),
+                  )
+                }
+              }}
             />
           </div>
         ) : isRelayStage ? (

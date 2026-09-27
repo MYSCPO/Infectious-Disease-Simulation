@@ -226,6 +226,7 @@ export interface GroupDoc {
   speedWins?: Record<string, number> // 참가자 이름 -> 스피드왕 횟수(결과 화면 개인상)
   coopProgress: GroupCoopProgress | null // 협동 미션: 조원별 개별 응답 현황
   relay: GroupRelayState | null // 대응3단계 릴레이 낭독 + 최종 의사결정 퀴즈 진행 상태
+  checklistProgress?: Partial<Record<StageId, Record<string, { checked: number[] }>>> // 단계 -> 참가자 이름 -> 체크 완료한 내 역할 항목 번호
   teamSize?: number // 진행자가 정한 조 인원(없으면 기본 5명 = 역할별 최소 1명). 소규모 학교는 줄일 수 있다.
   createdAt: number
 }

@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   DocumentData,
+  FieldPath,
   getDoc,
   onSnapshot,
   QuerySnapshot,
@@ -44,18 +45,46 @@ export function generateSessionCode(length = 5): string {
 // 권한 거부로 조용히 실패해 콜백이 영영 안 불리는 문제가 있었다(특히 QR·직접 링크로 막
 // 들어온 새 기기처럼 로그인 기록이 전혀 없는 경우). 그래서 모든 구독 함수는 로그인이
 // 끝난 뒤에만 onSnapshot을 붙이도록 이 헬퍼를 통해서만 리스너를 연다.
-function subscribeAfterAuth(attach: () => Unsubscribe): Unsubscribe {
+//
+// 폰이 잠기거나 다른 앱으로 넘어갔다 오면 실시간 연결이 조용히 끊겨 진행자의 단계 전환이
+// 참가자 화면에 반영되지 않는 일이 있었다. 그래서 (1) 리스너 오류 시 2초 뒤 다시 연결하고,
+// (2) 화면이 다시 보이는 순간 리스너를 새로 붙여 최신 상태를 곧바로 받아온다.
+function subscribeAfterAuth(attach: (onError: (e: unknown) => void) => Unsubscribe): Unsubscribe {
   let unsub: Unsubscribe | null = null
   let cancelled = false
-  ensureSignedIn()
-    .then(() => {
-      if (!cancelled) unsub = attach()
-    })
-    .catch((e) => {
-      console.error('익명 로그인 실패', e)
-    })
+  let retryTimer: number | undefined
+
+  const connect = () => {
+    if (cancelled) return
+    ensureSignedIn()
+      .then(() => {
+        if (cancelled) return
+        unsub?.()
+        unsub = attach((e) => {
+          console.warn('실시간 연결 오류, 다시 연결합니다', e)
+          unsub?.()
+          unsub = null
+          window.clearTimeout(retryTimer)
+          retryTimer = window.setTimeout(connect, 2000)
+        })
+      })
+      .catch((e) => {
+        console.error('익명 로그인 실패', e)
+        window.clearTimeout(retryTimer)
+        retryTimer = window.setTimeout(connect, 2000)
+      })
+  }
+
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') connect()
+  }
+
+  connect()
+  document.addEventListener('visibilitychange', onVisible)
   return () => {
     cancelled = true
+    window.clearTimeout(retryTimer)
+    document.removeEventListener('visibilitychange', onVisible)
     unsub?.()
   }
 }
@@ -145,10 +174,10 @@ export async function startTraining(code: string) {
 }
 
 export function subscribeSession(code: string, cb: (session: SessionDoc | null) => void) {
-  return subscribeAfterAuth(() =>
+  return subscribeAfterAuth((onError) =>
     onSnapshot(sessionRef(code), (snap) => {
       cb(snap.exists() ? (snap.data() as SessionDoc) : null)
-    }),
+    }, onError),
   )
 }
 
@@ -358,10 +387,10 @@ function docsToArray<T>(snap: QuerySnapshot<DocumentData>): T[] {
 }
 
 export function subscribeGroups(code: string, cb: (groups: GroupDoc[]) => void) {
-  return subscribeAfterAuth(() =>
+  return subscribeAfterAuth((onError) =>
     onSnapshot(groupsCol(code), (snap) => {
       cb(docsToArray<GroupDoc>(snap))
-    }),
+    }, onError),
   )
 }
 
@@ -382,6 +411,19 @@ export async function createGroup(code: string, name: string, diseaseId: string)
   }
   await setDoc(ref, data)
   return ref.id
+}
+
+// 참가자가 내 역할 체크리스트를 체크·해제할 때마다 저장해 진행자 화면에서 조원별 진행 상황을 볼 수 있게 한다.
+// 참가자 이름에 점(.) 등이 있어도 안전하도록 FieldPath로 경로를 지정한다.
+export async function updateChecklistProgress(
+  code: string,
+  groupId: string,
+  stage: StageId,
+  memberName: string,
+  checked: number[],
+) {
+  await ensureSignedIn()
+  await updateDoc(groupRef(code, groupId), new FieldPath('checklistProgress', stage, memberName), { checked })
 }
 
 export async function updateGroupTeamSize(code: string, groupId: string, teamSize: number) {
@@ -426,11 +468,11 @@ export async function releaseRole(code: string, groupId: string, role: RoleId, m
 }
 
 export function subscribeStageSubmissions(code: string, stage: StageId, cb: (subs: SubmissionDoc[]) => void) {
-  return subscribeAfterAuth(() =>
+  return subscribeAfterAuth((onError) =>
     onSnapshot(submissionsCol(code), (snap) => {
       const all = docsToArray<SubmissionDoc>(snap)
       cb(all.filter((s) => s.stage === stage))
-    }),
+    }, onError),
   )
 }
 
@@ -440,10 +482,10 @@ export function subscribeGroupSubmission(
   groupId: string,
   cb: (sub: SubmissionDoc | null) => void,
 ) {
-  return subscribeAfterAuth(() =>
+  return subscribeAfterAuth((onError) =>
     onSnapshot(submissionRef(code, stage, groupId), (snap) => {
       cb(snap.exists() ? ({ id: snap.id, ...snap.data() } as SubmissionDoc) : null)
-    }),
+    }, onError),
   )
 }
 
