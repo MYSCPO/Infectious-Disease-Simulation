@@ -11,7 +11,7 @@ import { hashFacilitatorPin, markFacilitatorUnlocked } from '../lib/facilitatorA
 
 const TEAM_ROLES: RoleId[] = ['surveillance', 'health', 'academic', 'admin', 'principal']
 
-// 실제 보안 장치가 아니라, 교직원이 실수로 진행자 설정에 들어가는 것만 막는 가벼운 진입장벽입니다.
+// 모든 학교가 함께 쓰는 공개 비밀번호라 화면에 그대로 안내한다. 학교별 훈련 보호는 훈련마다 정하는 진행자 비밀번호가 맡는다.
 const FACILITATOR_PASSWORD = 'admin1234'
 
 export default function MainPage() {
@@ -243,20 +243,25 @@ export default function MainPage() {
                 🔒
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-800">진행자 설정 비밀번호</h3>
-                <p className="text-xs text-slate-500 mt-1">교직원이 실수로 들어오지 않도록 막는 확인 단계입니다.</p>
+                <h3 className="text-lg font-bold text-slate-800">진행자 설정</h3>
+                <p className="text-xs text-slate-500 mt-1">모의훈련을 진행하는 선생님(진행자) 전용 메뉴예요.</p>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  setGateError(null)
-                }}
-                autoFocus
-                placeholder="비밀번호 입력"
-                className="w-full text-center rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-              />
+              <div className="space-y-1.5">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setGateError(null)
+                  }}
+                  autoFocus
+                  placeholder={`비밀번호 입력 (초기: ${FACILITATOR_PASSWORD})`}
+                  className="w-full text-center rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                />
+                <p className="text-[11px] text-slate-400">
+                  초기 비밀번호: <b className="text-brand-700">{FACILITATOR_PASSWORD}</b>
+                </p>
+              </div>
               {gateError && <p className="text-xs font-semibold text-rose-600">{gateError}</p>}
               <div className="flex gap-2.5 pt-1">
                 <button
