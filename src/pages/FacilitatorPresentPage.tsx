@@ -547,7 +547,7 @@ export default function FacilitatorPresentPage() {
                   <div className="rounded-xl border border-brand-200 bg-brand-50/50 px-4 py-3">
                     <p className="text-xs font-bold text-brand-700">📢 공통 브리핑 + 돌발 퀴즈 중심 단계입니다</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      이 단계는 역할별 문항 제출이 없어요. 참가자 화면에는 공통 브리핑과 체크리스트가 표시되고,
+                      참가자 화면에는 공통 브리핑과 체크리스트가 표시되고,
                       아래에서 조원별로 내 역할 체크리스트를 다 읽고 체크했는지 확인할 수 있어요.
                     </p>
                   </div>
