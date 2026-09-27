@@ -86,7 +86,8 @@ export default function TeamTrainingPage() {
 
   useEffect(() => {
     if (!session) return
-    if (prevStageRef.current !== null && prevStageRef.current !== session.currentStage) {
+    // 최종 우승은 결과 화면에서 처음 공개되도록, 마지막(복구) 단계로 넘어갈 때는 순위를 띄우지 않는다.
+    if (prevStageRef.current !== null && prevStageRef.current !== session.currentStage && session.currentStage !== 'recovery') {
       setShowLeaderboardPopup(true)
     }
     prevStageRef.current = session.currentStage
