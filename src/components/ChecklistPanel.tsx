@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { RoleId, StageId } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { getChecklistForStage } from '../data/roleChecklist'
 import { getStage } from '../data/stages'
+
+const MS_PER_CHAR = 140
+const MAX_TYPING_MS = 8000
 
 export default function ChecklistPanel({
   stage,
@@ -20,13 +23,33 @@ export default function ChecklistPanel({
   const checklist = getChecklistForStage(stage, diseaseId)
   const stageDef = getStage(stage)
 
-  function toggleItem(key: string) {
-    setChecked((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+  // 체크를 누르면 바로 체크되지 않고, 흐린 문장이 읽는 속도(초당 약 7자)로 앞에서부터 진하게
+  // 채워진 뒤 체크가 완성된다. 문장을 따라 읽으며 내 역할의 조치를 한 번 더 새기게 하려는 장치.
+  const [typing, setTyping] = useState<{ key: string; text: string; shown: number } | null>(null)
+
+  useEffect(() => {
+    if (!typing) return
+    if (typing.shown >= typing.text.length) {
+      setChecked((prev) => new Set(prev).add(typing.key))
+      setTyping(null)
+      return
+    }
+    const perChar = Math.min(MS_PER_CHAR, MAX_TYPING_MS / typing.text.length)
+    const id = window.setTimeout(() => setTyping((t) => (t ? { ...t, shown: t.shown + 1 } : t)), perChar)
+    return () => window.clearTimeout(id)
+  }, [typing])
+
+  function toggleItem(key: string, text: string) {
+    if (typing) return
+    if (checked.has(key)) {
+      setChecked((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+      return
+    }
+    setTyping({ key, text, shown: 0 })
   }
 
   return (
@@ -54,22 +77,34 @@ export default function ChecklistPanel({
               <div className={`text-sm font-semibold mb-1 ${isMine ? 'text-brand-700' : 'text-slate-700'}`}>
                 {ROLE_LABELS[role]} {isMine && '(내 역할)'}
               </div>
+              {checkable && isMine && content.items.length > 0 && (
+                <p className="text-[11px] text-brand-600 mb-1.5">✏️ 체크를 누르면 문장이 읽는 속도로 채워져요. 함께 따라 읽어 보세요.</p>
+              )}
               {content.items.length > 0 ? (
                 checkable && isMine ? (
                   <ul className="text-xs space-y-1.5">
                     {content.items.map((item, i) => {
                       const key = `${role}-${i}`
                       const done = checked.has(key)
+                      const isTyping = typing?.key === key
                       return (
                         <li key={i}>
-                          <label className="flex items-start gap-2 cursor-pointer">
+                          <label className={`flex items-start gap-2 ${typing && !isTyping ? 'cursor-wait' : 'cursor-pointer'}`}>
                             <input
                               type="checkbox"
                               checked={done}
-                              onChange={() => toggleItem(key)}
-                              className="mt-0.5 w-4 h-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                              disabled={!!typing && !isTyping}
+                              onChange={() => toggleItem(key, item)}
+                              className={`mt-0.5 w-4 h-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-400 ${isTyping ? 'animate-pulse ring-2 ring-brand-300' : ''}`}
                             />
-                            <span className={done ? 'text-emerald-700 font-bold' : 'text-slate-600'}>{item}</span>
+                            {isTyping ? (
+                              <span className="font-bold">
+                                <span className="text-brand-700">{item.slice(0, typing.shown)}</span>
+                                <span className="text-slate-300">{item.slice(typing.shown)}</span>
+                              </span>
+                            ) : (
+                              <span className={done ? 'text-emerald-700 font-bold' : 'text-slate-400'}>{item}</span>
+                            )}
                           </label>
                         </li>
                       )
