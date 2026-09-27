@@ -8,7 +8,9 @@ export default function SiteFooter() {
         </p>
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
           본 프로그램은 학교·교육청 감염병 담당자와 교직원의 위기대응 역량 강화를 위해 제작된 교육용 모의훈련
-          도구입니다. 방과 후 연수, 교직원 자체 워크숍 등에서 자유롭게 활용하실 수 있습니다.
+          도구입니다.
+          <br className="hidden sm:block" /> <span className="whitespace-nowrap">방과 후 연수</span>, 교직원 자체 워크숍
+          등에서 자유롭게 활용하실 수 있습니다.
         </p>
         <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed pt-1">
           본 프로그램에서 안내하는 감염병 정보와 대응 절차는 학생 감염병 예방·위기대응 매뉴얼 등 교육부 및 질병관리청
