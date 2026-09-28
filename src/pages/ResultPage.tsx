@@ -24,9 +24,14 @@ export default function ResultPage() {
   }, {})
   const badgedGroups = groups.filter((g) => g.badge)
   const speedKings = groups
-    .flatMap((g) => Object.entries(g.speedWins ?? {}).map(([name, count]) => ({ name, count, groupName: g.name })))
-    .filter((k) => k.count > 0)
-    .sort((a, b) => b.count - a.count)
+    .map((g) => {
+      const best = Object.entries(g.speedWins ?? {})
+        .filter(([, count]) => count > 0)
+        .map(([name, count]) => ({ name, count, time: g.speedTimes?.[name] ?? Number.MAX_SAFE_INTEGER }))
+        .sort((a, b) => b.count - a.count || a.time - b.time)[0]
+      return best ? { ...best, groupName: g.name } : null
+    })
+    .filter((k): k is { name: string; count: number; time: number; groupName: string } => k !== null)
 
   return (
     <div className="min-h-screen bg-paper-50 flex flex-col">
@@ -76,18 +81,20 @@ export default function ResultPage() {
 
         {speedKings.length > 0 && (
           <section className="bg-white rounded-2xl border border-amber-200 p-5 space-y-2">
-            <h2 className="font-semibold text-slate-800 mb-1">⚡ 스피드 퀴즈 개인상</h2>
+            <h2 className="font-semibold text-slate-800 mb-1">⚡ 조별 스피드왕</h2>
             <ul className="space-y-1.5">
               {speedKings.map((k) => (
                 <li key={`${k.groupName}-${k.name}`} className="flex items-center justify-between text-sm">
                   <span className="font-semibold text-slate-700">
                     {k.name} <span className="text-xs font-normal text-slate-400">· {k.groupName}</span>
                   </span>
-                  <span className="text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-2.5 py-1">스피드왕 {k.count}회</span>
+                  <span className="text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-2.5 py-1">1등 {k.count}회</span>
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-slate-400">스피드 퀴즈에서 조원 중 가장 먼저 정답을 맞힌 선생님께 드리는 개인상이에요.</p>
+            <p className="text-xs text-slate-400">
+              조마다 스피드 퀴즈 1등을 가장 많이 한 선생님 1명이에요. 횟수가 같으면 정답을 더 빨리 맞힌 선생님이 받아요.
+            </p>
           </section>
         )}
 

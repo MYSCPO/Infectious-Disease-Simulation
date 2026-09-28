@@ -5,9 +5,10 @@ import type { QuizSource, QuizType, StageId } from '../types'
 // 자동 발송 대상에서 제외한다.
 export const AUTO_QUIZ_DELAY_SEC = 25
 
-export const AUTO_QUIZ_PLAN: Partial<Record<StageId, { quizType: QuizType; source: QuizSource }>> = {
+// 복구 단계는 체크리스트가 짧아 25초를 기다리면 늘어지므로 더 빨리 보낸다.
+export const AUTO_QUIZ_PLAN: Partial<Record<StageId, { quizType: QuizType; source: QuizSource; delaySec?: number }>> = {
   prevention: { quizType: 'speed', source: 'disease' },
   response1: { quizType: 'coop', source: 'disease' },
   response2: { quizType: 'speed', source: 'disease' },
-  recovery: { quizType: 'speed', source: 'common' },
+  recovery: { quizType: 'speed', source: 'common', delaySec: 10 },
 }

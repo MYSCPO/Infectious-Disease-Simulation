@@ -308,6 +308,15 @@ export const WILDCARD_QUIZZES: Record<string, WildcardQuizQuestion[]> = {
   ],
 }
 
+// 순번(round)이 있는 퀴즈는 훈련 방 코드로 정한 시작점부터 차례대로 골라, 문제를 다 쓰기 전에는 겹치지 않는다.
+// 예전 퀴즈(순번 없음)는 발송 시각을 그대로 쓴다.
+export function quizSeed(active: { startedAt: number; round?: number }, sessionCode: string): number {
+  if (active.round == null) return active.startedAt
+  let h = 0
+  for (const ch of sessionCode) h = (h * 31 + ch.charCodeAt(0)) % 9973
+  return h + active.round
+}
+
 export function getWildcardQuiz(diseaseId: string, seed: number): WildcardQuizQuestion | null {
   const list = WILDCARD_QUIZZES[diseaseId]
   if (!list || list.length === 0) return null

@@ -11,7 +11,6 @@ import { COMMON_WILDCARD_QUIZZES, getCommonWildcardQuizCount, getWildcardQuizCou
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import {
   advanceToStage,
-  claimRole,
   endWildcardQuiz,
   isAwaitingTrainingStart,
   setActiveWildcard,
@@ -19,7 +18,6 @@ import {
   startTraining,
   setRevealed,
   startWildcardQuiz,
-  submitGroupAnswer,
   updateSession,
 } from '../lib/session'
 import { AUTO_QUIZ_DELAY_SEC, AUTO_QUIZ_PLAN } from '../data/autoQuiz'
@@ -34,6 +32,7 @@ import SubmissionStatusGrid from '../components/SubmissionStatusGrid'
 import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
 import ChecklistProgressGrid from '../components/ChecklistProgressGrid'
+import EntryStatusGrid from '../components/EntryStatusGrid'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
 const RELAY_STAGE = 'response3'
@@ -154,7 +153,7 @@ export default function FacilitatorPresentPage() {
   const autoAlreadySent = session.autoQuizSentAt != null && session.autoQuizSentAt === session.stageStartedAt
   const autoRemainingSec =
     autoPlan && !autoAlreadySent && !awaitingStart && session.stageStartedAt != null
-      ? Math.max(0, AUTO_QUIZ_DELAY_SEC - Math.floor((now - session.stageStartedAt) / 1000))
+      ? Math.max(0, (autoPlan.delaySec ?? AUTO_QUIZ_DELAY_SEC) - Math.floor((now - session.stageStartedAt) / 1000))
       : null
 
   const quizActive = !!session.activeQuiz && now < session.activeQuiz.startedAt + session.activeQuiz.durationSec * 1000
@@ -193,43 +192,9 @@ export default function FacilitatorPresentPage() {
     }
   }
 
-  // 개발/점검용: 진행자 혼자 전체 흐름을 빠르게 점검할 수 있도록 빈 역할을 테스트봇으로 채운다.
-  async function handleGenerateBots() {
-    setBusy(true)
-    try {
-      for (const g of groups) {
-        for (const role of ROLE_ORDER) {
-          if ((g.members[role]?.length ?? 0) === 0) {
-            await claimRole(code, g.id, role, `테스트봇(${ROLE_LABELS[role]})`)
-          }
-        }
-      }
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  // 개발/점검용: 현재 단계의 모든 조 제출을 정답 기준으로 즉시 완료 처리한다.
-  async function handleAutoSubmitAll() {
-    setBusy(true)
-    try {
-      for (const g of groups) {
-        const stageScenario = getScenarioForDisease(g.diseaseId).find((s) => s.stage === session!.currentStage)
-        if (!stageScenario) continue
-        const answers = stageScenario.questions.map((q) => ({
-          role: q.role,
-          optionId: q.options.find((o) => o.correct)?.id ?? q.options[0].id,
-        }))
-        await submitGroupAnswer(code, session!.currentStage, g.id, g.name, answers)
-      }
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-paper-50">
-      <StageBanner current={session.currentStage} />
+      <StageBanner current={session.currentStage} awaitingStart={awaitingStart} />
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -260,24 +225,8 @@ export default function FacilitatorPresentPage() {
         )}
 
         <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
-          <p className="text-xs font-bold text-slate-500 mb-2">🧪 테스트 모드 (혼자 전체 흐름 빠르게 점검용 · 실제 연수에서는 사용하지 마세요)</p>
+          <p className="text-xs font-bold text-slate-500 mb-2">👀 참가자 화면 미리 보기 (진행자가 참가자와 같은 화면을 확인할 때)</p>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleGenerateBots}
-              disabled={busy || groups.length === 0}
-              className="rounded-full bg-white border border-slate-300 text-slate-700 text-xs font-bold px-3 py-2 hover:bg-slate-100 disabled:opacity-40"
-            >
-              🧪 가상 참가자 자동 생성
-            </button>
-            <button
-              type="button"
-              onClick={handleAutoSubmitAll}
-              disabled={busy || groups.length === 0}
-              className="rounded-full bg-white border border-slate-300 text-slate-700 text-xs font-bold px-3 py-2 hover:bg-slate-100 disabled:opacity-40"
-            >
-              ⚡ 현재 단계 전체 자동 제출
-            </button>
             {myIdentityHere ? (
               <>
                 <Link
@@ -319,7 +268,9 @@ export default function FacilitatorPresentPage() {
 
         {awaitingStart ? (
           <section className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-5 text-center space-y-3">
-            <p className="text-base font-bold text-brand-800">📖 훈련 시작 전 · 우리 조의 감염병 매뉴얼 읽기</p>
+            <p className="text-base font-bold text-brand-800">🚪 입장 · 조별 입장 현황</p>
+            <EntryStatusGrid groups={groups} />
+            <p className="text-base font-bold text-brand-800 pt-2">📖 훈련 시작 전 · 우리 조의 감염병 매뉴얼 읽기</p>
             {readingRemaining == null ? (
               <>
                 <p className="text-sm text-slate-600 leading-relaxed">

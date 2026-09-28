@@ -19,7 +19,7 @@ export function useAutoQuizDispatch(code: string, session: SessionDoc | null | u
     if (session.activeQuiz) return
 
     const stageStartedAt = session.stageStartedAt
-    const remainingMs = AUTO_QUIZ_DELAY_SEC * 1000 - (Date.now() - stageStartedAt)
+    const remainingMs = (plan.delaySec ?? AUTO_QUIZ_DELAY_SEC) * 1000 - (Date.now() - stageStartedAt)
 
     const id = setTimeout(async () => {
       await startWildcardQuiz(code, plan.quizType, plan.source)

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ROLE_LABELS, ROLE_ORDER, DEFAULT_TEAM_SIZE, requiredRoleCount } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
-import { createGroup, updateGroupDisease, updateGroupTeamSize } from '../lib/session'
+import { createGroup, deleteGroup, updateGroupDisease, updateGroupTeamSize } from '../lib/session'
 import { DISEASES } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
 
@@ -109,7 +109,24 @@ export default function GroupAssignmentPage() {
             {groups.map((g) => (
               <div key={g.id} className="rounded-lg border border-slate-200 p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-bold text-slate-800">{g.name}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-800">{g.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const joined = new Set(Object.values(g.members).flatMap((n) => n ?? [])).size
+                        const msg =
+                          joined > 0
+                            ? `${g.name}에 ${joined}명이 입장해 있어요. 그래도 삭제할까요? 입장한 참가자는 조를 다시 골라야 해요.`
+                            : `${g.name}을(를) 삭제할까요?`
+                        if (window.confirm(msg)) deleteGroup(code, g.id)
+                      }}
+                      className="text-xs text-slate-400 hover:text-rose-600 rounded px-1.5 py-0.5 hover:bg-rose-50"
+                      title="조 삭제"
+                    >
+                      🗑️ 삭제
+                    </button>
+                  </div>
                   <select
                     value={g.diseaseId}
                     onChange={(e) => updateGroupDisease(code, g.id, e.target.value)}

@@ -8,9 +8,9 @@ import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { WILDCARDS } from '../data/wildcards'
-import { getCommonWildcardQuiz, getWildcardQuiz } from '../data/wildcardQuiz'
+import { getCommonWildcardQuiz, getWildcardQuiz, quizSeed } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
-import { isAwaitingTrainingStart, releaseRole, updateChecklistProgress, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
+import { isAwaitingTrainingStart, releaseRole, submitBonusAnswer, updateChecklistProgress, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
@@ -99,7 +99,7 @@ export default function TeamTrainingPage() {
     : null
   useEffect(() => {
     if (prevSpeedWinnerRef.current !== undefined && speedWinnerKey && speedWinnerKey !== prevSpeedWinnerRef.current && group?.speedProgress?.winnerName) {
-      setScoreToast({ message: `⚡ ${group.speedProgress.winnerName} 선생님이 우리 조 스피드왕! (+50pt)`, color: 'amber' })
+      setScoreToast({ message: `⚡ ${group.speedProgress.winnerName} 선생님이 이번 스피드 퀴즈 우리 조 1등! (+50pt)`, color: 'amber' })
     }
     if (group) prevSpeedWinnerRef.current = speedWinnerKey
   }, [speedWinnerKey, !!group])
@@ -149,8 +149,8 @@ export default function TeamTrainingPage() {
   const quiz =
     group && session.activeQuiz
       ? session.activeQuiz.source === 'common'
-        ? getCommonWildcardQuiz(session.activeQuiz.startedAt)
-        : getWildcardQuiz(group.diseaseId, session.activeQuiz.startedAt)
+        ? getCommonWildcardQuiz(quizSeed(session.activeQuiz, code))
+        : getWildcardQuiz(group.diseaseId, quizSeed(session.activeQuiz, code))
       : null
   const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
   const isRelayStage = session.currentStage === RELAY_STAGE
@@ -183,7 +183,7 @@ export default function TeamTrainingPage() {
 
   return (
     <div className="min-h-screen bg-paper-50 pb-24">
-      <StageBanner current={session.currentStage} />
+      <StageBanner current={session.currentStage} awaitingStart={awaitingStart} />
 
       <div className="max-w-5xl mx-auto px-4 py-5">
         <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
@@ -375,6 +375,7 @@ export default function TeamTrainingPage() {
         group &&
         quiz &&
         session.activeQuiz.quizType === 'speed' &&
+        session.activeQuiz.source !== 'common' &&
         identity &&
         quizDismissedAt !== session.activeQuiz.startedAt && (
           <WildcardQuizModal
@@ -384,7 +385,7 @@ export default function TeamTrainingPage() {
             startedAt={session.activeQuiz.startedAt}
             durationSec={session.activeQuiz.durationSec}
             quizType="speed"
-            isCommon={session.activeQuiz.source === 'common'}
+            isCommon={false}
             myName={identity.name}
             speedProgress={group.speedProgress ?? null}
             onSubmit={(correct) =>
@@ -397,7 +398,32 @@ export default function TeamTrainingPage() {
       {session.activeQuiz &&
         group &&
         quiz &&
+        session.activeQuiz.source === 'common' &&
+        identity &&
+        quizDismissedAt !== session.activeQuiz.startedAt && (
+          <WildcardQuizModal
+            quiz={quiz}
+            disease={disease}
+            greetRole={myRole}
+            startedAt={session.activeQuiz.startedAt}
+            durationSec={session.activeQuiz.durationSec}
+            quizType="bonus"
+            isCommon
+            myName={identity.name}
+            memberNames={memberNames}
+            bonusProgress={group.bonusProgress ?? null}
+            onSubmit={(correct) =>
+              submitBonusAnswer(code, groupId, session.activeQuiz!.startedAt, identity.name, correct)
+            }
+            onClose={() => setQuizDismissedAt(session.activeQuiz!.startedAt)}
+          />
+        )}
+
+      {session.activeQuiz &&
+        group &&
+        quiz &&
         session.activeQuiz.quizType === 'coop' &&
+        session.activeQuiz.source !== 'common' &&
         identity &&
         quizDismissedAt !== session.activeQuiz.startedAt && (
           <WildcardQuizModal
@@ -407,7 +433,7 @@ export default function TeamTrainingPage() {
             startedAt={session.activeQuiz.startedAt}
             durationSec={session.activeQuiz.durationSec}
             quizType="coop"
-            isCommon={session.activeQuiz.source === 'common'}
+            isCommon={false}
             myName={identity.name}
             memberNames={memberNames}
             coopProgress={group.coopProgress}

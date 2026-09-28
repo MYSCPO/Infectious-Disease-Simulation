@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   DocumentData,
   FieldPath,
@@ -216,8 +217,42 @@ export async function startWildcardQuiz(
   source: QuizSource = 'disease',
   durationSec = 60,
 ) {
-  await updateSession(code, {
-    activeQuiz: { startedAt: Date.now(), durationSec, quizType, source, firstBloodGroupId: null },
+  // 훈련 방마다 낸 문제 수를 세어 다음 순번의 문제를 낸다(같은 문제가 다시 나오지 않게).
+  await ensureSignedIn()
+  const sRef = sessionRef(code)
+  await runTransaction(db, async (tx) => {
+    const session = (await tx.get(sRef)).data() as SessionDoc | undefined
+    const counterKey = source === 'common' ? 'commonQuizCount' : 'diseaseQuizCount'
+    const round = session?.[counterKey] ?? 0
+    tx.update(sRef, {
+      activeQuiz: { startedAt: Date.now(), durationSec, quizType, source, round, firstBloodGroupId: null },
+      [counterKey]: round + 1,
+      updatedAt: serverTimestamp(),
+    })
+  })
+}
+
+// 보너스(공통) 퀴즈: 전 조가 같은 문제를 풀므로, 조원 각자 한 번씩 답하고 조 점수는 정답률 x 100점
+// (정답 1명마다 100/조원 수 만큼 더한다). 속도·전원 정답이 아니라 "조가 얼마나 정확히 아는지"를 잰다.
+export async function submitBonusAnswer(
+  code: string,
+  groupId: string,
+  quizStartedAt: number,
+  memberName: string,
+  correct: boolean,
+) {
+  await ensureSignedIn()
+  const gRef = groupRef(code, groupId)
+  await runTransaction(db, async (tx) => {
+    const group = (await tx.get(gRef)).data() as GroupDoc | undefined
+    if (!group) return
+    const prev = group.bonusProgress?.quizStartedAt === quizStartedAt ? group.bonusProgress.answers : {}
+    if (memberName in prev) return
+    const memberCount = new Set(Object.values(group.members).flatMap((n) => n ?? [])).size || 1
+    tx.update(gRef, {
+      bonusProgress: { quizStartedAt, answers: { ...prev, [memberName]: correct } },
+      ...(correct ? { score: (group.score ?? 0) + Math.round(100 / memberCount) } : {}),
+    })
   })
 }
 
@@ -255,6 +290,10 @@ export async function submitSpeedQuizAnswer(
         ? {
             score: (group.score ?? 0) + 50,
             speedWins: { ...(group.speedWins ?? {}), [memberName]: (group.speedWins?.[memberName] ?? 0) + 1 },
+            speedTimes: {
+              ...(group.speedTimes ?? {}),
+              [memberName]: (group.speedTimes?.[memberName] ?? 0) + Math.max(0, Date.now() - quizStartedAt),
+            },
           }
         : {}),
     })
@@ -424,6 +463,11 @@ export async function updateChecklistProgress(
 ) {
   await ensureSignedIn()
   await updateDoc(groupRef(code, groupId), new FieldPath('checklistProgress', stage, memberName), { checked })
+}
+
+export async function deleteGroup(code: string, groupId: string) {
+  await ensureSignedIn()
+  await deleteDoc(groupRef(code, groupId))
 }
 
 export async function updateGroupTeamSize(code: string, groupId: string, teamSize: number) {

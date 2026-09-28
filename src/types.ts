@@ -147,6 +147,7 @@ export interface ActiveQuiz {
   durationSec: number
   quizType: QuizType
   source: QuizSource
+  round?: number // 이 훈련에서 몇 번째로 낸 (감염병/공통) 문제인지. 이미 낸 문제가 다시 나오지 않게 문제를 고르는 기준
   firstBloodGroupId: string | null // (더 이상 쓰지 않음) 예전 조 간 속도 경쟁 방식의 흔적. 새 퀴즈는 항상 null
 }
 
@@ -164,6 +165,8 @@ export interface SessionDoc {
   activeQuiz: ActiveQuiz | null // 진행자가 발송한 돌발 퀴즈(전 조 동시 진행)
   autoQuizSentAt: number | null // 이번 단계(stageStartedAt)에 자동 발송을 이미 했는지 표시(중복 발송 방지)
   attendeeCount: number
+  diseaseQuizCount?: number // 지금까지 낸 감염병 문제 수(다음 문제 순번)
+  commonQuizCount?: number // 지금까지 낸 보너스(공통) 문제 수
   readingStartedAt?: number | null // 훈련 시작 전 매뉴얼 읽기 1분 타이머 기준 시각(진행자·참가자 화면 공통)
   trainingStartedAt?: number | null // 진행자가 "훈련 시작"을 누른 시각. 그 전까지 예방단계 타이머·자동 퀴즈 대기
   facilitatorPinHash?: string | null // 없으면(테스트 방·기존 방) 진행자 화면 비밀번호 확인을 생략
@@ -223,7 +226,9 @@ export interface GroupDoc {
   badge: boolean // 협동 미션을 한 번이라도 전원 정답으로 달성했는지(👑 달성 배지)
   quizAnswer?: GroupQuizAnswer | null // (예전 방식) 스피드 퀴즈 조 대표 답
   speedProgress?: GroupSpeedProgress | null // 스피드 퀴즈: 조원별 응답·이번 퀴즈 스피드왕
-  speedWins?: Record<string, number> // 참가자 이름 -> 스피드왕 횟수(결과 화면 개인상)
+  speedWins?: Record<string, number> // 참가자 이름 -> 스피드 퀴즈 1등 횟수
+  speedTimes?: Record<string, number> // 참가자 이름 -> 1등 했을 때 정답까지 걸린 시간 합(ms). 승수 동점일 때 짧은 사람이 조 스피드왕
+  bonusProgress?: { quizStartedAt: number; answers: Record<string, boolean> } | null // 보너스(공통) 퀴즈: 조원별 응답
   coopProgress: GroupCoopProgress | null // 협동 미션: 조원별 개별 응답 현황
   relay: GroupRelayState | null // 대응3단계 릴레이 낭독 + 최종 의사결정 퀴즈 진행 상태
   checklistProgress?: Partial<Record<StageId, Record<string, { checked: number[] }>>> // 단계 -> 참가자 이름 -> 체크 완료한 내 역할 항목 번호

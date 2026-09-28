@@ -22,7 +22,17 @@ interface CoopProps {
   onClose: () => void
 }
 
-type ModeProps = SpeedProps | CoopProps
+// 보너스(공통) 퀴즈: 조원 각자 한 번씩 답하고, 조 점수는 정답률 x 100점
+interface BonusProps {
+  quizType: 'bonus'
+  myName: string
+  memberNames: string[]
+  bonusProgress: { quizStartedAt: number; answers: Record<string, boolean> } | null
+  onSubmit: (correct: boolean) => void
+  onClose: () => void
+}
+
+type ModeProps = SpeedProps | CoopProps | BonusProps
 
 export default function WildcardQuizModal({
   quiz,
@@ -56,16 +66,23 @@ export default function WildcardQuizModal({
   const correctText = quiz.options.find((o) => o.correct)?.text
 
   const isSpeed = mode.quizType === 'speed'
-  const speedNow = isSpeed && mode.speedProgress?.quizStartedAt === startedAt ? mode.speedProgress : null
-  const myAnswered = isSpeed
-    ? !!speedNow && mode.myName in speedNow.answers
-    : mode.coopProgress?.quizStartedAt === startedAt && mode.myName in (mode.coopProgress?.answers ?? {})
+  const isBonus = mode.quizType === 'bonus'
+  const isCoop = mode.quizType === 'coop'
+  const speedNow = mode.quizType === 'speed' && mode.speedProgress?.quizStartedAt === startedAt ? mode.speedProgress : null
+  const bonusAnswers =
+    mode.quizType === 'bonus' && mode.bonusProgress?.quizStartedAt === startedAt ? mode.bonusProgress.answers : {}
+  const myAnswered =
+    mode.quizType === 'speed'
+      ? !!speedNow && mode.myName in speedNow.answers
+      : mode.quizType === 'bonus'
+        ? mode.myName in bonusAnswers
+        : mode.coopProgress?.quizStartedAt === startedAt && mode.myName in (mode.coopProgress?.answers ?? {})
 
-  const coopAnswers = !isSpeed && mode.coopProgress?.quizStartedAt === startedAt ? mode.coopProgress.answers : {}
-  const coopSubmittedCount = !isSpeed ? Object.keys(coopAnswers).length : 0
-  const coopTotal = !isSpeed ? mode.memberNames.length : 0
-  const coopEveryoneAnswered = !isSpeed && coopTotal > 0 && mode.memberNames.every((n) => n in coopAnswers)
-  const coopEveryoneCorrect = coopEveryoneAnswered && mode.memberNames.every((n) => coopAnswers[n])
+  const coopAnswers = mode.quizType === 'coop' && mode.coopProgress?.quizStartedAt === startedAt ? mode.coopProgress.answers : {}
+  const coopSubmittedCount = isCoop ? Object.keys(coopAnswers).length : 0
+  const coopTotal = mode.quizType === 'coop' ? mode.memberNames.length : 0
+  const coopEveryoneAnswered = mode.quizType === 'coop' && coopTotal > 0 && mode.memberNames.every((n) => n in coopAnswers)
+  const coopEveryoneCorrect = coopEveryoneAnswered && mode.quizType === 'coop' && mode.memberNames.every((n) => coopAnswers[n])
 
   // 문제를 아직 풀지 않은 "진행 중" 상태만 닫을 수 없는 화면이고, 그 외(제출 완료·시간 종료)는
   // 결과를 잠깐 보여준 뒤 자동으로(3초) 또는 수동으로 닫아 화면 잠금을 풀어준다.
@@ -84,7 +101,7 @@ export default function WildcardQuizModal({
 
     // 협동 미션은 오답이어도 잠그지 않고, 남은 시간 안에서 계속 다시 골라 전원이 정답을
     // 맞힐 수 있게 한다(스피드 퀴즈는 한 번에 승부가 갈리는 게 재미 포인트라 그대로 둔다).
-    if (!isSpeed && !correct) {
+    if (isCoop && !correct) {
       setSelectedId(optionId)
       setWrongFlash(true)
       window.setTimeout(() => {
@@ -103,25 +120,42 @@ export default function WildcardQuizModal({
     }
   }
 
-  const badgeLabel = isCommon ? '📋 보너스 퀴즈' : isSpeed ? '⚡ 스피드 퀴즈' : '🤝 협동 미션'
-  const badgeClass = isCommon
+  const badgeLabel = isCommon || isBonus ? '📋 보너스 퀴즈' : isSpeed ? '⚡ 스피드 퀴즈' : '🤝 협동 미션'
+  const badgeClass = isCommon || isBonus
     ? 'bg-violet-400 text-violet-950'
     : isSpeed
       ? 'bg-amber-400 text-amber-950'
       : 'bg-emerald-400 text-emerald-950'
-  const borderClass = isCommon ? 'border-violet-400' : isSpeed ? 'border-amber-400' : 'border-emerald-400'
+  const borderClass = isCommon || isBonus ? 'border-violet-400' : isSpeed ? 'border-amber-400' : 'border-emerald-400'
 
   let resultBody: React.ReactNode | null = null
 
-  if (isSpeed && myAnswered && speedNow) {
+  if (mode.quizType === 'bonus' && myAnswered) {
+    const correct = bonusAnswers[mode.myName]
+    const total = mode.memberNames.length || 1
+    const correctCount = Object.values(bonusAnswers).filter(Boolean).length
+    const perPerson = Math.round(100 / total)
+    resultBody = (
+      <div className="py-4">
+        <div className="text-5xl mb-3">{correct ? '✅' : '🙂'}</div>
+        <h3 className={`text-xl font-black mb-1 ${correct ? 'text-violet-600' : 'text-slate-700'}`}>
+          {correct ? `정답이에요! 우리 조 +${perPerson}pt` : '아쉬워요!'}
+        </h3>
+        {!correct && <p className="text-sm text-slate-500">정답: {correctText}</p>}
+        <p className="text-xs text-slate-400 mt-1">
+          우리 조 정답 {correctCount}/{total}명 · 조원이 많이 맞힐수록 점수가 올라가요(최대 100pt)
+        </p>
+      </div>
+    )
+  } else if (mode.quizType === 'speed' && myAnswered && speedNow) {
     const correct = speedNow.answers[mode.myName]
     const winner = speedNow.winnerName
     resultBody = correct ? (
       winner === mode.myName ? (
         <div className="py-4">
           <div className="text-5xl mb-3">🏆</div>
-          <h3 className="text-xl font-black text-amber-600 mb-1">⚡ 우리 조 스피드왕!</h3>
-          <p className="text-sm text-slate-500">조원 중 가장 먼저 맞혔어요. 우리 조 +50pt!</p>
+          <h3 className="text-xl font-black text-amber-600 mb-1">⚡ 이번 퀴즈 우리 조 1등!</h3>
+          <p className="text-sm text-slate-500">조원 중 가장 먼저 맞혔어요. 우리 조 +50pt! (1등을 가장 많이 한 분이 조별 스피드왕)</p>
         </div>
       ) : (
         <div className="py-4">
@@ -140,7 +174,7 @@ export default function WildcardQuizModal({
         {winner && <p className="text-xs text-slate-400 mt-1">우리 조 스피드왕: {winner} 선생님 (+50pt)</p>}
       </div>
     )
-  } else if (!isSpeed && coopEveryoneAnswered) {
+  } else if (isCoop && coopEveryoneAnswered) {
     resultBody = coopEveryoneCorrect ? (
       <div className="py-4">
         <div className="text-5xl mb-3">🎉</div>
@@ -155,7 +189,7 @@ export default function WildcardQuizModal({
         <p className="text-xs text-slate-400 mt-1">조원 전원이 정답을 맞혀야 보너스를 받아요.</p>
       </div>
     )
-  } else if (!isSpeed && myAnswered) {
+  } else if (isCoop && myAnswered) {
     resultBody = (
       <div className="py-6">
         <div className="text-4xl mb-3">⏳</div>
@@ -241,8 +275,10 @@ export default function WildcardQuizModal({
                 </button>
               )}
               <p className="text-xs text-slate-400 mt-3">
-                {isSpeed
-                  ? '조원 각자 한 번만 답할 수 있어요. 우리 조에서 가장 먼저 맞힌 사람이 스피드왕이 되고, 조에 +50pt!'
+                {isBonus
+                  ? '모든 조가 같은 문제를 풀어요. 조원 각자 한 번만 답하고, 우리 조 정답률만큼 점수를 받아요(최대 100pt).'
+                  : isSpeed
+                  ? '조원 각자 한 번만 답할 수 있어요. 우리 조에서 가장 먼저 맞힌 사람이 1승을 얻고, 조에 +50pt!'
                   : '조원 각자 답을 골라요. 틀려도 시간 안에 다시 도전할 수 있어요 — 전원이 정답을 맞혀야 보너스를 받아요.'}
               </p>
             </>
