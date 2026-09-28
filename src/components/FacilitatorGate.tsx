@@ -3,7 +3,13 @@ import { Link, useParams } from 'react-router-dom'
 import { useSession } from '../hooks/useSession'
 import { hashFacilitatorPin, isFacilitatorUnlocked, markFacilitatorUnlocked } from '../lib/facilitatorAuth'
 
-export default function FacilitatorGate({ children }: { children: ReactNode }) {
+export default function FacilitatorGate({
+  children,
+  openWhenFinished = false,
+}: {
+  children: ReactNode
+  openWhenFinished?: boolean
+}) {
   const { code = '' } = useParams()
   const { session, loading } = useSession(code)
   const [pin, setPin] = useState('')
@@ -30,6 +36,7 @@ export default function FacilitatorGate({ children }: { children: ReactNode }) {
 
   const pinHash = session.facilitatorPinHash
   if (!pinHash || unlockedNow || isFacilitatorUnlocked(code, pinHash)) return <>{children}</>
+  if (openWhenFinished && session.finishedAt) return <>{children}</>
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -24,11 +24,11 @@ export default function App() {
       <Route path="/facilitator/setup" element={<FacilitatorSetupPage />} />
       <Route path="/facilitator/:code/groups" element={<FacilitatorGate><GroupAssignmentPage /></FacilitatorGate>} />
       <Route path="/facilitator/:code/present" element={<FacilitatorGate><FacilitatorPresentPage /></FacilitatorGate>} />
-      <Route path="/facilitator/:code/result" element={<FacilitatorGate><ResultPage /></FacilitatorGate>} />
+      <Route path="/facilitator/:code/result" element={<FacilitatorGate openWhenFinished><ResultPage /></FacilitatorGate>} />
       <Route path="/join" element={<JoinPage />} />
       <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/team/:code/:groupId" element={<TeamTrainingPage />} />
-      <Route path="/guidebook/:code" element={<FacilitatorGate><GuidebookPage /></FacilitatorGate>} />
+      <Route path="/guidebook/:code" element={<FacilitatorGate openWhenFinished><GuidebookPage /></FacilitatorGate>} />
     </Routes>
   )
 }

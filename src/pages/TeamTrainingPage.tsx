@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { SubmissionAnswer } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
@@ -7,7 +7,6 @@ import { useGroups, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
 import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
-import { WILDCARDS } from '../data/wildcards'
 import { getCommonWildcardQuiz, getWildcardQuiz, quizSeed } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
 import { isAwaitingTrainingStart, releaseRole, submitBonusAnswer, updateChecklistProgress, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
@@ -16,7 +15,6 @@ import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
 import RoleActionForm from '../components/RoleActionForm'
 import ChecklistPanel from '../components/ChecklistPanel'
-import WildcardModal from '../components/WildcardModal'
 import WildcardQuizModal from '../components/WildcardQuizModal'
 import DiseaseManualModal from '../components/DiseaseManualModal'
 import LeaderboardPopup from '../components/LeaderboardPopup'
@@ -43,7 +41,6 @@ export default function TeamTrainingPage() {
 
   const submission = useMyGroupSubmission(code, session?.currentStage, groupId)
   const [answers, setAnswers] = useState<SubmissionAnswer[]>([])
-  const [dismissedWildcard, setDismissedWildcard] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showManual, setShowManual] = useState(false)
   const [showLeaderboardPopup, setShowLeaderboardPopup] = useState(false)
@@ -79,6 +76,12 @@ export default function TeamTrainingPage() {
   // 진행자 탭이 잠시 없어져 있어도(예: 참가자 화면을 보러 이동) 자동 발송이 끊기지 않도록,
   // 참가자 화면도 동일한 자동 발송 타이머를 함께 들고 있는다.
   useAutoQuizDispatch(code, session)
+
+  // 진행자가 훈련을 종료하면 참가자도 결과 화면(최종 순위·가이드북)으로 함께 넘어간다.
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (session?.finishedAt) navigate(`/facilitator/${code}/result`)
+  }, [session?.finishedAt])
 
   useEffect(() => {
     setAnswers(submission?.answers ?? [])
@@ -141,7 +144,6 @@ export default function TeamTrainingPage() {
   const disease = getDiseaseById(group?.diseaseId ?? session.diseaseId)
   const scenarioStages = getScenarioForDisease(group?.diseaseId ?? session.diseaseId)
   const currentScenario = scenarioStages.find((s) => s.stage === session.currentStage)
-  const activeWildcard = session.activeWildcardId ? WILDCARDS.find((w) => w.id === session.activeWildcardId) : null
   const missingRoles = ROLE_ORDER.filter((r) => !answers.some((a) => a.role === r))
   const allAnswered = missingRoles.length === 0
   const submitted = submission?.submitted ?? false
@@ -365,10 +367,6 @@ export default function TeamTrainingPage() {
             ) : undefined
           }
         />
-      )}
-
-      {activeWildcard && dismissedWildcard !== activeWildcard.id && (
-        <WildcardModal card={activeWildcard} onClose={() => setDismissedWildcard(activeWildcard.id)} />
       )}
 
       {session.activeQuiz &&

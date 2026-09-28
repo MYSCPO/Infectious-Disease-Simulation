@@ -168,6 +168,7 @@ export interface SessionDoc {
   diseaseQuizCount?: number // 지금까지 낸 감염병 문제 수(다음 문제 순번)
   commonQuizCount?: number // 지금까지 낸 보너스(공통) 문제 수
   readingStartedAt?: number | null // 훈련 시작 전 매뉴얼 읽기 1분 타이머 기준 시각(진행자·참가자 화면 공통)
+  finishedAt?: number | null // 진행자가 "훈련 종료"를 누른 시각. 이때부터 참가자도 결과 화면을 함께 본다
   trainingStartedAt?: number | null // 진행자가 "훈련 시작"을 누른 시각. 그 전까지 예방단계 타이머·자동 퀴즈 대기
   facilitatorPinHash?: string | null // 없으면(테스트 방·기존 방) 진행자 화면 비밀번호 확인을 생략
   createdAt: number

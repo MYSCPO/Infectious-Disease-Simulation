@@ -1,12 +1,13 @@
+import { serverNow } from '../lib/serverClock'
 import { useEffect, useState } from 'react'
 
 export const MANUAL_READING_SEC = 30
 
 export function useReadingRemaining(startedAt: number | null | undefined): number | null {
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(serverNow())
   useEffect(() => {
     if (!startedAt) return
-    const id = setInterval(() => setNow(Date.now()), 500)
+    const id = setInterval(() => setNow(serverNow()), 500)
     return () => clearInterval(id)
   }, [startedAt])
   if (!startedAt) return null

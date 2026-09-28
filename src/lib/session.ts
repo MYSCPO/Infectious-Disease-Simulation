@@ -1,3 +1,4 @@
+import { serverNow } from './serverClock'
 import {
   collection,
   deleteDoc,
@@ -166,11 +167,11 @@ export function isAwaitingTrainingStart(session: SessionDoc): boolean {
 }
 
 export async function startManualReading(code: string) {
-  await updateSession(code, { readingStartedAt: Date.now() })
+  await updateSession(code, { readingStartedAt: serverNow() })
 }
 
 export async function startTraining(code: string) {
-  const now = Date.now()
+  const now = serverNow()
   await updateSession(code, { trainingStartedAt: now, stageStartedAt: now, autoQuizSentAt: null, activeQuiz: null })
 }
 
@@ -190,12 +191,18 @@ export async function updateSession(code: string, partial: Partial<SessionDoc>) 
 export async function advanceToStage(code: string, stage: StageId) {
   await updateSession(code, {
     currentStage: stage,
-    stageStartedAt: Date.now(),
+    stageStartedAt: serverNow(),
     revealed: false,
     activeWildcardId: null,
     activeQuiz: null,
     autoQuizSentAt: null,
+    finishedAt: null,
   })
+}
+
+// 진행자가 복구단계 뒤 "훈련 종료"를 누르면 참가자 화면도 결과 화면으로 넘어간다.
+export async function finishTraining(code: string) {
+  await updateSession(code, { finishedAt: serverNow(), activeQuiz: null })
 }
 
 export async function setRevealed(code: string, revealed: boolean) {
@@ -225,7 +232,7 @@ export async function startWildcardQuiz(
     const counterKey = source === 'common' ? 'commonQuizCount' : 'diseaseQuizCount'
     const round = session?.[counterKey] ?? 0
     tx.update(sRef, {
-      activeQuiz: { startedAt: Date.now(), durationSec, quizType, source, round, firstBloodGroupId: null },
+      activeQuiz: { startedAt: serverNow(), durationSec, quizType, source, round, firstBloodGroupId: null },
       [counterKey]: round + 1,
       updatedAt: serverTimestamp(),
     })
@@ -292,7 +299,7 @@ export async function submitSpeedQuizAnswer(
             speedWins: { ...(group.speedWins ?? {}), [memberName]: (group.speedWins?.[memberName] ?? 0) + 1 },
             speedTimes: {
               ...(group.speedTimes ?? {}),
-              [memberName]: (group.speedTimes?.[memberName] ?? 0) + Math.max(0, Date.now() - quizStartedAt),
+              [memberName]: (group.speedTimes?.[memberName] ?? 0) + Math.max(0, serverNow() - quizStartedAt),
             },
           }
         : {}),
@@ -345,7 +352,7 @@ export async function startRelay(code: string, groupId: string) {
   await ensureSignedIn()
   await updateDoc(groupRef(code, groupId), {
     relay: {
-      startedAt: Date.now(),
+      startedAt: serverNow(),
       turnIndex: 0,
       turnResults: [],
       finishedAt: null,
@@ -376,7 +383,7 @@ export async function submitRelayTurn(
     const turnResults = [...relay.turnResults, { role, bonus, method }]
     const turnIndex = relay.turnIndex + 1
     const isDone = turnIndex >= ROLE_ORDER.length
-    const finishedAt = isDone ? Date.now() : null
+    const finishedAt = isDone ? serverNow() : null
     const withinTime = isDone && finishedAt !== null && finishedAt - relay.startedAt <= RELAY_TIME_LIMIT_MS
     const scoreDelta = (bonus ? 30 : 0) + (withinTime ? 50 : 0)
 

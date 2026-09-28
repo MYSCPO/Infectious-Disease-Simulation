@@ -1,3 +1,4 @@
+import { serverNow } from '../lib/serverClock'
 import { useEffect, useState } from 'react'
 
 // 조별 타이머는 강제 규칙이 아니라 진행 속도를 가늠하는 참고용 표시라, 시간이 지나도
@@ -11,10 +12,10 @@ export default function StageTimer({
   minutes: number
   tone?: 'light' | 'dark'
 }) {
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(serverNow())
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    const id = setInterval(() => setNow(serverNow()), 1000)
     return () => clearInterval(id)
   }, [])
 

@@ -1,3 +1,4 @@
+import { serverNow } from '../lib/serverClock'
 import { useEffect } from 'react'
 import type { SessionDoc } from '../types'
 import { AUTO_QUIZ_DELAY_SEC, AUTO_QUIZ_PLAN } from '../data/autoQuiz'
@@ -19,7 +20,7 @@ export function useAutoQuizDispatch(code: string, session: SessionDoc | null | u
     if (session.activeQuiz) return
 
     const stageStartedAt = session.stageStartedAt
-    const remainingMs = (plan.delaySec ?? AUTO_QUIZ_DELAY_SEC) * 1000 - (Date.now() - stageStartedAt)
+    const remainingMs = (plan.delaySec ?? AUTO_QUIZ_DELAY_SEC) * 1000 - (serverNow() - stageStartedAt)
 
     const id = setTimeout(async () => {
       await startWildcardQuiz(code, plan.quizType, plan.source)

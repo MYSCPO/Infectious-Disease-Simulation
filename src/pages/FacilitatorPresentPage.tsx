@@ -1,3 +1,4 @@
+import { serverNow } from '../lib/serverClock'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { GroupDoc } from '../types'
@@ -6,14 +7,13 @@ import { useSession } from '../hooks/useSession'
 import { useGroups, useStageSubmissions } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
-import { WILDCARDS } from '../data/wildcards'
 import { COMMON_WILDCARD_QUIZZES, getCommonWildcardQuizCount, getWildcardQuizCount, WILDCARD_QUIZZES } from '../data/wildcardQuiz'
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import {
   advanceToStage,
+  finishTraining,
   endWildcardQuiz,
   isAwaitingTrainingStart,
-  setActiveWildcard,
   startManualReading,
   startTraining,
   setRevealed,
@@ -46,12 +46,12 @@ export default function FacilitatorPresentPage() {
   const [busy, setBusy] = useState(false)
   const [hideReentryNote, setHideReentryNote] = useState(false)
   const readingRemaining = useReadingRemaining(session?.readingStartedAt)
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(serverNow())
   const savedIdentity = loadParticipantIdentity()
   const myIdentityHere = savedIdentity && savedIdentity.sessionCode === code ? savedIdentity : null
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    const id = setInterval(() => setNow(serverNow()), 1000)
     return () => clearInterval(id)
   }, [])
 
@@ -76,7 +76,6 @@ export default function FacilitatorPresentPage() {
   const allSubmitted = groups.length > 0 && submittedCount >= groups.length
   const next = nextStage(session.currentStage)
   const prev = prevStage(session.currentStage)
-  const applicableWildcards = WILDCARDS.filter((w) => w.applicableStages.includes(session.currentStage))
   const isSimplifiedStage = SIMPLIFIED_STAGES.includes(session.currentStage)
   const isRelayStage = session.currentStage === RELAY_STAGE
   const topGroup = [...groups].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0]
@@ -92,6 +91,7 @@ export default function FacilitatorPresentPage() {
 
   async function handleAdvance() {
     if (!next) {
+      await finishTraining(code)
       navigate(`/facilitator/${code}/result`)
       return
     }
@@ -108,15 +108,6 @@ export default function FacilitatorPresentPage() {
     setBusy(true)
     try {
       await advanceToStage(code, prev)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function toggleWildcard(id: string) {
-    setBusy(true)
-    try {
-      await setActiveWildcard(code, session!.activeWildcardId === id ? null : id)
     } finally {
       setBusy(false)
     }
@@ -224,35 +215,27 @@ export default function FacilitatorPresentPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
-          <p className="text-xs font-bold text-slate-500 mb-2">👀 참가자 화면 미리 보기 (진행자가 참가자와 같은 화면을 확인할 때)</p>
-          <div className="flex flex-wrap gap-2">
-            {myIdentityHere ? (
-              <>
-                <Link
-                  to={`/team/${code}/${myIdentityHere.groupId}`}
-                  className="rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
-                >
-                  👤 내 참가자 화면 보기
-                </Link>
-                <Link
-                  to={`/join/${code}`}
-                  className="rounded-full bg-white border border-brand-300 text-brand-700 text-xs font-bold px-3 py-2 hover:bg-brand-50"
-                >
-                  🚪 참가자 입장 화면부터 보기
-                </Link>
-              </>
-            ) : (
-              <Link
-                to={`/join/${code}`}
-                className="rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
-              >
-                🚪 참가자 입장 화면부터 보기
-              </Link>
-            )}
+        {awaitingStart ? (
+          <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
+            <p className="text-xs font-bold text-slate-500 mb-2">👀 참가자 화면 미리 보기 (진행자가 참가자와 같은 화면을 확인할 때)</p>
+            <Link
+              to={`/join/${code}`}
+              className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
+            >
+              🚪 참가자 입장 화면부터 보기
+            </Link>
+            {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
           </div>
-          {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
-        </div>
+        ) : (
+          myIdentityHere && (
+            <Link
+              to={`/team/${code}/${myIdentityHere.groupId}`}
+              className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
+            >
+              👤 내 참가자 화면 보기
+            </Link>
+          )
+        )}
 
         <section className="bg-white rounded-2xl border-2 border-amber-200 p-5">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -347,7 +330,7 @@ export default function FacilitatorPresentPage() {
 
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-            <h2 className="font-semibold text-slate-800">돌발 상황 카드</h2>
+            <h2 className="font-semibold text-slate-800">돌발 퀴즈</h2>
             <div className="flex items-center gap-2 flex-wrap">
               {quizActive && (
                 <span className="text-xs font-bold text-rose-600">
@@ -439,34 +422,6 @@ export default function FacilitatorPresentPage() {
             })}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {applicableWildcards.map((w) => (
-              <button
-                key={w.id}
-                type="button"
-                onClick={() => toggleWildcard(w.id)}
-                disabled={busy}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${
-                  session.activeWildcardId === w.id
-                    ? 'bg-amber-400 border-amber-500 text-amber-950'
-                    : 'border-amber-300 text-amber-700 hover:bg-amber-50'
-                }`}
-              >
-                {w.title}
-              </button>
-            ))}
-            {applicableWildcards.length === 0 && (
-              <div className="w-full rounded-xl border-2 border-dashed border-brand-200 bg-paper-50 py-4 px-4 flex items-center justify-center gap-2 text-center">
-                <MascotAvatar role="surveillance" size="sm" />
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  💡 {STAGES.find((s) => s.id === session.currentStage)?.label ?? '이 단계'}입니다. 상단의{' '}
-                  <span className="font-bold text-amber-700">[⚡ 스피드 퀴즈 발송]</span> 또는{' '}
-                  <span className="font-bold text-emerald-700">[🤝 협동 미션 발송]</span> 버튼을 통해 질병 기본 지식
-                  퀴즈를 전 조에 발송할 수 있습니다.
-                </p>
-              </div>
-            )}
-          </div>
         </section>
 
         {clusterEntries.length === 0 && (

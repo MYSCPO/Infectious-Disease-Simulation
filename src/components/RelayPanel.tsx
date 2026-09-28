@@ -1,3 +1,4 @@
+import { serverNow } from '../lib/serverClock'
 import { useEffect, useRef, useState } from 'react'
 import type { GroupDoc, RoleId } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
@@ -294,10 +295,10 @@ export default function RelayPanel({
 }
 
 function RelayTimer({ startedAt }: { startedAt: number }) {
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(serverNow())
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    const id = setInterval(() => setNow(serverNow()), 1000)
     return () => clearInterval(id)
   }, [])
 

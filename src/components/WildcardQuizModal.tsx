@@ -1,3 +1,4 @@
+import { serverNow } from '../lib/serverClock'
 import { useEffect, useState } from 'react'
 import type { DiseaseInfo, GroupCoopProgress, GroupSpeedProgress, RoleId } from '../types'
 import type { WildcardQuizQuestion } from '../data/wildcardQuiz'
@@ -50,14 +51,14 @@ export default function WildcardQuizModal({
   durationSec: number
   isCommon?: boolean
 } & ModeProps) {
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(serverNow())
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [wrongFlash, setWrongFlash] = useState(false)
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250)
+    const id = setInterval(() => setNow(serverNow()), 250)
     return () => clearInterval(id)
   }, [])
 
