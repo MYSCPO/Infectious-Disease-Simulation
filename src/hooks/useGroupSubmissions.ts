@@ -1,3 +1,4 @@
+import { sortGroupsByName } from '../components/DiseaseDrawReveal'
 import { useEffect, useState } from 'react'
 import type { GroupDoc, StageId, SubmissionDoc } from '../types'
 import { subscribeGroupSubmission, subscribeGroups, subscribeStageSubmissions } from '../lib/session'
@@ -7,7 +8,8 @@ export function useGroups(code: string | undefined) {
 
   useEffect(() => {
     if (!code) return
-    return subscribeGroups(code, setGroups)
+    // 화면마다 조가 1조, 2조… 순서로 보이도록 이름의 숫자 기준으로 정렬한다.
+    return subscribeGroups(code, (list) => setGroups(sortGroupsByName(list)))
   }, [code])
 
   return groups

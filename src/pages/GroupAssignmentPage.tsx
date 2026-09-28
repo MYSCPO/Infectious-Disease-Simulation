@@ -3,7 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import { ROLE_LABELS, ROLE_ORDER, DEFAULT_TEAM_SIZE, requiredRoleCount } from '../types'
 import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
-import { createGroup, deleteGroup, updateGroupDisease, updateGroupTeamSize } from '../lib/session'
+import {
+  createGroup,
+  deleteGroup,
+  isDiseaseDrawPending,
+  setDiseasePool,
+  updateGroupDisease,
+  updateGroupTeamSize,
+} from '../lib/session'
 import { DISEASES } from '../data/diseases'
 import MascotAvatar from '../components/MascotAvatar'
 
@@ -32,10 +39,20 @@ export default function GroupAssignmentPage() {
     }
   }
 
+  const pool = session?.diseasePool ?? []
+  const drawPending = session ? isDiseaseDrawPending(session) : false
+  const drawn = !!session?.diseaseDrawnAt
+
+  async function togglePool(id: string) {
+    const next = pool.includes(id) ? pool.filter((p) => p !== id) : [...pool, id]
+    const ordered = DISEASES.map((d) => d.id).filter((d) => next.includes(d))
+    await setDiseasePool(code, ordered, groups.map((g) => g.id))
+  }
+
   async function handleAddGroup() {
     setCreating(true)
     try {
-      await createGroup(code, `${groups.length + 1}조`, nextDiseaseId || DISEASES[0].id)
+      await createGroup(code, `${groups.length + 1}조`, pool.length > 0 ? pool[0] : nextDiseaseId || DISEASES[0].id)
     } finally {
       setCreating(false)
     }
@@ -73,11 +90,49 @@ export default function GroupAssignmentPage() {
           </div>
         </section>
 
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+          <div>
+            <h2 className="font-semibold text-slate-800">🎲 이번 훈련 감염병 후보</h2>
+            <p className="text-xs text-slate-400 mt-1">
+              2개 이상 고르면 참가자가 역할을 고르기 전에 진행자 화면에서 조별로 감염병을 추첨해요(골고루 섞어 배정).
+              1개만 고르면 모든 조에 바로 그 감염병이 지정돼요. 아무것도 고르지 않으면 아래 조별 선택칸으로 직접 지정해요.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {DISEASES.map((d) => {
+              const on = pool.includes(d.id)
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  disabled={drawn}
+                  onClick={() => togglePool(d.id)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed ${
+                    on ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+                  } ${drawn && !on ? 'opacity-40' : ''}`}
+                >
+                  {on ? '✓ ' : ''}
+                  {d.emoji} {d.name}
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-xs font-semibold text-brand-700">
+            {drawn
+              ? '✅ 추첨 완료 · 필요하면 아래 조별 선택칸에서 직접 바꿀 수 있어요.'
+              : pool.length >= 2
+                ? `후보 ${pool.length}개 · 진행자 화면(입장 단계)에서 🎲 추첨을 눌러 주세요.`
+                : pool.length === 1
+                  ? '후보 1개 · 모든 조에 바로 지정됐어요.'
+                  : '후보 없음 · 조별로 직접 지정해요.'}
+          </p>
+        </section>
+
         <section className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h2 className="font-semibold text-slate-800">조 목록 ({groups.length})</h2>
             <div className="flex items-center gap-2">
-              <select
+              {pool.length === 0 && <select
                 value={nextDiseaseId}
                 onChange={(e) => setNextDiseaseId(e.target.value)}
                 className="rounded-lg border border-slate-300 px-2 py-2 text-xs"
@@ -87,7 +142,7 @@ export default function GroupAssignmentPage() {
                     {d.name}
                   </option>
                 ))}
-              </select>
+              </select>}
               <button
                 type="button"
                 onClick={handleAddGroup}
@@ -127,17 +182,23 @@ export default function GroupAssignmentPage() {
                       🗑️ 삭제
                     </button>
                   </div>
-                  <select
-                    value={g.diseaseId}
-                    onChange={(e) => updateGroupDisease(code, g.id, e.target.value)}
-                    className="rounded border border-slate-300 px-1.5 py-1 text-xs text-brand-700 font-medium"
-                  >
-                    {DISEASES.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
+                  {drawPending ? (
+                    <span className="rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-2 py-1">
+                      🎲 추첨 예정
+                    </span>
+                  ) : (
+                    <select
+                      value={g.diseaseId}
+                      onChange={(e) => updateGroupDisease(code, g.id, e.target.value)}
+                      className="rounded border border-slate-300 px-1.5 py-1 text-xs text-brand-700 font-medium"
+                    >
+                      {DISEASES.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <label className="flex items-center justify-between gap-2 mb-2 rounded-md bg-paper-50 px-2 py-1.5 text-xs">
                   <span className="text-slate-500">

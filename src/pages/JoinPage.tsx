@@ -11,6 +11,7 @@ import { useSession } from '../hooks/useSession'
 import { useGroups } from '../hooks/useGroupSubmissions'
 import { claimRole, releaseRole } from '../lib/session'
 import { loadParticipantIdentity, saveParticipantIdentity } from '../lib/participant'
+import DiseaseDrawReveal from '../components/DiseaseDrawReveal'
 
 export default function JoinPage() {
   const { code: codeParam } = useParams()
@@ -25,6 +26,8 @@ export default function JoinPage() {
   const [claiming, setClaiming] = useState(false)
   const [showOrgChart, setShowOrgChart] = useState(true)
   const [slowLoad, setSlowLoad] = useState(false)
+  const [drawRevealDone, setDrawRevealDone] = useState(false)
+  const [drawSeen, setDrawSeen] = useState(false)
 
   const { session, loading } = useSession(confirmedCode || undefined)
   const groups = useGroups(confirmedCode || undefined)
@@ -56,6 +59,15 @@ export default function JoinPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmedCode])
+
+  // 감염병 후보가 2개 이상이면, 조직도·역할 선택 전에 조별 감염병 추첨 화면을 먼저 보여준다.
+  // 이미 이 방에 입장해 역할을 고른 참가자(새로고침 등)는 추첨 화면을 건너뛴다.
+  const drawPool = session?.diseasePool ?? []
+  const alreadyJoined = (() => {
+    const saved = loadParticipantIdentity()
+    return !!saved && saved.sessionCode === confirmedCode
+  })()
+  const showDraw = !!session && drawPool.length >= 2 && !drawSeen && !alreadyJoined
 
   const selectedGroup = groups.find((g) => g.id === groupId)
   const filledRoles = selectedGroup ? ROLE_ORDER.filter((r) => (selectedGroup.members[r]?.length ?? 0) > 0) : []
@@ -180,6 +192,43 @@ export default function JoinPage() {
           </div>
         ) : !session ? (
           codeEntryForm
+        ) : showDraw ? (
+          <section className="bg-white rounded-3xl border-2 border-amber-200 p-5 space-y-4 text-center">
+            <p className="text-sm text-slate-500">{session.schoolName} · 참가 코드 {confirmedCode}</p>
+            <div className="text-4xl">🎲</div>
+            <h2 className="text-lg font-black text-slate-800">조별 감염병 추첨</h2>
+            {!session.diseaseDrawnAt ? (
+              <>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  곧 진행자가 조별 감염병을 추첨해요!
+                  <br />
+                  후보: <b>{drawPool.map((id) => getDiseaseById(id).name).join(' · ')}</b>
+                </p>
+                <p className="text-xs text-amber-600 animate-pulse">⏳ 추첨을 기다리는 중...</p>
+              </>
+            ) : (
+              <>
+                <DiseaseDrawReveal
+                  groups={groups}
+                  pool={drawPool}
+                  drawnAt={session.diseaseDrawnAt}
+                  onDone={() => setDrawRevealDone(true)}
+                />
+                {drawRevealDone && (
+                  <>
+                    <p className="text-sm text-slate-600">내 자리의 조 감염병을 확인하고, 다음 화면에서 역할을 골라 주세요.</p>
+                    <button
+                      type="button"
+                      onClick={() => setDrawSeen(true)}
+                      className="w-full rounded-full bg-brand-600 text-white py-3 text-sm font-bold hover:bg-brand-700"
+                    >
+                      다음 → 역할 선택하기
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </section>
         ) : (
           <>
             <p className="text-center text-sm text-slate-500">{session.schoolName} · 참가 코드 {confirmedCode}</p>

@@ -11,7 +11,9 @@ import { COMMON_WILDCARD_QUIZZES, getCommonWildcardQuizCount, getWildcardQuizCou
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import {
   advanceToStage,
+  drawDiseases,
   finishTraining,
+  isDiseaseDrawPending,
   endWildcardQuiz,
   isAwaitingTrainingStart,
   startManualReading,
@@ -33,6 +35,7 @@ import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
 import ChecklistProgressGrid from '../components/ChecklistProgressGrid'
 import EntryStatusGrid from '../components/EntryStatusGrid'
+import DiseaseDrawReveal from '../components/DiseaseDrawReveal'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
 const RELAY_STAGE = 'response3'
@@ -114,6 +117,19 @@ export default function FacilitatorPresentPage() {
   }
 
   const awaitingStart = isAwaitingTrainingStart(session)
+  const drawPending = isDiseaseDrawPending(session)
+  const drawPool = session.diseasePool ?? []
+
+  async function handleDraw() {
+    if (groups.length === 0) return
+    if (!window.confirm(`${groups.length}개 조에 감염병 ${drawPool.length}가지를 추첨할까요? 추첨은 한 번만 할 수 있어요.`)) return
+    setBusy(true)
+    try {
+      await drawDiseases(code, groups.map((g) => g.id), drawPool)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function handleStartReading() {
     setBusy(true)
@@ -251,11 +267,36 @@ export default function FacilitatorPresentPage() {
 
         {awaitingStart ? (
           <section className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-5 text-center space-y-3">
+            {drawPool.length >= 2 && (
+              <div className="rounded-2xl bg-white border-2 border-amber-300 p-4 space-y-3">
+                <p className="text-base font-bold text-amber-800">🎲 조별 감염병 추첨</p>
+                {drawPending ? (
+                  <>
+                    <p className="text-sm text-slate-600">
+                      후보: {drawPool.map((id) => getDiseaseById(id).name).join(' · ')}
+                      <br />
+                      참가자 화면은 추첨을 기다리고 있어요. 버튼을 누르면 이 화면과 참가자 폰에 동시에 추첨이 진행돼요.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDraw}
+                      disabled={busy || groups.length === 0}
+                      className="w-full max-w-md rounded-full bg-amber-500 text-white py-3.5 text-base font-bold hover:bg-amber-600 disabled:opacity-40 shadow-sm"
+                    >
+                      🎲 조별 감염병 추첨하기
+                    </button>
+                  </>
+                ) : (
+                  <DiseaseDrawReveal groups={groups} pool={drawPool} drawnAt={session.diseaseDrawnAt!} size="lg" />
+                )}
+              </div>
+            )}
             <p className="text-base font-bold text-brand-800">🚪 입장 · 조별 입장 현황</p>
             <EntryStatusGrid groups={groups} />
             <p className="text-base font-bold text-brand-800 pt-2">📖 훈련 시작 전 · 우리 조의 감염병 매뉴얼 읽기</p>
             {readingRemaining == null ? (
               <>
+                {drawPending && <p className="text-sm font-bold text-amber-700">먼저 위에서 🎲 감염병 추첨을 해 주세요.</p>}
                 <p className="text-sm text-slate-600 leading-relaxed">
                   참가자가 모두 입장하면 아래 버튼을 눌러 주세요. 참가자 화면에 조별 감염병 매뉴얼 카드와
                   <br className="hidden sm:block" />
@@ -264,12 +305,12 @@ export default function FacilitatorPresentPage() {
                 <button
                   type="button"
                   onClick={handleStartReading}
-                  disabled={busy}
+                  disabled={busy || drawPending}
                   className="w-full max-w-md rounded-full bg-brand-600 text-white py-3.5 text-base font-bold hover:bg-brand-700 disabled:opacity-40 shadow-sm"
                 >
                   📖 매뉴얼 읽기 시작 ({MANUAL_READING_SEC}초)
                 </button>
-                <button type="button" onClick={handleStartTraining} disabled={busy} className="block mx-auto text-xs text-slate-500 underline">
+                <button type="button" onClick={handleStartTraining} disabled={busy || drawPending} className="block mx-auto text-xs text-slate-500 underline disabled:opacity-40">
                   읽기 없이 바로 훈련 시작
                 </button>
               </>

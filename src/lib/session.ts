@@ -13,6 +13,7 @@ import {
   setDoc,
   Unsubscribe,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { db, ensureSignedIn } from '../firebase'
 import { hashFacilitatorPin } from './facilitatorAuth'
@@ -475,6 +476,46 @@ export async function updateChecklistProgress(
 export async function deleteGroup(code: string, groupId: string) {
   await ensureSignedIn()
   await deleteDoc(groupRef(code, groupId))
+}
+
+// 감염병 후보가 2개 이상이고 아직 추첨하지 않았으면, 참가자는 역할 선택 전에 추첨 화면에서 기다린다.
+export function isDiseaseDrawPending(session: SessionDoc): boolean {
+  return (session.diseasePool?.length ?? 0) >= 2 && !session.diseaseDrawnAt
+}
+
+// 후보를 1개만 고르면 추첨 없이 모든 조에 바로 그 감염병을 지정한다.
+export async function setDiseasePool(code: string, pool: string[], groupIds: string[]) {
+  await ensureSignedIn()
+  const batch = writeBatch(db)
+  batch.update(sessionRef(code), {
+    diseasePool: pool,
+    diseaseDrawnAt: null,
+    ...(pool.length > 0 ? { diseaseId: pool[0] } : {}),
+    updatedAt: serverTimestamp(),
+  })
+  if (pool.length === 1) for (const id of groupIds) batch.update(groupRef(code, id), { diseaseId: pool[0] })
+  await batch.commit()
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// 후보 감염병을 조에 최대한 고르게(개수 차이 1 이내) 무작위로 나눈다. 추첨은 한 번만 한다.
+export async function drawDiseases(code: string, groupIds: string[], pool: string[]) {
+  await ensureSignedIn()
+  let list: string[] = []
+  while (list.length < groupIds.length) list = list.concat(shuffle(pool))
+  list = shuffle(list.slice(0, groupIds.length))
+  const batch = writeBatch(db)
+  groupIds.forEach((id, i) => batch.update(groupRef(code, id), { diseaseId: list[i] }))
+  batch.update(sessionRef(code), { diseaseDrawnAt: serverNow(), updatedAt: serverTimestamp() })
+  await batch.commit()
 }
 
 export async function updateGroupTeamSize(code: string, groupId: string, teamSize: number) {
