@@ -331,10 +331,10 @@ export default function FacilitatorPresentPage() {
                 <button
                   type="button"
                   onClick={handleStartTraining}
-                  disabled={busy}
-                  className={`w-full max-w-md rounded-full text-white py-3.5 text-base font-bold disabled:opacity-40 shadow-sm ${readingRemaining > 0 ? 'bg-slate-500 hover:bg-slate-600' : 'bg-brand-600 hover:bg-brand-700 animate-pulse'}`}
+                  disabled={busy || readingRemaining > 0}
+                  className={`w-full max-w-md rounded-full text-white py-3.5 text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm ${readingRemaining > 0 ? 'bg-slate-500' : 'bg-brand-600 hover:bg-brand-700 animate-pulse'}`}
                 >
-                  ▶ 훈련 시작
+                  {readingRemaining > 0 ? `▶ 훈련 시작 (${readingRemaining}초 뒤 가능)` : '▶ 훈련 시작'}
                 </button>
               </>
             )}

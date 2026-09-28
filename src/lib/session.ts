@@ -224,19 +224,31 @@ export async function startWildcardQuiz(
   quizType: QuizType,
   source: QuizSource = 'disease',
   durationSec = 60,
-) {
+  autoForStageStartedAt?: number,
+): Promise<boolean> {
   // 훈련 방마다 낸 문제 수를 세어 다음 순번의 문제를 낸다(같은 문제가 다시 나오지 않게).
+  // 자동 발송은 진행자·참가자 기기가 서버 시계 기준으로 거의 동시에 시도하므로, "이번 단계에 이미
+  // 보냈는지" 확인과 발송을 한 트랜잭션에서 처리해 한 기기만 성공하게 한다(두 번째가 덮어써 문제가 바뀌던 문제).
   await ensureSignedIn()
   const sRef = sessionRef(code)
-  await runTransaction(db, async (tx) => {
+  return runTransaction(db, async (tx) => {
     const session = (await tx.get(sRef)).data() as SessionDoc | undefined
+    if (!session) return false
+    if (autoForStageStartedAt != null) {
+      if (session.stageStartedAt !== autoForStageStartedAt) return false
+      if (session.autoQuizSentAt === autoForStageStartedAt) return false
+      if (session.activeQuiz) return false
+    }
     const counterKey = source === 'common' ? 'commonQuizCount' : 'diseaseQuizCount'
-    const round = session?.[counterKey] ?? 0
+    const round = session[counterKey] ?? 0
     tx.update(sRef, {
       activeQuiz: { startedAt: serverNow(), durationSec, quizType, source, round, firstBloodGroupId: null },
       [counterKey]: round + 1,
+      // 진행자가 직접 보낸 경우에도 이번 단계 자동 발송은 끝난 것으로 표시한다.
+      autoQuizSentAt: session.stageStartedAt ?? null,
       updatedAt: serverTimestamp(),
     })
+    return true
   })
 }
 

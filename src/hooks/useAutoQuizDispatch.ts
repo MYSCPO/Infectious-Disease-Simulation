@@ -2,7 +2,7 @@ import { serverNow } from '../lib/serverClock'
 import { useEffect } from 'react'
 import type { SessionDoc } from '../types'
 import { AUTO_QUIZ_DELAY_SEC, AUTO_QUIZ_PLAN } from '../data/autoQuiz'
-import { isAwaitingTrainingStart, startWildcardQuiz, updateSession } from '../lib/session'
+import { isAwaitingTrainingStart, startWildcardQuiz } from '../lib/session'
 
 // 단계 진입 후 일정 시간이 지나면 그 단계에 맞는 돌발 퀴즈가 자동으로 나가도록 하는 타이머.
 // 진행자 화면과 참가자 화면 양쪽에서 이 훅을 쓴다 — 진행자가 참가자 화면을 보러 이동해서
@@ -22,10 +22,13 @@ export function useAutoQuizDispatch(code: string, session: SessionDoc | null | u
     const stageStartedAt = session.stageStartedAt
     const remainingMs = (plan.delaySec ?? AUTO_QUIZ_DELAY_SEC) * 1000 - (serverNow() - stageStartedAt)
 
-    const id = setTimeout(async () => {
-      await startWildcardQuiz(code, plan.quizType, plan.source)
-      await updateSession(code, { autoQuizSentAt: stageStartedAt })
-    }, Math.max(0, remainingMs))
+    // 여러 기기가 동시에 시도해도 트랜잭션 안에서 한 번만 발송된다. 기기마다 조금씩 늦춰 충돌 자체도 줄인다.
+    const jitter = Math.floor(Math.random() * 400)
+    const id = setTimeout(() => {
+      startWildcardQuiz(code, plan.quizType, plan.source, 60, stageStartedAt).catch((e) =>
+        console.warn('자동 퀴즈 발송 재시도 필요', e),
+      )
+    }, Math.max(0, remainingMs) + jitter)
 
     return () => clearTimeout(id)
   }, [code, session?.currentStage, session?.stageStartedAt, session?.trainingStartedAt, session?.autoQuizSentAt, !!session?.activeQuiz])

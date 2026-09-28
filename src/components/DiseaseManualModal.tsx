@@ -8,11 +8,13 @@ export default function DiseaseManualModal({
   greetRole,
   onClose,
   notice,
+  lockedMessage,
 }: {
   disease: DiseaseInfo
   greetRole: RoleId | null
   onClose: () => void
   notice?: React.ReactNode
+  lockedMessage?: string // 있으면 닫기 버튼 대신 이 안내를 보여 주고 스스로 닫을 수 없다(진행자가 넘길 때까지)
 }) {
   const mascot = ROLE_MASCOTS[greetRole ?? 'health']
 
@@ -50,6 +52,9 @@ export default function DiseaseManualModal({
 
           <DiseaseManualContent disease={disease} />
 
+          {lockedMessage ? (
+            <p className="w-full rounded-full bg-slate-100 text-slate-500 py-3 text-sm font-bold text-center">{lockedMessage}</p>
+          ) : (
           <button
             type="button"
             onClick={onClose}
@@ -57,6 +62,7 @@ export default function DiseaseManualModal({
           >
             확인했어요, 훈련으로 돌아가기
           </button>
+          )}
         </div>
       </div>
     </div>

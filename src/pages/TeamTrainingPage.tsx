@@ -353,6 +353,7 @@ export default function TeamTrainingPage() {
           disease={disease}
           greetRole={myRole}
           onClose={() => setShowManual(false)}
+          lockedMessage={awaitingStart ? '⏳ 진행자가 훈련을 시작하면 자동으로 넘어가요' : undefined}
           notice={
             awaitingStart ? (
               <div className="rounded-2xl bg-amber-50 border border-amber-200 px-3 py-2 text-center">
