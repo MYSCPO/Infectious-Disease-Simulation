@@ -35,6 +35,7 @@ import RevealComparison from '../components/RevealComparison'
 import Leaderboard from '../components/Leaderboard'
 import ChecklistProgressGrid from '../components/ChecklistProgressGrid'
 import EntryStatusGrid from '../components/EntryStatusGrid'
+import JoinQrBadge from '../components/JoinQrBadge'
 import DiseaseDrawReveal from '../components/DiseaseDrawReveal'
 
 const SIMPLIFIED_STAGES = ['prevention', 'response1', 'response2', 'recovery']
@@ -201,9 +202,10 @@ export default function FacilitatorPresentPage() {
 
   return (
     <div className="min-h-screen bg-paper-50">
+      <JoinQrBadge code={code} />
       <StageBanner current={session.currentStage} awaitingStart={awaitingStart} />
 
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 lg:pr-[160px] 2xl:pr-4 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-bold text-slate-800">{session.schoolName} · 참가 코드 {code}</h1>
