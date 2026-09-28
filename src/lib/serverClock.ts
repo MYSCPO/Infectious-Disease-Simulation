@@ -15,10 +15,11 @@ async function measureOnce(): Promise<{ offset: number; rtt: number } | null> {
   const uid = auth.currentUser?.uid
   if (!uid) return null
   const ref = doc(db, 'sessions', '_clock', 'clocks', uid)
+  // 서버 시각은 쓰기가 반영되는 순간에 찍히므로, 쓰기 왕복 시간의 가운데를 기준으로 삼는다.
   const t0 = Date.now()
   await setDoc(ref, { at: serverTimestamp() })
-  const snap = await getDoc(ref)
   const t1 = Date.now()
+  const snap = await getDoc(ref)
   const at = snap.data()?.at as Timestamp | undefined
   if (!at) return null
   return { offset: at.toMillis() - (t0 + t1) / 2, rtt: t1 - t0 }
@@ -28,9 +29,7 @@ export function syncServerClock(): Promise<void> {
   if (!syncing) {
     syncing = (async () => {
       try {
-        const first = await measureOnce()
-        const second = await measureOnce().catch(() => null)
-        const samples = [first, second].filter(
+        const samples = [await measureOnce(), await measureOnce().catch(() => null), await measureOnce().catch(() => null)].filter(
           (s): s is { offset: number; rtt: number } => s !== null,
         )
         if (samples.length > 0) {
