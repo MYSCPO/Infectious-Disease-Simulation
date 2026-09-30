@@ -24,7 +24,7 @@ const GuidebookDocument = forwardRef<HTMLDivElement, Props>(({ session, groups, 
   return (
     <div ref={ref} className="bg-white text-slate-900 max-w-[210mm] mx-auto">
       {/* 표지 */}
-      <section className="min-h-[270mm] flex flex-col items-center justify-center text-center px-10">
+      <section className="relative min-h-[270mm] flex flex-col items-center justify-center text-center px-10">
         <p className="text-sm text-brand-600 font-semibold mb-3">하나 된 대응, 건강한 학교생활</p>
         <h1 className="text-3xl font-black text-slate-800 mb-2">학교 감염병 대응 모의훈련 가이드북</h1>
         <p className="text-lg text-slate-500 mb-10">{session.schoolName} ({session.schoolLevel})</p>
@@ -33,6 +33,9 @@ const GuidebookDocument = forwardRef<HTMLDivElement, Props>(({ session, groups, 
           <p>대상 감염병: {diseaseIds.map((id) => getDiseaseById(id).name).join(', ')}</p>
           <p>참석자 수: {session.attendeeCount}명 · 참여 조: {groups.length}개</p>
         </div>
+        <p className="absolute bottom-12 inset-x-0 px-10 text-[11px] text-slate-400">
+          본 가이드북은 「학교 감염병 위기 대응 모의훈련」 프로그램으로 작성되었습니다. (기획·개발: 보건교사 정미애)
+        </p>
       </section>
 
       {/* 조직도 */}
