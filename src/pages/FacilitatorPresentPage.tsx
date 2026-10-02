@@ -11,6 +11,7 @@ import { COMMON_WILDCARD_QUIZZES, getCommonWildcardQuizCount, getWildcardQuizCou
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import {
   advanceToStage,
+  claimRole,
   drawDiseases,
   finishTraining,
   isDiseaseDrawPending,
@@ -24,7 +25,7 @@ import {
 } from '../lib/session'
 import { AUTO_QUIZ_DELAY_SEC, AUTO_QUIZ_PLAN } from '../data/autoQuiz'
 import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
-import { loadParticipantIdentity } from '../lib/participant'
+import { loadParticipantIdentity, saveParticipantIdentity } from '../lib/participant'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import { formatMmSs, MANUAL_READING_SEC, useReadingRemaining } from '../components/ReadingCountdown'
@@ -103,6 +104,25 @@ export default function FacilitatorPresentPage() {
     setBusy(true)
     try {
       await advanceToStage(code, next)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // 테스트 방: 아직 참가자로 입장하지 않았으면 1조 발생감시팀 테스트 참가자로 자동 입장해 현재 단계 화면을 바로 연다.
+  async function handleOpenParticipantView() {
+    if (myIdentityHere) {
+      navigate(`/team/${code}/${myIdentityHere.groupId}`)
+      return
+    }
+    const group = groups[0]
+    if (!group) return
+    setBusy(true)
+    try {
+      const name = '테스트 참가자(나)'
+      await claimRole(code, group.id, 'surveillance', name)
+      saveParticipantIdentity({ sessionCode: code, groupId: group.id, role: 'surveillance', name })
+      navigate(`/team/${code}/${group.id}`)
     } finally {
       setBusy(false)
     }
@@ -234,26 +254,27 @@ export default function FacilitatorPresentPage() {
           </div>
         )}
 
-        {/* 실제 훈련은 입장 단계에서만, 테스트 방은 언제든 참가자 화면을 오가며 확인할 수 있다 */}
+        {/* 입장 단계: 참가자 입장 화면부터 미리 보기. 테스트 방은 훈련 시작 뒤 바로 현재 단계의 참가자 화면을 본다 */}
         {(awaitingStart || isTestSession) && (
           <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
             <p className="text-xs font-bold text-slate-500 mb-2">👀 참가자 화면 미리 보기 (진행자가 참가자와 같은 화면을 확인할 때)</p>
-            <div className="flex flex-wrap gap-2">
-              {myIdentityHere && (
-                <Link
-                  to={`/team/${code}/${myIdentityHere.groupId}`}
-                  className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
-                >
-                  👤 내 참가자 화면 보기
-                </Link>
-              )}
+            {awaitingStart ? (
               <Link
                 to={`/join/${code}`}
-                className={`inline-block rounded-full text-xs font-bold px-3 py-2 ${myIdentityHere ? "bg-white border border-brand-300 text-brand-700 hover:bg-brand-50" : "bg-brand-600 text-white hover:bg-brand-700"}`}
+                className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
               >
                 🚪 참가자 입장 화면부터 보기
               </Link>
-            </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleOpenParticipantView}
+                disabled={busy || groups.length === 0}
+                className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700 disabled:opacity-40"
+              >
+                👤 참가자 화면 보기
+              </button>
+            )}
             {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
           </div>
         )}
