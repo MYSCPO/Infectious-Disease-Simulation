@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { RoleId } from '../types'
 import { requiredRoleCount, ROLE_CAPACITY, ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_ORDER } from '../types'
 import { ROLE_MASCOTS } from '../data/mascots'
@@ -171,6 +171,16 @@ export default function JoinPage() {
       <div className="flex-1 py-8 px-4">
       <div className="max-w-md mx-auto space-y-5">
         <h1 className="text-xl font-bold text-slate-800 text-center">모의훈련 참가하기</h1>
+        {session?.schoolName === '테스트 학교(1인 체험)' && (
+          <div className="text-center">
+            <Link
+              to={`/facilitator/${confirmedCode}/present`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 text-white text-xs font-bold px-3 py-2 hover:bg-slate-700"
+            >
+              🖥️ 진행자 화면으로 돌아가기
+            </Link>
+          </div>
+        )}
 
         {!confirmedCode ? (
           codeEntryForm

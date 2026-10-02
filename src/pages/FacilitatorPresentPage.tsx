@@ -52,6 +52,7 @@ export default function FacilitatorPresentPage() {
   const readingRemaining = useReadingRemaining(session?.readingStartedAt)
   const [now, setNow] = useState(serverNow())
   const savedIdentity = loadParticipantIdentity()
+  const isTestSession = session?.schoolName === '테스트 학교(1인 체험)'
   const myIdentityHere = savedIdentity && savedIdentity.sessionCode === code ? savedIdentity : null
 
   useEffect(() => {
@@ -233,26 +234,28 @@ export default function FacilitatorPresentPage() {
           </div>
         )}
 
-        {awaitingStart ? (
+        {/* 실제 훈련은 입장 단계에서만, 테스트 방은 언제든 참가자 화면을 오가며 확인할 수 있다 */}
+        {(awaitingStart || isTestSession) && (
           <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
             <p className="text-xs font-bold text-slate-500 mb-2">👀 참가자 화면 미리 보기 (진행자가 참가자와 같은 화면을 확인할 때)</p>
-            <Link
-              to={`/join/${code}`}
-              className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
-            >
-              🚪 참가자 입장 화면부터 보기
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              {myIdentityHere && (
+                <Link
+                  to={`/team/${code}/${myIdentityHere.groupId}`}
+                  className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
+                >
+                  👤 내 참가자 화면 보기
+                </Link>
+              )}
+              <Link
+                to={`/join/${code}`}
+                className={`inline-block rounded-full text-xs font-bold px-3 py-2 ${myIdentityHere ? "bg-white border border-brand-300 text-brand-700 hover:bg-brand-50" : "bg-brand-600 text-white hover:bg-brand-700"}`}
+              >
+                🚪 참가자 입장 화면부터 보기
+              </Link>
+            </div>
             {groups.length === 0 && <p className="text-xs text-slate-400 mt-2">먼저 조 편성에서 조를 추가해 주세요.</p>}
           </div>
-        ) : (
-          myIdentityHere && (
-            <Link
-              to={`/team/${code}/${myIdentityHere.groupId}`}
-              className="inline-block rounded-full bg-brand-600 text-white text-xs font-bold px-3 py-2 hover:bg-brand-700"
-            >
-              👤 내 참가자 화면 보기
-            </Link>
-          )
         )}
 
         <section className="bg-white rounded-2xl border-2 border-amber-200 p-5">
