@@ -148,30 +148,26 @@ export function durationMin(l: LearnerDoc): number | null {
   return l.completedAt ? Math.max(1, Math.round((l.completedAt - l.startedAt) / 60000)) : null
 }
 
-// 엑셀에서 바로 열어도 한글이 깨지지 않도록 BOM을 붙인 CSV로 내려받는다.
-export function downloadLearnersCsv(schoolName: string, learners: LearnerDoc[]) {
+// 엑셀 파일(.xlsx)로 내려받는다. CSV는 엑셀이 시각·"4/5"를 날짜로 바꿔 ####으로 보이므로,
+// 모든 칸을 글자로 넣고 칸 너비를 지정한다. 라이브러리는 버튼을 누를 때만 불러온다.
+export async function downloadLearnersXlsx(schoolName: string, learners: LearnerDoc[]) {
+  const XLSX = await import('xlsx')
   const header = ['이름', '소속', '역할', '감염병', '상태', '시작', '완료', '소요(분)', '퀴즈 정답']
   const rows = learners.map((l) => [
     l.name,
     l.affiliation,
-    ROLE_LABELS[l.role],
+    ROLE_LABELS[l.role].split('(')[0],
     getDiseaseById(l.diseaseId).name,
     learnerStatusLabel(l),
     fmt(l.startedAt),
     fmt(l.completedAt),
     durationMin(l) ?? '',
-    `${learnerCorrect(l)}/${SELF_STAGES.length}`,
+    `${learnerCorrect(l)}문항 / ${SELF_STAGES.length}문항`,
   ])
-  const esc = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
-  const csv = '﻿' + [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows])
+  ws['!cols'] = [10, 12, 12, 14, 18, 18, 18, 9, 14].map((wch) => ({ wch }))
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '참여 현황')
   const today = new Date().toISOString().slice(0, 10)
-  a.download = `${schoolName}_개인자율연수_참여현황_${today}.csv`
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  // 바로 해제하면 일부 브라우저에서 내려받기가 취소되어 잠시 뒤 해제한다.
-  setTimeout(() => URL.revokeObjectURL(a.href), 4000)
+  XLSX.writeFile(wb, `${schoolName}_개인자율연수_참여현황_${today}.xlsx`)
 }

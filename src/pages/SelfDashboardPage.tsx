@@ -7,7 +7,7 @@ import { getDiseaseById } from '../data/diseases'
 import { updateSession } from '../lib/session'
 import {
   deleteAllLearners,
-  downloadLearnersCsv,
+  downloadLearnersXlsx,
   durationMin,
   learnerCorrect,
   learnerStatusLabel,
@@ -83,11 +83,11 @@ export default function SelfDashboardPage() {
             </h2>
             <button
               type="button"
-              onClick={() => downloadLearnersCsv(session.schoolName, learners)}
+              onClick={() => downloadLearnersXlsx(session.schoolName, learners)}
               disabled={learners.length === 0}
               className="rounded-full bg-slate-800 text-white text-sm font-semibold px-4 py-2 hover:bg-slate-700 disabled:opacity-40"
             >
-              📥 CSV 다운로드 (엑셀)
+              📥 엑셀 다운로드
             </button>
           </div>
           {learners.length === 0 ? (
@@ -149,7 +149,7 @@ export default function SelfDashboardPage() {
             <button
               type="button"
               onClick={async () => {
-                if (!window.confirm('참여 기록을 모두 삭제할까요? 먼저 CSV를 내려받아 두세요. 삭제하면 되돌릴 수 없어요.')) return
+                if (!window.confirm('참여 기록을 모두 삭제할까요? 먼저 엑셀 파일을 내려받아 두세요. 삭제하면 되돌릴 수 없어요.')) return
                 await deleteAllLearners(code)
               }}
               disabled={learners.length === 0}
@@ -160,7 +160,7 @@ export default function SelfDashboardPage() {
           </div>
           <p className="text-xs text-slate-400">
             {closed ? '마감됨: 새로 참여할 수 없어요(이미 시작한 선생님은 마저 끝낼 수 있어요).' : '진행 중: 주소를 받은 선생님 누구나 참여할 수 있어요.'}{' '}
-            연수가 끝나면 CSV를 저장한 뒤 기록을 삭제해 주세요.
+            연수가 끝나면 엑셀 파일을 저장한 뒤 기록을 삭제해 주세요.
           </p>
         </section>
       </div>

@@ -25,7 +25,6 @@ import ChecklistPanel from '../components/ChecklistPanel'
 import MascotAvatar from '../components/MascotAvatar'
 import DiseaseManualContent, { gradeLabel } from '../components/DiseaseManualContent'
 import DiseaseManualModal from '../components/DiseaseManualModal'
-import RecommendedResources from '../components/RecommendedResources'
 import ReferenceGrid from '../components/ReferenceGrid'
 import SiteFooter from '../components/SiteFooter'
 
@@ -149,7 +148,7 @@ export default function SelfRunPage() {
     } catch {
       // 다음에 다시 떠도 큰 문제는 없다.
     }
-    if (goToResources) setTimeout(() => document.getElementById('recommended-resources')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    if (goToResources) setTimeout(() => document.getElementById('self-reference-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   if (learner === undefined) return <div className="p-8 text-center text-slate-400">불러오는 중...</div>
@@ -240,9 +239,8 @@ export default function SelfRunPage() {
               })}
             </section>
 
-            <RecommendedResources diseaseId={learner.diseaseId} />
           </div>
-          <div className="mt-8">
+          <div id="self-reference-grid" className="mt-8 scroll-mt-4">
             <ReferenceGrid title="📚 사후 학습 참고 자료실" />
           </div>
         </div>
@@ -254,14 +252,14 @@ export default function SelfRunPage() {
               <div className="text-4xl">🎉</div>
               <h3 className="text-lg font-black text-slate-800">연수를 마쳤어요!</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                실제 상황에서 꼭 필요한 <b>감염병 정보와 출결 처리 기준</b>을 아래 자료실에서 한 번 더 확인해 보세요.
+                실제 상황에서 꼭 필요한 <b>감염병 정보와 출결 처리 기준</b>을 화면 아래 참고 자료실에서 한 번 더 확인해 보세요.
               </p>
               <button
                 type="button"
                 onClick={() => closeDonePopup(true)}
                 className="w-full rounded-full bg-brand-600 text-white py-3 text-sm font-bold hover:bg-brand-700"
               >
-                📚 추천 자료 보러 가기
+                📚 참고 자료실 보러 가기
               </button>
               <button type="button" onClick={() => closeDonePopup(false)} className="text-xs text-slate-400 underline">
                 나중에
