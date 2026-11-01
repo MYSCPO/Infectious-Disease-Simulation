@@ -7,6 +7,8 @@ import { STAGES } from '../data/stages'
 import Leaderboard from '../components/Leaderboard'
 import ReferenceGrid from '../components/ReferenceGrid'
 import SiteFooter from '../components/SiteFooter'
+import RecommendedResources from '../components/RecommendedResources'
+import { loadParticipantIdentity } from '../lib/participant'
 
 export default function ResultPage() {
   const { code = '' } = useParams()
@@ -23,6 +25,9 @@ export default function ResultPage() {
     return acc
   }, {})
   const badgedGroups = groups.filter((g) => g.badge)
+  // 이 기기가 이 훈련의 참가자라면 자기 조 감염병을 추천한다(진행자 화면은 전체 보기).
+  const me = loadParticipantIdentity()
+  const myDiseaseId = me && me.sessionCode === code ? (groups.find((g) => g.id === me.groupId)?.diseaseId ?? null) : null
   const speedKings = groups
     .map((g) => {
       const best = Object.entries(g.speedWins ?? {})
@@ -117,6 +122,8 @@ export default function ResultPage() {
         >
           맞춤형 가이드북 PDF 보기 / 다운로드
         </Link>
+
+        <RecommendedResources diseaseId={myDiseaseId} />
       </div>
 
       <div className="max-w-2xl mx-auto mt-8">
