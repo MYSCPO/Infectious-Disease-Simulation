@@ -70,7 +70,7 @@ export default function MainPage() {
         markFacilitatorUnlocked(c, hash)
       }
       closeGate()
-      navigate(`/facilitator/${c}/groups`)
+      navigate(session.mode === 'self' ? `/facilitator/${c}/self` : `/facilitator/${c}/groups`)
     } catch (err) {
       console.error(err)
       setGateError('확인 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.')
@@ -273,6 +273,20 @@ export default function MainPage() {
                     <span className="block text-[11px] text-slate-500 mt-0.5">기존 참가 코드와 비밀번호로 관리자 화면에 접속해요</span>
                   </div>
                   <span className="text-brand-600 group-hover:translate-x-0.5 transition-transform">→</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeGate()
+                    navigate('/facilitator/self-setup')
+                  }}
+                  className="group w-full rounded-2xl border-2 border-amber-200 bg-amber-50/60 text-amber-900 py-3.5 px-4 text-left hover:bg-amber-50 transition-all flex items-center justify-between"
+                >
+                  <div>
+                    <span className="block text-sm font-bold">📅 개인 자율 연수 만들기</span>
+                    <span className="block text-[11px] text-slate-500 mt-0.5">교직원이 각자 혼자 진행하고 참여 기록이 남아요</span>
+                  </div>
+                  <span className="text-amber-600 group-hover:translate-x-0.5 transition-transform">→</span>
                 </button>
               </div>
               <button

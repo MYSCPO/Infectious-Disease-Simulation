@@ -32,6 +32,11 @@ export default function JoinPage() {
   const { session, loading } = useSession(confirmedCode || undefined)
   const groups = useGroups(confirmedCode || undefined)
 
+  // 개인 자율 연수 방의 참가 코드면 개인 연수 입장 화면으로 보낸다.
+  useEffect(() => {
+    if (confirmedCode && session?.mode === 'self') navigate(`/self/${confirmedCode}`, { replace: true })
+  }, [confirmedCode, session?.mode])
+
   useEffect(() => {
     if (confirmedCode && !loading && !session) {
       setError('해당 참가 코드를 찾을 수 없습니다. 코드를 다시 확인해 주세요.')

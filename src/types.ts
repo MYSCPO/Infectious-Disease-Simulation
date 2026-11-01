@@ -172,6 +172,8 @@ export interface SessionDoc {
   diseaseDrawnAt?: number | null // 추첨한 시각(서버 시계). 모든 기기가 이 시각 기준으로 같은 추첨 연출을 본다
   finishedAt?: number | null // 진행자가 "훈련 종료"를 누른 시각. 이때부터 참가자도 결과 화면을 함께 본다
   trainingStartedAt?: number | null // 진행자가 "훈련 시작"을 누른 시각. 그 전까지 예방단계 타이머·자동 퀴즈 대기
+  mode?: 'group' | 'self' // self: 교직원이 각자 혼자 진행하는 개인 자율 연수 방(없으면 조별 훈련)
+  selfClosed?: boolean // 개인 자율 연수 마감(새 참여 막음)
   facilitatorPinHash?: string | null // 없으면(테스트 방·기존 방) 진행자 화면 비밀번호 확인을 생략
   createdAt: number
   updatedAt: number
@@ -259,4 +261,19 @@ export interface SubmissionDoc {
   answers: SubmissionAnswer[]
   submitted: boolean
   submittedAt: number | null
+}
+
+// 개인 자율 연수 참여자 1명의 진행 기록(sessions/{code}/learners/{id})
+export interface LearnerDoc {
+  id: string
+  name: string
+  affiliation: string // 학년·부서 등(동명이인 구분, 명단 대조용)
+  role: RoleId
+  diseaseId: string
+  stage: StageId | 'reading' | 'done' // 지금 하고 있는 단계
+  checked: Partial<Record<StageId, number[]>> // 단계별 체크 완료한 내 역할 항목 번호
+  answers: Partial<Record<StageId, boolean>> // 단계별 확인 퀴즈 정답 여부(처음 고른 답 기준)
+  startedAt: number
+  updatedAt: number
+  completedAt: number | null
 }

@@ -12,6 +12,10 @@ import DiseaseDetailPage from './pages/DiseaseDetailPage'
 import GuideDocumentPage from './pages/GuideDocumentPage'
 import AttendanceGuidePage from './pages/AttendanceGuidePage'
 import FacilitatorGate from './components/FacilitatorGate'
+import SelfSetupPage from './pages/SelfSetupPage'
+import SelfDashboardPage from './pages/SelfDashboardPage'
+import SelfJoinPage from './pages/SelfJoinPage'
+import SelfRunPage from './pages/SelfRunPage'
 
 export default function App() {
   return (
@@ -25,6 +29,10 @@ export default function App() {
       <Route path="/facilitator/:code/groups" element={<FacilitatorGate><GroupAssignmentPage /></FacilitatorGate>} />
       <Route path="/facilitator/:code/present" element={<FacilitatorGate><FacilitatorPresentPage /></FacilitatorGate>} />
       <Route path="/facilitator/:code/result" element={<FacilitatorGate openWhenFinished><ResultPage /></FacilitatorGate>} />
+      <Route path="/facilitator/self-setup" element={<SelfSetupPage />} />
+      <Route path="/facilitator/:code/self" element={<FacilitatorGate><SelfDashboardPage /></FacilitatorGate>} />
+      <Route path="/self/:code" element={<SelfJoinPage />} />
+      <Route path="/self/:code/run" element={<SelfRunPage />} />
       <Route path="/join" element={<JoinPage />} />
       <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/team/:code/:groupId" element={<TeamTrainingPage />} />
