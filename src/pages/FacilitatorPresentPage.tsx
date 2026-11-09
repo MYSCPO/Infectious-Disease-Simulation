@@ -7,7 +7,7 @@ import { useSession } from '../hooks/useSession'
 import { useGroups, useStageSubmissions } from '../hooks/useGroupSubmissions'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
-import { COMMON_WILDCARD_QUIZZES, getCommonWildcardQuizCount, getWildcardQuizCount, WILDCARD_QUIZZES } from '../data/wildcardQuiz'
+import QuizBankPreview from '../components/QuizBankPreview'
 import { STAGES, nextStage, prevStage } from '../data/stages'
 import {
   advanceToStage,
@@ -462,32 +462,7 @@ export default function FacilitatorPresentPage() {
             </p>
           )}
 
-          <div className="mb-4 space-y-1.5">
-            <p className="text-xs font-semibold text-slate-500">
-              🎲 문제 은행(발송할 때마다 아래 영역 중 하나가 무작위로 출제, 단계와 무관하게 항상 발송 가능)
-            </p>
-            <div className="text-xs bg-violet-50 border border-violet-100 rounded-xl px-3 py-2">
-              <span className="font-bold text-violet-700">📋 보너스(공통)</span>
-              <span className="text-slate-600">
-                {' '}
-                · 문제 {getCommonWildcardQuizCount()}개 준비됨 (
-                {Array.from(new Set(COMMON_WILDCARD_QUIZZES.map((q) => q.topic))).join(' · ')}) · 감염병과 무관하게
-                전 조 동일 문제
-              </span>
-            </div>
-            {clusterEntries.map(([diseaseId]) => {
-              const disease = getDiseaseById(diseaseId)
-              const count = getWildcardQuizCount(diseaseId)
-              const topics = Array.from(new Set(WILDCARD_QUIZZES[diseaseId]?.map((q) => q.topic) ?? []))
-              if (count === 0) return null
-              return (
-                <div key={diseaseId} className="text-xs bg-paper-50 border border-slate-100 rounded-xl px-3 py-2">
-                  <span className="font-bold text-brand-700">{disease.name}</span>
-                  <span className="text-slate-600"> · 문제 {count}개 준비됨 ({topics.join(' · ')})</span>
-                </div>
-              )
-            })}
-          </div>
+          <QuizBankPreview diseaseIds={clusterEntries.map(([diseaseId]) => diseaseId)} />
 
         </section>
 
