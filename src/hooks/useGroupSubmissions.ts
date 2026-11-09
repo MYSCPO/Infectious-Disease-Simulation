@@ -1,7 +1,20 @@
 import { sortGroupsByName } from '../components/DiseaseDrawReveal'
 import { useEffect, useState } from 'react'
 import type { GroupDoc, StageId, SubmissionDoc } from '../types'
-import { subscribeGroupSubmission, subscribeGroups, subscribeStageSubmissions } from '../lib/session'
+import { subscribeGroup, subscribeGroupSubmission, subscribeGroups, subscribeStageSubmissions } from '../lib/session'
+
+// 내 조 하나만 실시간으로 받는다(참가자 화면용). 불러오기 전이나 조가 없으면 undefined.
+export function useGroup(code: string | undefined, groupId: string | undefined) {
+  const [group, setGroup] = useState<GroupDoc | undefined>(undefined)
+
+  useEffect(() => {
+    if (!code || !groupId) return
+    setGroup(undefined)
+    return subscribeGroup(code, groupId, (g) => setGroup(g ?? undefined))
+  }, [code, groupId])
+
+  return group
+}
 
 export function useGroups(code: string | undefined) {
   const [groups, setGroups] = useState<GroupDoc[]>([])

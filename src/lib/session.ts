@@ -6,6 +6,7 @@ import {
   DocumentData,
   FieldPath,
   getDoc,
+  getDocs,
   onSnapshot,
   QuerySnapshot,
   runTransaction,
@@ -451,6 +452,22 @@ export function subscribeGroups(code: string, cb: (groups: GroupDoc[]) => void) 
       cb(docsToArray<GroupDoc>(snap))
     }, onError),
   )
+}
+
+// 참가자 화면용: 내 조 문서 하나만 실시간으로 받는다. 전체 조 컬렉션을 구독하면 누군가 체크 하나만
+// 해도 참가자 전원의 기기가 그 변경을 읽어 가서(인원² 비례) 무료 일일 읽기 한도를 빠르게 소진한다.
+export function subscribeGroup(code: string, groupId: string, cb: (group: GroupDoc | null) => void) {
+  return subscribeAfterAuth((onError) =>
+    onSnapshot(groupRef(code, groupId), (snap) => {
+      cb(snap.exists() ? ({ id: snap.id, ...snap.data() } as GroupDoc) : null)
+    }, onError),
+  )
+}
+
+// 단계 전환 때 잠깐 뜨는 순위 팝업처럼 전체 조가 한 번만 필요할 때 쓰는 일회성 읽기.
+export async function fetchGroups(code: string): Promise<GroupDoc[]> {
+  await ensureSignedIn()
+  return docsToArray<GroupDoc>(await getDocs(groupsCol(code)))
 }
 
 export async function createGroup(code: string, name: string, diseaseId: string): Promise<string> {

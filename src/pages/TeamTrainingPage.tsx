@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import type { SubmissionAnswer } from '../types'
+import type { GroupDoc, SubmissionAnswer } from '../types'
 import { ROLE_LABELS, ROLE_ORDER } from '../types'
 import { useSession } from '../hooks/useSession'
-import { useGroups, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
+import { useGroup, useMyGroupSubmission } from '../hooks/useGroupSubmissions'
+import { sortGroupsByName } from '../components/DiseaseDrawReveal'
 import { useAutoQuizDispatch } from '../hooks/useAutoQuizDispatch'
 import { getScenarioForDisease } from '../data/scenarioGenerator'
 import { getDiseaseById } from '../data/diseases'
 import { getCommonWildcardQuiz, getWildcardQuiz, quizSeed } from '../data/wildcardQuiz'
 import { clearParticipantIdentity, loadParticipantIdentity } from '../lib/participant'
-import { isAwaitingTrainingStart, releaseRole, submitBonusAnswer, updateChecklistProgress, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
+import { fetchGroups, isAwaitingTrainingStart, releaseRole, submitBonusAnswer, updateChecklistProgress, saveDraftAnswer, submitCoopAnswer, submitGroupAnswer, submitSpeedQuizAnswer } from '../lib/session'
 import StageBanner from '../components/StageBanner'
 import StageTimer from '../components/StageTimer'
 import ScenarioCard from '../components/ScenarioCard'
@@ -32,8 +33,9 @@ const RELAY_STAGE = 'response3'
 export default function TeamTrainingPage() {
   const { code = '', groupId = '' } = useParams()
   const { session, loading } = useSession(code)
-  const groups = useGroups(code)
-  const group = groups.find((g) => g.id === groupId)
+  // 서버 읽기 사용량을 줄이려고 내 조만 실시간으로 받는다. 전체 조는 순위 팝업을 띄울 때만 한 번 읽는다.
+  const group = useGroup(code, groupId)
+  const [leaderGroups, setLeaderGroups] = useState<GroupDoc[] | null>(null)
 
   const identity = useMemo(() => loadParticipantIdentity(), [])
   const isMine = identity && identity.sessionCode === code && identity.groupId === groupId
@@ -95,6 +97,24 @@ export default function TeamTrainingPage() {
     }
     prevStageRef.current = session.currentStage
   }, [session?.currentStage])
+
+  useEffect(() => {
+    if (!showLeaderboardPopup) {
+      setLeaderGroups(null)
+      return
+    }
+    let cancelled = false
+    fetchGroups(code)
+      .then((list) => {
+        if (!cancelled) setLeaderGroups(sortGroupsByName(list))
+      })
+      .catch(() => {
+        if (!cancelled) setShowLeaderboardPopup(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [showLeaderboardPopup, code])
 
   // 우리 조 스피드왕이 정해지는 순간 조원 모두에게 알린다.
   const speedWinnerKey = group?.speedProgress?.winnerName
@@ -447,8 +467,8 @@ export default function TeamTrainingPage() {
         <ScoreToast message={scoreToast.message} color={scoreToast.color} onClose={() => setScoreToast(null)} />
       )}
 
-      {showLeaderboardPopup && (
-        <LeaderboardPopup groups={groups} highlightGroupId={groupId} onClose={() => setShowLeaderboardPopup(false)} />
+      {showLeaderboardPopup && leaderGroups && (
+        <LeaderboardPopup groups={leaderGroups} highlightGroupId={groupId} onClose={() => setShowLeaderboardPopup(false)} />
       )}
     </div>
   )
