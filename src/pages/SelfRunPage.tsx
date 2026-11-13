@@ -308,7 +308,10 @@ export default function SelfRunPage() {
   // ── 단계 진행
   const current = learner.stage as StageId
   const idx = SELF_STAGES.indexOf(current)
-  const scenario = getScenarioForDisease(learner.diseaseId).find((s) => s.stage === current)
+  const scenario = getScenarioForDisease(learner.diseaseId, {
+    schoolName: session?.schoolName,
+    schoolLevel: session?.schoolLevel,
+  }).find((s) => s.stage === current)
   const myItems = getChecklistForStage(current, learner.diseaseId)[learner.role].items
   const checked = checkedNow ?? learner.checked[current] ?? []
   const allChecked = checked.length >= myItems.length

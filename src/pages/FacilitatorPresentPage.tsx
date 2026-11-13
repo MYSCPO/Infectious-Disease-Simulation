@@ -472,7 +472,7 @@ export default function FacilitatorPresentPage() {
 
         {clusterEntries.map(([diseaseId, clusterGroups]) => {
           const disease = getDiseaseById(diseaseId)
-          const scenarioStages = getScenarioForDisease(diseaseId)
+          const scenarioStages = getScenarioForDisease(diseaseId, { schoolName: session.schoolName, schoolLevel: session.schoolLevel })
           const currentScenario = scenarioStages.find((s) => s.stage === session.currentStage)
           const clusterGroupIds = new Set(clusterGroups.map((g) => g.id))
           const clusterSubmissions = submissions.filter((s) => clusterGroupIds.has(s.groupId))

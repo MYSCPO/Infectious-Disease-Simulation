@@ -1,14 +1,14 @@
 import type { DiseaseInfo, RoleQuestion, ScenarioStage, StageId } from '../types'
 import { SCENARIO_CHICKENPOX } from './scenario_chickenpox'
 import { getDiseaseById } from './diseases'
-import { SCENARIO_NARRATIVES } from './scenarioNarratives'
+import { getNarratives, type ScenarioContext } from './scenarioNarratives'
 
 // PRD: "시나리오 하드코딩 대신 감염병 테이블 + 단계별 조치 템플릿 + 문항 테이블 조합으로 생성"
 // 수두는 첨부 자료의 실제 서사를 그대로 사용하고, 그 외 감염병은 매뉴얼의 모의 훈련용 시나리오
 // 서술 방식을 본떠 질병별로 직접 작성한 상황 서사(scenarioNarratives.ts)를 사용한다.
 // 해당 감염병·단계의 서사가 없는 경우에만 감염병 테이블 값으로 치환한 기본 문장으로 대체한다.
-function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
-  const narratives = SCENARIO_NARRATIVES[disease.id] ?? {}
+function genericScenarioFor(disease: DiseaseInfo, ctx: ScenarioContext): ScenarioStage[] {
+  const narratives = getNarratives(disease.id, ctx)
   const fallbackNarrative: Record<StageId, string> = {
     prevention: `${disease.name} 유행 징후는 아직 없다. 학교는 평상시 감시체계와 예방 활동을 점검해야 한다. (잠복기: ${disease.incubationPeriod})`,
     response1: `학생이 ${disease.symptoms} 등 증상을 호소한다. 아직 진단 전이다.`,
@@ -101,7 +101,11 @@ function genericScenarioFor(disease: DiseaseInfo): ScenarioStage[] {
   ]
 }
 
-export function getScenarioForDisease(diseaseId: string): ScenarioStage[] {
-  if (diseaseId === 'chickenpox') return SCENARIO_CHICKENPOX
-  return genericScenarioFor(getDiseaseById(diseaseId))
+// ctx: 진행자가 입력한 학교명·학교급. 시나리오 속 학교명과 학년·반 등 배경을 그 학교에 맞춘다.
+export function getScenarioForDisease(diseaseId: string, ctx: ScenarioContext = {}): ScenarioStage[] {
+  if (diseaseId === 'chickenpox') {
+    const narratives = getNarratives('chickenpox', ctx)
+    return SCENARIO_CHICKENPOX.map((s) => ({ ...s, narrative: narratives[s.stage] ?? s.narrative }))
+  }
+  return genericScenarioFor(getDiseaseById(diseaseId), ctx)
 }

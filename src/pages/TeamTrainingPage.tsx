@@ -162,7 +162,10 @@ export default function TeamTrainingPage() {
   }
 
   const disease = getDiseaseById(group?.diseaseId ?? session.diseaseId)
-  const scenarioStages = getScenarioForDisease(group?.diseaseId ?? session.diseaseId)
+  const scenarioStages = getScenarioForDisease(group?.diseaseId ?? session.diseaseId, {
+    schoolName: session.schoolName,
+    schoolLevel: session.schoolLevel,
+  })
   const currentScenario = scenarioStages.find((s) => s.stage === session.currentStage)
   const missingRoles = ROLE_ORDER.filter((r) => !answers.some((a) => a.role === r))
   const allAnswered = missingRoles.length === 0

@@ -49,18 +49,18 @@ export const RELAY_FINAL_QUIZZES: Record<string, RelayFinalQuizQuestion> = {
     ],
   },
   handFootMouth: {
-    prompt: '수족구병 의심 어린이가 여러 학급·병설유치원에서 확인되어 3단계 대응이 필요할 때, 학사관리팀(교무부장)이 조정해야 할 핵심 업무는?',
+    prompt: '수족구병 의심 학생이 여러 학급에서 확인되어 3단계 대응이 필요할 때, 학사관리팀(교무부장)이 조정해야 할 핵심 업무는?',
     options: [
       { id: 'a', text: '역학조사 대비 교직원 명부·학사일정표 준비 및 수업 결손 대책 조정', correct: true },
       { id: 'b', text: '전체 급식 메뉴 전면 교체', correct: false },
-      { id: 'c', text: '모든 어린이 즉시 하원 조치', correct: false },
-      { id: 'd', text: '장난감을 전량 폐기', correct: false },
+      { id: 'c', text: '모든 학생 즉시 귀가 조치', correct: false },
+      { id: 'd', text: '교실 공용 물품을 전량 폐기', correct: false },
     ],
   },
   pertussis: {
     prompt: '백일해 확진자가 2명 이상 발생해 전파력이 높은 상황에서 3단계로 전환되었을 때, 발생감시팀이 매일 모니터링해야 할 대상으로 가장 적절한 것은?',
     options: [
-      { id: 'a', text: '확진자와 접촉한 학급 및 형제자매가 있는 저학년 학급의 발생 추이', correct: true },
+      { id: 'a', text: '확진자와 접촉한 학급 및 함께 활동한 학생(형제자매 포함)의 발생 추이', correct: true },
       { id: 'b', text: '전교생의 급식 섭취량', correct: false },
       { id: 'c', text: '확진 학생의 성적 변화', correct: false },
       { id: 'd', text: '교직원의 휴가 사용 현황', correct: false },

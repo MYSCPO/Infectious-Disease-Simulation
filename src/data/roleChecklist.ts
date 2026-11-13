@@ -190,7 +190,7 @@ const DISEASE_CHECKLIST_OVERRIDES: Partial<Record<string, Partial<Record<StageId
       ],
       health: [
         '체온측정 및 손·발·입안 수포성 발진 관찰로 수족구병 의심 여부 확인',
-        '수포 발생 후 6일간 또는 가피가 형성될 때까지 등교(등원) 중지 기준 안내',
+        '수포 발생 후 6일간 또는 가피가 형성될 때까지 등교 중지 기준 안내',
         '담임교사에게 학급 능동감시(매일 발진·미열 체크·관찰일지 작성) 실시를 요청',
       ],
       academic: [
@@ -198,7 +198,7 @@ const DISEASE_CHECKLIST_OVERRIDES: Partial<Record<string, Partial<Record<StageId
         '(의심)환자 귀가·격리로 발생한 수업 공백(교사 결원)에 대한 조치',
       ],
       admin: [
-        '일시적 관찰실 및 해당 학급 교실 환기·소독 실시(장난감·집기 소독 포함)',
+        '일시적 관찰실 및 해당 학급 교실 환기·소독 실시(공용 물품·교구 소독 포함)',
         '방역물품 구매 관련 행정처리',
       ],
       principal: ['보건교사로부터 상황을 보고받고 학급 능동감시 전환 및 다음 단계 전환에 대비한 보고체계 유지'],
